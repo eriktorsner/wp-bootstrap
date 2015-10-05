@@ -15,7 +15,7 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/eriktorsner/wp-bootstrap/issues",
+        "issues": "https://github.com/eriktorsner/wp-bootstrap/issues"
     },
     "require": {
         "php": ">=5.3.3"
