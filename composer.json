@@ -1,0 +1,28 @@
+{
+    "name": "eriktorsner/wp-bootstrap",
+    "description": "Utils for bootstrapping a WordPress installation",
+    "type": "library",
+    "keywords": [
+        "wordpress"
+    ],
+    "homepage": "https://github.com/eriktorsner/wp-bootstrap/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Erik Torsner",
+            "email": "erik@torgesta.com",
+            "role": "lead"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/eriktorsner/wp-bootstrap/issues",
+    },
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wpbootstrap\\": "src"
+        }
+    }
+}
