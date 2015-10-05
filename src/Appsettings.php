@@ -3,7 +3,7 @@ namespace Wpbootstrap;
 
 class Appsettings
 {
-    public static function updateAppSettings($e)
+    public static function updateAppSettings($e = null)
     {
         Bootstrap::init($e);
         require_once Bootstrap::$localSettings->wppath."/wp-load.php";

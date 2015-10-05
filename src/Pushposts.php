@@ -49,7 +49,7 @@ class Pushposts
         }
 
         // check all the media.
-        foreach (glob(dirname(__DIR__).'/media/*') as $dir) {
+        foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = unserialize(file_get_contents("$dir/meta"));
             $parentId = $this->parentId($item->post_parent, $this->posts);
             if ($parentId == 0) {

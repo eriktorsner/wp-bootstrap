@@ -6,7 +6,7 @@ class Export
     private static $baseUrl;
     private static $uploadDir;
 
-    public static function export($e)
+    public static function export($e = null)
     {
         Bootstrap::init($e);
         require_once Bootstrap::$localSettings->wppath."/wp-load.php";

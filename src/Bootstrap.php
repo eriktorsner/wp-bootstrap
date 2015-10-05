@@ -19,14 +19,14 @@ class Bootstrap
         self::validateSettings();
     }
 
-    public static function bootstrap($e)
+    public static function bootstrap($e = null)
     {
         self::init($e);
         self::install();
         self::setup();
     }
 
-    public static function install($e)
+    public static function install($e = null)
     {
         self::init($e);
         $wpcmd = self::getWpCommand();
@@ -56,7 +56,7 @@ class Bootstrap
         exec($cmd);
     }
 
-    public static function setup($e)
+    public static function setup($e = null)
     {
         self::init($e);
 
@@ -65,7 +65,7 @@ class Bootstrap
         self::applySettings();
     }
 
-    public static function update($e)
+    public static function update($e = null)
     {
         self::init($e);
         $wpcmd = self::getWpCommand();

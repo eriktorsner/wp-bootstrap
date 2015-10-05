@@ -13,7 +13,7 @@ class Import
     private static $postReferenceNames = [
     ];
 
-    public static function import($e)
+    public static function import($e = null)
     {
         Bootstrap::init($e);
         require_once Bootstrap::$localSettings->wppath."/wp-load.php";
