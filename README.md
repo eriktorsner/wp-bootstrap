@@ -31,20 +31,37 @@ wp-bootstrap exposes a few command that can be called from various automation en
 
 ## Usage
 
-wp-bootstrap is intended to be executed from a script or task runner. For instance Grunt, Gulp or Composer. 
+wp-bootstrap is intended to be executed from a script or task runner like Grunt, Gulp or Composer. It can be called directly from the command line or as part of a larger task in i.e Grunt:
 
-**Sample Grunt setup (just showing one method):**
+**Command line usage:**
+
+    $ vendor/bin/wpbootstrap wp-export
+    $ vendor/bin/wpbootstrap wp-update plugins
+
+
+**Grunt usage:**
+Sample Grunt setup (just showing two methods):
 
     grunt.registerTask('wp-export', '', function() {
-        cmd = "php -r 'include \"vendor/autoload.php\"; Wpbootstrap\\Export::export();'";
+        cmd = "vendor/bin/wpbootstrap wp-export";
         shell.exec(cmd);
     });
 
-Run a method from the cli like this:
+    grunt.registerTask('wp-update', '', function() {
+        cmd = "vendor/bin/wpbootstrap wp-update";
+        if (typeof grunt.option('what') != 'undefined') cmd += ' ' + grunt.option('what');
+        shell.exec(cmd);
+    }); 
+
+Then run your grunt task like this:
+
     $ grunt wp-export
+    $ grunt wp-update --what=plugins
 
 
-**Sample composer setup:**
+
+**Composer usage:**
+Wp-bootstrap exposes it's commands as static functions so they are callable directly from a Composer script:
 
     "scripts": {
         "wp-bootstrap":"Wpbootstrap\\Bootstrap::bootstrap",
@@ -56,14 +73,10 @@ Run a method from the cli like this:
         "wp-pullsettings":"Wpbootstrap\\Appsettings::updateAppSettings"
     }
 
-Run a method from the cli like this:
+Then run a method from the cli like this:
 
     $ composer wp-install
-    $ composer wp-setup
-
-wp-bootstrap can also be called straight from the command line (not encouraged):
-
-    $ php -r 'include "vendor/autoload.php"; Wpbootstrap\Export::export();'
+    $ composer wp-update plugins    
 
 
 
@@ -135,7 +148,10 @@ A list of settings that will be applied to the WordPress installation using the 
 
 ###Section: wpbootstrap
 
-A list of content that can be serialized to disk using the wp-export method and later unserialized back into a WordPress install using the wp-import method.
+An associative array of content that can be serialized to disk using the wp-export method and later unserialized back into a WordPress install using the wp-import method.
 
+**posts** contains zero or more keys with an associated array. The key specifies a post_type (page, post etc) and the array contains post_name for each post to include. The export process also includes any media (images) that are attached to the specific post.
+
+**menus** contains zero or more keys with an associated array. The key represents the menu name (as defined in WordPress admin) and the array should contain each *location* that the menu appears in. The location identifiers are unique for each theme.
 
 

@@ -5,13 +5,26 @@ class Bootstrap
 {
     public static $localSettings;
     public static $appSettings;
+    public static $fromComposer = false;
+    public static $argv = array();
 
     const NETURALURL = '@@__NEUTRAL__@@';
 
     public static function init($e)
     {
-        if (!defined('BASEPATH')) {
-            define('BASEPATH', getcwd());
+        global $argv;
+
+        if (get_class($e) == 'Composer\Script\Event') {
+            // We've been called from Composer
+            self::$fromComposer = true;
+            if (!defined('BASEPATH')) {
+                define('BASEPATH', getcwd());
+            }
+            self::$argv = $e->getArguments();
+        } else {
+            self::$argv = $argv;
+            array_shift(self::$argv);
+            array_shift(self::$argv);
         }
 
         self::$localSettings = new Settings('local');
@@ -70,21 +83,20 @@ class Bootstrap
         self::init($e);
         $wpcmd = self::getWpCommand();
 
-        $args = $e->getArguments();
-        if (count($args) == 0) {
+        if (count(self::$argv) == 0) {
             $cmd = $wpcmd.'plugin update --all';
             exec($cmd);
             $cmd = $wpcmd.'theme update --all';
             exec($cmd);
             $cmd = $wpcmd.'core update';
             exec($cmd);
-        } elseif ($args[0] == 'plugins') {
-            if (count($args) == 1) {
+        } elseif (self::$argv[0] == 'plugins') {
+            if (count(self::$argv) == 1) {
                 $cmd = $wpcmd.'plugin update --all';
                 exec($cmd);
             }
-        } elseif ($args[0] == 'themes') {
-            if (count($args) == 1) {
+        } elseif (self::$argv[0] == 'themes') {
+            if (count(self::$argv) == 1) {
                 $cmd = $wpcmd.'theme update --all';
                 exec($cmd);
             }
