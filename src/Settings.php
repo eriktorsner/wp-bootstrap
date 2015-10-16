@@ -24,6 +24,10 @@ class Settings
                 break;
         }
 
+        if (!file_exists(BASEPATH.$file)) {
+            return false;
+        }
+
         $this->obj = json_decode(file_get_contents(BASEPATH.$file));
         if (defined('TESTMODE') && TESTMODE) {
             $this->obj->environment = 'test';

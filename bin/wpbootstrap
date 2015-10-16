@@ -15,7 +15,6 @@ if (!defined('WPBOOTSTRAP_COMPOSER_INSTALL')) {
     );
     die(1);
 }
-
 require_once WPBOOTSTRAP_COMPOSER_INSTALL;
 define('BASEPATH', realpath(dirname(WPBOOTSTRAP_COMPOSER_INSTALL) . '/../'));
 
@@ -25,13 +24,13 @@ if(count($argv) < 2) {
 
 switch($argv[1]) {
     case 'wp-bootsrap':
-        Wpbootsrap\Bootsrap::bootstrap();
+        Wpbootstrap\Bootstrap::bootstrap();
         break;
     case 'wp-install':
-        Wpbootsrap\Bootsrap::install();
+        Wpbootstrap\Bootstrap::install();
         break;        
     case 'wp-setup':
-        Wpbootsrap\Bootsrap::setup();
+        Wpbootstrap\Bootstrap::setup();
         break;                
     case 'wp-update':
         Wpbootstrap\Bootstrap::update();
