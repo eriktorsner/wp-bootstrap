@@ -12,10 +12,15 @@ class Import
     ];
     private static $postReferenceNames = [
     ];
+    private static $optionReferenceNames = [
+        'page_on_front',
+        'rcp_settings' => "['foobar']",
+    ];
 
     public static function import($e = null)
     {
         Bootstrap::init($e);
+
         require_once Bootstrap::$localSettings->wppath."/wp-load.php";
         require_once Bootstrap::$localSettings->wppath."/wp-admin/includes/image.php";
 
@@ -74,5 +79,18 @@ class Import
                 }
             }
         }
+
+        Resolver::resolveReferences(self::$optionReferenceNames);
+    }
+
+    public static function findTargetPostId($target)
+    {
+        foreach (self::$posts->posts as $post) {
+            if ($post->post->ID == $target) {
+                return $post->id;
+            }
+        }
+
+        return 0;
     }
 }

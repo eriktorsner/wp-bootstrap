@@ -3,37 +3,42 @@ namespace Wpbootstrap;
 
 class Resolver
 {
-    public static function resolveReferences()
+    public static function resolveReferences($references)
     {
-        global $bootstrapSettings;
+        wp_cache_delete('alloptions', 'options');
 
-        foreach ($bootstrapSettings->references as $reference) {
-            if (!isset($reference->path) && !isset($reference->paths)) {
-                $currentValue = get_option($reference->option_name, 0);
-                $postId = findTargetPostId($currentValue);
+        foreach ($references as $key => $value) {
+            if (is_integer($key)) {
+                $currentValue = get_option($value, 0);
+                $postId = Import::findTargetPostId($currentValue);
+                echo "current: $currentValue new: $postId\n";
                 if ($postId != 0) {
-                    update_option($reference->option_name, $postId);
+                    update_option($value, $postId);
                 }
-            } elseif (isset($reference->path) && !isset($reference->paths)) {
-                $path = $reference->path;
-                $currentStruct = get_option($reference->option_name, 0);
-                $currentValue = self::getValue($currentStruct, $path);
-                $postId = findTargetPostId($currentValue);
-                if ($postId != 0) {
-                    self::setValue($currentStruct, $path, $postId);
-                    update_option($reference->option_name, $currentStruct);
+            } elseif (is_string($key) && is_string($value)) {
+                $path = $value;
+                $currentStruct = get_option($key, 0);
+                try {
+                    $currentValue = self::getValue($currentStruct, $path);
+                    $postId = Import::findTargetPostId($currentValue);
+                    if ($postId != 0) {
+                        self::setValue($currentStruct, $path, $postId);
+                        update_option($key, $currentStruct);
+                    }
+                } catch (\Exception $e) {
+                    continue;
                 }
-            } elseif (isset($reference->paths)) {
-                $currentStruct = get_option($reference->option_name, 0);
-                $paths = $reference->paths;
+            } elseif (is_string($key) && is_array($value)) {
+                $currentStruct = get_option($key, 0);
+                $paths = $value;
                 foreach ($paths as $path) {
                     $currentValue = self::getValue($currentStruct, $path);
-                    $postId = findTargetPostId($currentValue);
+                    $postId = Import::findTargetPostId($currentValue);
                     if ($postId != 0) {
                         self::setValue($currentStruct, $path, $postId);
                     }
                 }
-                update_option($reference->option_name, $currentStruct);
+                update_option($key, $currentStruct);
             }
         }
     }

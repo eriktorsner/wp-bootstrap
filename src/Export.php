@@ -29,6 +29,14 @@ class Export
         $trg = BASEPATH.'/bootstrap/config/wpbootstrap.json';
         @mkdir(dirname($trg), 0777, true);
         copy($src, $trg);
+
+        // sanity check
+        $settings = json_decode(file_get_contents($trg));
+        $label = '.label';
+        if (is_null($settings->$label)) {
+            $settings->$label = 'wpbootstrap';
+            file_put_contents($trg, Bootstrap::prettyPrint(json_encode($settings)));
+        }
     }
 
     private static function exportContent()
@@ -55,7 +63,9 @@ class Export
                     $post
                 ));
                 $post = get_post($postId);
-
+                if (!$post) {
+                    continue;
+                }
                 $meta = get_post_meta($post->ID);
                 $post->post_meta = $meta;
                 Resolver::fieldSearchReplace($post, self::$baseUrl, Bootstrap::NETURALURL);
