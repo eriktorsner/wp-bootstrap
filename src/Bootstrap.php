@@ -230,11 +230,18 @@ class Bootstrap
 
     private static function validateSettings()
     {
+        $good = true;
         if (!self::$localSettings->isValid()) {
             echo "localsettings.json does not exist or contains invalid JSON\n";
+            $good = false;
         }
         if (!self::$appSettings->isValid()) {
             echo "appsettings.json does not exist or contains invalid JSON\n";
+            $good = false;
+        }
+        if (!$good) {
+            echo "\nAt least one configuration file is missing or contains invalid JSON\n";
+            echo "Consider running command wp-init to set up template setting files\n";
         }
     }
 

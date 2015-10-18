@@ -22,7 +22,7 @@ class Initbootstrap
             $appSettings->title = "[title]";
             file_put_contents(BASEPATH.'/appsettings.json', Bootstrap::prettyPrint(json_encode($appSettings)));
         }
-        if (!file_exists(BASEPATH.'/§.json')) {
+        if (!file_exists(BASEPATH.'/localsettings.json')) {
             $localSettings = new \stdClass();
             $localSettings->environment = '[environment]';
             $localSettings->url    = '[url]';
@@ -38,6 +38,7 @@ class Initbootstrap
 
     public static function initComposer($e = null)
     {
+        Bootstrap::init($e);
         if (!file_exists(BASEPATH.'/composer.json')) {
             die("Error: composer.json not found in current folder\n");
         }
