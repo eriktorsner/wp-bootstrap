@@ -11,18 +11,33 @@ class Initbootstrap
         "wp-export"        => "Wpbootstrap\\Export::export",
         "wp-import"        => "Wpbootstrap\\Import::import",
         "wp-pullsettings"  => "Wpbootstrap\\Initbootstrap::updateAppSettings",
+        "wp-init"          => "Wpbootstrap\\Initbootstrap::init",
         "wp-init-composer" => "Wpbootstrap\\Initbootstrap::initComposer",
     );
 
     public static function init($e = null)
     {
-        Bootstrap::init($e);
+        if (!file_exists(BASEPATH.'/appsettings.json')) {
+            $appSettings = new \stdClass();
+            $appSettings->title = "[title]";
+            file_put_contents(BASEPATH.'/appsettings.json', Bootstrap::prettyPrint(json_encode($appSettings)));
+        }
+        if (!file_exists(BASEPATH.'/§.json')) {
+            $localSettings = new \stdClass();
+            $localSettings->environment = '[environment]';
+            $localSettings->url    = '[url]';
+            $localSettings->dbhost = '[dbhost]';
+            $localSettings->dbname = '[dbname]';
+            $localSettings->dbuser = '[dbuser]';
+            $localSettings->wpuser = '[wpuser]';
+            $localSettings->wppass = '[wppass]';
+            $localSettings->wppath = '[wppath]';
+            file_put_contents(BASEPATH.'/localsettings.json', Bootstrap::prettyPrint(json_encode($localSettings)));
+        }
     }
 
     public static function initComposer($e = null)
     {
-        Bootstrap::init($e);
-
         if (!file_exists(BASEPATH.'/composer.json')) {
             die("Error: composer.json not found in current folder\n");
         }

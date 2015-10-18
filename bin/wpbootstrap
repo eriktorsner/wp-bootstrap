@@ -41,6 +41,9 @@ switch($argv[1]) {
     case 'wp-import':
         Wpbootstrap\Import::import();
         break;
+    case 'wp-init':
+        Wpbootstrap\Initbootstrap::init();
+        break;                
     case 'wp-init-composer':
         Wpbootstrap\Initbootstrap::initComposer();
         break;        
