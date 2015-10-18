@@ -17,6 +17,9 @@ class Initbootstrap
 
     public static function init($e = null)
     {
+        Bootstrap::$requireSettings = false;
+        Bootstrap::init($e);
+
         if (!file_exists(BASEPATH.'/appsettings.json')) {
             $appSettings = new \stdClass();
             $appSettings->title = "[title]";
@@ -29,6 +32,7 @@ class Initbootstrap
             $localSettings->dbhost = '[dbhost]';
             $localSettings->dbname = '[dbname]';
             $localSettings->dbuser = '[dbuser]';
+            $localSettings->dbpass = '[dbpass]';
             $localSettings->wpuser = '[wpuser]';
             $localSettings->wppass = '[wppass]';
             $localSettings->wppath = '[wppath]';
@@ -38,6 +42,7 @@ class Initbootstrap
 
     public static function initComposer($e = null)
     {
+        Bootstrap::$requireSettings = false;
         Bootstrap::init($e);
         if (!file_exists(BASEPATH.'/composer.json')) {
             die("Error: composer.json not found in current folder\n");

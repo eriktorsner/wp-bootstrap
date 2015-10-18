@@ -31,11 +31,11 @@ class Settings
         $this->obj = json_decode(file_get_contents(BASEPATH.$file));
         if (defined('TESTMODE') && TESTMODE) {
             $this->obj->environment = 'test';
-            foreach ($obj as $param) {
-                $parts = explode('_', $param);
+            foreach ($this->obj as $key => $param) {
+                $parts = explode('_', $key);
                 $name = $parts[0];
                 if (isset($parts[1]) && $parts[1] == 'test') {
-                    $this->obj->$name = $this->obj->$param;
+                    $this->obj->$name = $param;
                 }
             }
         }

@@ -6,6 +6,7 @@ class Bootstrap
     public static $localSettings;
     public static $appSettings;
     public static $fromComposer = false;
+    public static $requireSettings = true;
     public static $argv = array();
 
     const NETURALURL = '@@__NEUTRAL__@@';
@@ -14,12 +15,13 @@ class Bootstrap
     {
         global $argv;
 
+        if (!defined('BASEPATH')) {
+            define('BASEPATH', getcwd());
+        }
+
         if (get_class($e) == 'Composer\Script\Event') {
             // We've been called from Composer
             self::$fromComposer = true;
-            if (!defined('BASEPATH')) {
-                define('BASEPATH', getcwd());
-            }
             self::$argv = $e->getArguments();
         } else {
             self::$argv = $argv;
@@ -27,9 +29,11 @@ class Bootstrap
             array_shift(self::$argv);
         }
 
-        self::$localSettings = new Settings('local');
-        self::$appSettings = new Settings('app');
-        self::validateSettings();
+        if (self::$requireSettings) {
+            self::$localSettings = new Settings('local');
+            self::$appSettings = new Settings('app');
+            self::validateSettings();
+        }
     }
 
     public static function bootstrap($e = null)
