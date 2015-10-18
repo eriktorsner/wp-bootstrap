@@ -14,6 +14,16 @@ To add this package as a local, per-project dependency to your project, simply a
 
 **Note!:** wp-bootstrap assumes that wp-cli is globally available on the machine using the alias "wp". 
 
+### Quick start
+
+Wp-bootstrap can be called directly from it's binary, located in vendor/bin. To reduce typing, you can add the bootstrap commands to your composer file:
+
+    $ vendor/bin/wpbootstrap wp-init-composer
+    
+Then to run a command:
+
+    $ composer wp-export
+    
 
 ## Commands
 
