@@ -1,5 +1,5 @@
 # wp-bootstrap
-Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation.
+Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation. Wp-bootstrap uses two configuration files, appsettings.json and localsettings.json to control it's behaviour. 
 
 
 ## Installation
@@ -74,13 +74,14 @@ Then run your grunt task like this:
 Wp-bootstrap exposes it's commands as static functions so they are callable directly from a Composer script:
 
     "scripts": {
-        "wp-bootstrap":"Wpbootstrap\\Bootstrap::bootstrap",
-        "wp-install":"Wpbootstrap\\Bootstrap::install",
-        "wp-setup":"Wpbootstrap\\Bootstrap::setup",
-        "wp-update":"Wpbootstrap\\Bootstrap::update",
-        "wp-export":"Wpbootstrap\\Export::export",
-        "wp-import":"Wpbootstrap\\Import::import",
-        "wp-pullsettings":"Wpbootstrap\\Appsettings::updateAppSettings"
+		"wp-bootstrap": "Wpbootstrap\\Bootstrap::bootstrap",
+		"wp-install": "Wpbootstrap\\Bootstrap::install",
+		"wp-setup": "Wpbootstrap\\Bootstrap::setup",
+		"wp-update": "Wpbootstrap\\Bootstrap::update",
+		"wp-export": "Wpbootstrap\\Export::export",
+		"wp-import": "Wpbootstrap\\Import::import",
+		"wp-pullsettings": "Wpbootstrap\\Initbootstrap::updateAppSettings",
+		"wp-init-composer": "Wpbootstrap\\Initbootstrap::initComposer"
     }
 
 Then run a method from the cli like this:
