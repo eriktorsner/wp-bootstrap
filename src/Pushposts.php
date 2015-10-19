@@ -3,8 +3,8 @@ namespace Wpbootstrap;
 
 class Pushposts
 {
-    public $posts = [];
-    public $media = [];
+    public $posts = array();
+    public $media = array();
 
     public function __construct()
     {
@@ -56,21 +56,21 @@ class Pushposts
                 continue;
             }
 
-            $args = [
+            $args = array(
                 'name' => $item->post_name,
                 'post_type' => $item->post_type,
-            ];
+            );
             $id = 0;
             $existing = new \WP_Query($args);
             if (!$existing->have_posts()) {
-                $args = [
+                $args = array(
                     'post_title'     => $item->post_title,
                     'post_name'      => $item->post_name,
                     'post_type'      => $item->post_type,
                     'post_parent'    => $parentId,
                     'post_status'    => $item->post_status,
                     'post_mime_type' => $item->post_mime_type,
-                ];
+                );
                 $id = wp_insert_post($args);
             } else {
                 $id = $existing->post->ID;

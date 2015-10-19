@@ -74,22 +74,22 @@ class Initbootstrap
         if (!isset(Bootstrap::$appSettings->wpbootstrap->posts)) {
             Bootstrap::$appSettings->wpbootstrap->posts = new \stdClass();
         }
-        $args = [
-            'meta_query' => [
-                [
+        $args = array(
+            'meta_query' => array(
+                array(
                     'key' => 'wpbootstrap_export',
                     'value' => 1,
-                ],
-            ],
+                ),
+            ),
             'posts_per_page' => -1,
             'post_type' => 'any',
-        ];
+        );
         $posts = new \WP_Query($args);
         foreach ($posts->posts as $post) {
             $postType = $post->post_type;
             $slug = $post->post_name;
             if (!isset(Bootstrap::$appSettings->wpbootstrap->posts->$postType)) {
-                Bootstrap::$appSettings->wpbootstrap->posts->$postType = [];
+                Bootstrap::$appSettings->wpbootstrap->posts->$postType = array();
             }
             if (!in_array($slug, Bootstrap::$appSettings->wpbootstrap->posts->$postType)) {
                 array_push(Bootstrap::$appSettings->wpbootstrap->posts->$postType, $slug);

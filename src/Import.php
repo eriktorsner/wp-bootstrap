@@ -7,15 +7,15 @@ class Import
     public static $baseUrl;
     public static $uploadDir;
 
-    private static $metaReferenceNames = [
+    private static $metaReferenceNames = array(
         '_thumbnail_id',
-    ];
-    private static $postReferenceNames = [
-    ];
-    private static $optionReferenceNames = [
+    );
+    private static $postReferenceNames = array(
+    );
+    private static $optionReferenceNames = array(
         'page_on_front',
         'rcp_settings' => "['foobar']",
-    ];
+    );
 
     public static function import($e = null)
     {
@@ -71,10 +71,10 @@ class Import
             foreach (self::$posts->posts as $post) {
                 if (isset($post->post->$refName)) {
                     $newId = self::$posts->findTargetPostId($post->post->$refName);
-                    $args = [
+                    $args = array(
                         'ID' => $post->id,
                         $refName => $newId,
-                    ];
+                );
                     wp_update_post($args);
                 }
             }

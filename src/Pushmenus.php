@@ -3,12 +3,12 @@ namespace Wpbootstrap;
 
 class Pushmenus
 {
-    private $menus = [];
-    private $skipped_meta_fields = [
+    private $menus = array();
+    private $skipped_meta_fields = array(
         '_menu_item_menu_item_parent',
         '_menu_item_object_id',
         '_menu_item_object',
-    ];
+    );
 
     public function __construct()
     {
@@ -17,7 +17,7 @@ class Pushmenus
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;
             $newMenu->locations = $locations;
-            $newMenu->items = [];
+            $newMenu->items = array();
             foreach ($this->getFiles($dir) as $file) {
                 $menuItem = new \stdClass();
                 $menuItem->done = false;
@@ -40,7 +40,7 @@ class Pushmenus
 
     private function process()
     {
-        $locations = [];
+        $locations = array();
         foreach ($this->menus as $menu) {
             $this->processMenu($menu);
             foreach ($menu->locations as $location) {
@@ -74,7 +74,7 @@ class Pushmenus
             $newTarget = Import::$posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
             $parentItem = $this->findMenuItem($objMenuItem->menu->post_meta['_menu_item_menu_item_parent'][0]);
 
-            $args = [
+            $args = array(
                     'menu-item-title'       =>  $objMenuItem->menu->post_title,
                     'menu-item-position'    =>  $objMenuItem->menu->menu_order,
                     'menu-item-description' =>  $objMenuItem->menu->post_content,
@@ -85,7 +85,7 @@ class Pushmenus
                     'menu-item-object-id'   =>  $newTarget,
                     'menu-item-url'         =>  $objMenuItem->menu->post_meta['_menu_item_url'][0],
                     'menu-item-parent-id'   =>  $parentItem,
-            ];
+            );
             $ret = wp_update_nav_menu_item($menuId, 0, $args);
             $objMenuItem->id = $ret;
 
