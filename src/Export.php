@@ -27,15 +27,17 @@ class Export
 
         $src = Bootstrap::$localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         $trg = BASEPATH.'/bootstrap/config/wpbootstrap.json';
-        @mkdir(dirname($trg), 0777, true);
-        copy($src, $trg);
+        if (file_exists($src)) {
+            @mkdir(dirname($trg), 0777, true);
+            copy($src, $trg);
 
-        // sanity check
-        $settings = json_decode(file_get_contents($trg));
-        $label = '.label';
-        if (is_null($settings->$label)) {
-            $settings->$label = 'wpbootstrap';
-            file_put_contents($trg, Bootstrap::prettyPrint(json_encode($settings)));
+            // sanity check
+            $settings = json_decode(file_get_contents($trg));
+            $label = '.label';
+            if (is_null($settings->$label)) {
+                $settings->$label = 'wpbootstrap';
+                file_put_contents($trg, Bootstrap::prettyPrint(json_encode($settings)));
+            }
         }
     }
 
