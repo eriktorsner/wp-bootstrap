@@ -358,4 +358,15 @@ class Bootstrap
 
         return $result;
     }
+
+    public static function includeWordPress()
+    {
+        $old = set_error_handler("\\Wpbootstrap\\Bootstrap::noError");
+        require_once self::$localSettings->wppath."/wp-load.php";
+        set_error_handler($old);
+    }
+
+    public static function noError($errno, $errstr, $errfile, $errline)
+    {
+    }
 }
