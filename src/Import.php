@@ -21,7 +21,7 @@ class Import
     {
         Bootstrap::init($e);
 
-        require_once Bootstrap::$localSettings->wppath."/wp-load.php";
+        Bootstrap::includeWordPress();
         require_once Bootstrap::$localSettings->wppath."/wp-admin/includes/image.php";
 
         self::$baseUrl = get_option('siteurl');

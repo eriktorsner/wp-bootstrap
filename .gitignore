@@ -1,4 +1,6 @@
 build/
-phpunit.xml
+www/
+localsettings.json
+appsettings.json
 *.sublime-project
 *.sublime-workspace

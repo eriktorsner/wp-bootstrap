@@ -66,7 +66,7 @@ class Initbootstrap
     public static function updateAppSettings($e = null)
     {
         Bootstrap::init($e);
-        require_once Bootstrap::$localSettings->wppath."/wp-load.php";
+        Bootstrap::includeWordPress();
 
         if (!isset(Bootstrap::$appSettings->wpbootstrap)) {
             Bootstrap::$appSettings->wpbootstrap = new \stdClass();
