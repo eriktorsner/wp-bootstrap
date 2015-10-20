@@ -29,6 +29,13 @@ class Settings
         }
 
         $this->obj = json_decode(file_get_contents(BASEPATH.$file));
+
+        if (isset($this->obj->environment) && $this->obj->environment == 'test') {
+            if (!defined('TESTMODE')) {
+                define('TESTMODE', true);
+            }
+        }
+
         if (defined('TESTMODE') && TESTMODE) {
             $this->obj->environment = 'test';
             foreach ($this->obj as $key => $param) {
