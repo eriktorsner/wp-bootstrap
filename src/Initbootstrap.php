@@ -3,27 +3,44 @@ namespace Wpbootstrap;
 
 class Initbootstrap
 {
+    private $bootstrap;
+    private static $self = false;
+
+    public static function getInstance()
+    {
+        if (!self::$self) {
+            self::$self = new Initbootstrap();
+        }
+
+        return self::$self;
+    }
+
+    public function __construct()
+    {
+        $this->bootstrap = Bootstrap::getInstance();
+    }
+
     private static $scriptMaps = array(
-        "wp-bootstrap"     => "Wpbootstrap\\Bootstrap::bootstrap",
-        "wp-install"       => "Wpbootstrap\\Bootstrap::install",
-        "wp-setup"         => "Wpbootstrap\\Bootstrap::setup",
-        "wp-update"        => "Wpbootstrap\\Bootstrap::update",
-        "wp-export"        => "Wpbootstrap\\Export::export",
-        "wp-import"        => "Wpbootstrap\\Import::import",
-        "wp-pullsettings"  => "Wpbootstrap\\Initbootstrap::updateAppSettings",
-        "wp-init"          => "Wpbootstrap\\Initbootstrap::init",
-        "wp-init-composer" => "Wpbootstrap\\Initbootstrap::initComposer",
+        "wp-bootstrap"     => "vendor/bin/wpbootstrap wp-bootstrap",
+        "wp-install"       => "vendor/bin/wpbootstrap wp-install",
+        "wp-setup"         => "vendor/bin/wpbootstrap wp-setup",
+        "wp-update"        => "vendor/bin/wpbootstrap wp-update",
+        "wp-export"        => "vendor/bin/wpbootstrap wp-export",
+        "wp-import"        => "vendor/bin/wpbootstrap wp-import",
+        "wp-pullsettings"  => "vendor/bin/wpbootstrap wp-updateAppSettings",
+        "wp-init"          => "vendor/bin/wpbootstrap wp-init",
+        "wp-init-composer" => "vendor/bin/wpbootstrap wp-initComposer",
     );
 
     public static function init($e = null)
     {
-        Bootstrap::$requireSettings = false;
-        Bootstrap::init($e);
+        $this->bootstrap->requireSettings = false;
+        $this->bootstrap->init($e);
 
         if (!file_exists(BASEPATH.'/appsettings.json')) {
             $appSettings = new \stdClass();
             $appSettings->title = "[title]";
-            file_put_contents(BASEPATH.'/appsettings.json', Bootstrap::prettyPrint(json_encode($appSettings)));
+            file_put_contents(BASEPATH.'/appsettings.json', $this->bootstrap->prettyPrint(json_encode($appSettings)));
         }
         if (!file_exists(BASEPATH.'/localsettings.json')) {
             $localSettings = new \stdClass();
@@ -36,14 +53,14 @@ class Initbootstrap
             $localSettings->wpuser = '[wpuser]';
             $localSettings->wppass = '[wppass]';
             $localSettings->wppath = '[wppath]';
-            file_put_contents(BASEPATH.'/localsettings.json', Bootstrap::prettyPrint(json_encode($localSettings)));
+            file_put_contents(BASEPATH.'/localsettings.json', $this->bootstrap->prettyPrint(json_encode($localSettings)));
         }
     }
 
     public static function initComposer($e = null)
     {
-        Bootstrap::$requireSettings = false;
-        Bootstrap::init($e);
+        $this->bootstrap->requireSettings = false;
+        $this->bootstrap->init($e);
         if (!file_exists(BASEPATH.'/composer.json')) {
             die("Error: composer.json not found in current folder\n");
         }
@@ -56,23 +73,23 @@ class Initbootstrap
             $composer->scripts = new \stdClass();
         }
 
-        foreach (self::$scriptMaps as $key => $script) {
+        foreach ($this->scriptMaps as $key => $script) {
             $composer->scripts->$key = $script;
         }
 
-        file_put_contents(BASEPATH.'/composer.json', Bootstrap::prettyPrint(json_encode($composer)));
+        file_put_contents(BASEPATH.'/composer.json', $this->bootstrap->prettyPrint(json_encode($composer)));
     }
 
     public static function updateAppSettings($e = null)
     {
-        Bootstrap::init($e);
-        Bootstrap::includeWordPress();
+        $this->bootstrap->init($e);
+        $this->bootstrap->includeWordPress();
 
-        if (!isset(Bootstrap::$appSettings->wpbootstrap)) {
-            Bootstrap::$appSettings->wpbootstrap = new \stdClass();
+        if (!isset($this->bootstrap->appSettings->wpbootstrap)) {
+            $this->bootstrap->appSettings->wpbootstrap = new \stdClass();
         }
         if (!isset(Bootstrap::$appSettings->wpbootstrap->posts)) {
-            Bootstrap::$appSettings->wpbootstrap->posts = new \stdClass();
+            $this->bootstrap->appSettings->wpbootstrap->posts = new \stdClass();
         }
         $args = array(
             'meta_query' => array(
@@ -88,13 +105,13 @@ class Initbootstrap
         foreach ($posts->posts as $post) {
             $postType = $post->post_type;
             $slug = $post->post_name;
-            if (!isset(Bootstrap::$appSettings->wpbootstrap->posts->$postType)) {
-                Bootstrap::$appSettings->wpbootstrap->posts->$postType = array();
+            if (!isset($this->bootstrap->appSettings->wpbootstrap->posts->$postType)) {
+                $this->bootstrap->appSettings->wpbootstrap->posts->$postType = array();
             }
-            if (!in_array($slug, Bootstrap::$appSettings->wpbootstrap->posts->$postType)) {
-                array_push(Bootstrap::$appSettings->wpbootstrap->posts->$postType, $slug);
+            if (!in_array($slug, $this->bootstrap->appSettings->wpbootstrap->posts->$postType)) {
+                array_push($this->bootstrap->appSettings->wpbootstrap->posts->$postType, $slug);
             }
         }
-        file_put_contents(BASEPATH.'/appsettings.json', Bootstrap::prettyPrint(Bootstrap::$appSettings->toString()));
+        file_put_contents(BASEPATH.'/appsettings.json', $this->bootstrap->prettyPrint($this->bootstrap->appSettings->toString()));
     }
 }

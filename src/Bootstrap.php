@@ -3,15 +3,26 @@ namespace Wpbootstrap;
 
 class Bootstrap
 {
-    public static $localSettings;
-    public static $appSettings;
-    public static $fromComposer = false;
-    public static $requireSettings = true;
-    public static $argv = array();
+    public $localSettings;
+    public $appSettings;
+    public $fromComposer = false;
+    public $requireSettings = true;
+    public $argv = array();
+
+    private static $self = false;
 
     const NETURALURL = '@@__NEUTRAL__@@';
 
-    public static function init($e)
+    public static function getInstance()
+    {
+        if (!self::$self) {
+            self::$self = new Bootstrap();
+        }
+
+        return self::$self;
+    }
+
+    public function init($e)
     {
         global $argv;
 
@@ -21,100 +32,100 @@ class Bootstrap
 
         if (get_class($e) == 'Composer\Script\Event') {
             // We've been called from Composer
-            self::$fromComposer = true;
-            self::$argv = $e->getArguments();
+            $this->fromComposer = true;
+            $this->argv = $e->getArguments();
         } else {
-            self::$argv = $argv;
-            array_shift(self::$argv);
-            array_shift(self::$argv);
+            $this->argv = $argv;
+            array_shift($this->argv);
+            array_shift($this->argv);
         }
 
-        if (self::$requireSettings) {
-            self::$localSettings = new Settings('local');
-            self::$appSettings = new Settings('app');
-            self::validateSettings();
+        if ($this->requireSettings) {
+            $this->localSettings = new Settings('local');
+            $this->appSettings = new Settings('app');
+            $this->validateSettings();
         }
     }
 
-    public static function bootstrap($e = null)
+    public function bootstrap($e = null)
     {
-        self::init($e);
-        self::install();
-        self::setup();
+        $this->init($e);
+        $this->install();
+        $this->setup();
     }
 
-    public static function install($e = null)
+    public function install($e = null)
     {
-        self::init($e);
-        $wpcmd = self::getWpCommand();
+        $this->init($e);
+        $wpcmd = $this->getWpCommand();
 
         $cmd = $wpcmd.'core download --force';
         exec($cmd);
 
         $cmd = $wpcmd.sprintf(
             "core config --dbname=%s --dbuser=%s --dbpass=%s --quiet",
-            self::$localSettings->dbname,
-            self::$localSettings->dbuser,
-            self::$localSettings->dbpass
+            $this->localSettings->dbname,
+            $this->localSettings->dbuser,
+            $this->localSettings->dbpass
         );
         exec($cmd);
 
-        if (!isset(self::$localSettings->wpemail)) {
-            self::$localSettings->wpemail = 'admin@local.dev';
+        if (!isset($this->localSettings->wpemail)) {
+            $this->localSettings->wpemail = 'admin@local.dev';
         }
         $cmd = $wpcmd.sprintf(
             'core install --url=%s --title="%s" --admin_name=%s --admin_email="%s" --admin_password="%s"',
-            self::$localSettings->url,
-            self::$appSettings->title,
-            self::$localSettings->wpuser,
-            self::$localSettings->wpemail,
-            self::$localSettings->wppass
+            $this->localSettings->url,
+            $this->appSettings->title,
+            $this->localSettings->wpuser,
+            $this->localSettings->wpemail,
+            $this->localSettings->wppass
         );
         exec($cmd);
     }
 
-    public static function setup($e = null)
+    public function setup($e = null)
     {
-        self::init($e);
+        $this->init($e);
 
-        self::installPlugins();
-        self::installThemes();
-        self::applySettings();
+        $this->installPlugins();
+        $this->installThemes();
+        $this->applySettings();
     }
 
-    public static function update($e = null)
+    public function update($e = null)
     {
-        self::init($e);
-        $wpcmd = self::getWpCommand();
+        $this->init($e);
+        $wpcmd = $this->getWpCommand();
 
-        if (count(self::$argv) == 0) {
+        if (count($this->argv) == 0) {
             $cmd = $wpcmd.'plugin update --all';
             exec($cmd);
             $cmd = $wpcmd.'theme update --all';
             exec($cmd);
             $cmd = $wpcmd.'core update';
             exec($cmd);
-        } elseif (self::$argv[0] == 'plugins') {
-            if (count(self::$argv) == 1) {
+        } elseif ($this->argv[0] == 'plugins') {
+            if (count($this->argv) == 1) {
                 $cmd = $wpcmd.'plugin update --all';
                 exec($cmd);
             }
-        } elseif (self::$argv[0] == 'themes') {
-            if (count(self::$argv) == 1) {
+        } elseif ($this->argv[0] == 'themes') {
+            if (count($this->argv) == 1) {
                 $cmd = $wpcmd.'theme update --all';
                 exec($cmd);
             }
         }
     }
 
-    private static function installPlugins()
+    private function installPlugins()
     {
-        $wpcmd = self::getWpCommand();
-        if (isset(self::$appSettings->plugins->standard)) {
-            $standard = self::$appSettings->plugins->standard;
+        $wpcmd = $this->getWpCommand();
+        if (isset($this->appSettings->plugins->standard)) {
+            $standard = $this->appSettings->plugins->standard;
             foreach ($standard as $plugin) {
                 $parts = explode(':', $plugin);
-                if (count($parts) == 1 || self::isUrl($plugin)) {
+                if (count($parts) == 1 || $this->isUrl($plugin)) {
                     $cmd = $wpcmd.'plugin install --activate '.$plugin;
                 } else {
                     $cmd = $wpcmd.'plugin install --activate --version='.$parts[1].' '.$parts[0];
@@ -123,17 +134,17 @@ class Bootstrap
             }
         }
 
-        if (isset(self::$appSettings->plugins->local)) {
-            $local = self::$appSettings->plugins->local;
+        if (isset($this->appSettings->plugins->local)) {
+            $local = $this->appSettings->plugins->local;
             foreach ($local as $plugin) {
-                $cmd = sprintf("rm -f %s/wp-content/plugins/%s", self::$localSettings->wppath, $plugin);
+                $cmd = sprintf("rm -f %s/wp-content/plugins/%s", $this->localSettings->wppath, $plugin);
                 exec($cmd);
 
                 $cmd = sprintf(
                     "ln -s %s/wp-content/plugins/%s %s/wp-content/plugins/%s",
                     BASEPATH,
                     $plugin,
-                    self::$localSettings->wppath,
+                    $this->localSettings->wppath,
                     $plugin
                 );
                 exec($cmd);
@@ -143,17 +154,17 @@ class Bootstrap
             }
         }
 
-        if (isset(self::$appSettings->plugins->localcopy)) {
-            self::$local = $appSettings->plugins->localcopy;
+        if (isset($this->appSettings->plugins->localcopy)) {
+            $this->local = $appSettings->plugins->localcopy;
             foreach ($local as $plugin) {
-                $cmd = sprintf("rm -f %s/wp-content/plugins/%s", self::$localSettings->wppath, $plugin);
+                $cmd = sprintf("rm -f %s/wp-content/plugins/%s", $this->localSettings->wppath, $plugin);
                 exec($cmd);
 
                 $cmd = sprintf(
                     "cp -a %s/wp-content/plugins/%s %s/wp-content/plugins/%s",
                     BASEPATH,
                     $plugin,
-                    self::$localSettings->wppath,
+                    $this->localSettings->wppath,
                     $plugin
                 );
                 exec($cmd);
@@ -164,14 +175,14 @@ class Bootstrap
         }
     }
 
-    private static function installThemes()
+    private function installThemes()
     {
-        $wpcmd = self::getWpCommand();
-        if (isset(self::$appSettings->themes->standard)) {
-            $standard = self::$appSettings->themes->standard;
+        $wpcmd = $this->getWpCommand();
+        if (isset($this->appSettings->themes->standard)) {
+            $standard = $this->appSettings->themes->standard;
             foreach ($standard as $theme) {
                 $parts = explode(':', $theme);
-                if (count($parts) == 1 || self::isUrl($theme)) {
+                if (count($parts) == 1 || $this->isUrl($theme)) {
                     $cmd = $wpcmd.'theme install '.$theme;
                 } else {
                     $cmd = $wpcmd.'theme install --version='.$parts[1].' '.$parts[0];
@@ -180,51 +191,51 @@ class Bootstrap
             }
         }
 
-        if (isset(self::$appSettings->themes->local)) {
-            $local = self::$appSettings->themes->local;
+        if (isset($this->appSettings->themes->local)) {
+            $local = $this->appSettings->themes->local;
             foreach ($local as $theme) {
-                $cmd = sprintf("rm -f %s/wp-content/themes/%s", self::$localSettings->wppath, $theme);
+                $cmd = sprintf("rm -f %s/wp-content/themes/%s", $this->localSettings->wppath, $theme);
                 exec($cmd);
 
                 $cmd = sprintf(
                     "ln -s %s/wp-content/themes/%s %s/wp-content/themes/%s",
                     BASEPATH,
                     $theme,
-                    self::$localSettings->wppath,
+                    $this->localSettings->wppath,
                     $theme
                 );
                 exec($cmd);
             }
         }
 
-        if (isset(self::$appSettings->themes->localcopy)) {
-            $local = self::$appSettings->themes->localcopy;
+        if (isset($this->appSettings->themes->localcopy)) {
+            $local = $this->appSettings->themes->localcopy;
             foreach ($local as $theme) {
-                $cmd = sprintf("rm -f %s/wp-content/themes/%s", self::$localSettings->wppath, $theme);
+                $cmd = sprintf("rm -f %s/wp-content/themes/%s", $this->localSettings->wppath, $theme);
                 exec($cmd);
 
                 $cmd = sprintf(
                     "cp -a %s/wp-content/themes/%s %s/wp-content/themes/%s",
                     BASEPATH,
                     $plugin,
-                    self::$localSettings->wppath,
+                    $this->localSettings->wppath,
                     $plugin
                 );
                 exec($cmd);
             }
         }
 
-        if (isset(self::$appSettings->themes->active)) {
-            $cmd = $wpcmd.'theme activate '.self::$appSettings->themes->active;
+        if (isset($this->appSettings->themes->active)) {
+            $cmd = $wpcmd.'theme activate '.$this->appSettings->themes->active;
             exec($cmd);
         }
     }
 
-    private static function applySettings()
+    private function applySettings()
     {
-        $wpcmd = self::getWpCommand();
-        if (isset(self::$appSettings->settings)) {
-            foreach (self::$appSettings->settings as $key => $value) {
+        $wpcmd = $this->getWpCommand();
+        if (isset($this->appSettings->settings)) {
+            foreach ($this->appSettings->settings as $key => $value) {
                 $cmd  = $wpcmd."option update $key ";
                 $cmd .= '"'.$value.'"';
                 exec($cmd);
@@ -232,14 +243,14 @@ class Bootstrap
         }
     }
 
-    private static function validateSettings()
+    private function validateSettings()
     {
         $good = true;
-        if (!self::$localSettings->isValid()) {
+        if (!$this->localSettings->isValid()) {
             echo "localsettings.json does not exist or contains invalid JSON\n";
             $good = false;
         }
-        if (!self::$appSettings->isValid()) {
+        if (!$this->appSettings->isValid()) {
             echo "appsettings.json does not exist or contains invalid JSON\n";
             $good = false;
         }
@@ -249,14 +260,14 @@ class Bootstrap
         }
     }
 
-    public static function getWpCommand()
+    public function getWpCommand()
     {
-        $wpcmd = 'wp --path='.self::$localSettings->wppath.' --allow-root ';
+        $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
 
         return $wpcmd;
     }
 
-    public static function isUrl($url)
+    public function isUrl($url)
     {
         if (filter_var($url, FILTER_VALIDATE_URL) === false) {
             return false;
@@ -265,11 +276,11 @@ class Bootstrap
         }
     }
 
-    public static function recursiveRemoveDirectory($directory)
+    public function recursiveRemoveDirectory($directory)
     {
         foreach (glob("{$directory}/*") as $file) {
             if (is_dir($file)) {
-                self::recursiveRemoveDirectory($file);
+                $this->recursiveRemoveDirectory($file);
             } else {
                 unlink($file);
             }
@@ -279,7 +290,7 @@ class Bootstrap
         }
     }
 
-    public static function uniqueObjectArray($array, $key)
+    public function uniqueObjectArray($array, $key)
     {
         $temp_array = array();
         $i = 0;
@@ -296,7 +307,7 @@ class Bootstrap
         return $temp_array;
     }
 
-    public static function prettyPrint($json)
+    public function prettyPrint($json)
     {
         $result = '';
         $level = 0;
@@ -359,10 +370,10 @@ class Bootstrap
         return $result;
     }
 
-    public static function includeWordPress()
+    public function includeWordPress()
     {
         $old = set_error_handler("\\Wpbootstrap\\Bootstrap::noError");
-        require_once self::$localSettings->wppath."/wp-load.php";
+        require_once $this->localSettings->wppath."/wp-load.php";
         set_error_handler($old);
     }
 

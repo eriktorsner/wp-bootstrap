@@ -3,89 +3,104 @@ namespace Wpbootstrap;
 
 class Import
 {
-    public static $posts;
-    public static $baseUrl;
-    public static $uploadDir;
+    public $posts;
+    public $baseUrl;
+    public $uploadDir;
 
-    private static $metaReferenceNames = array(
+    private $metaReferenceNames = array(
         '_thumbnail_id',
     );
-    private static $postReferenceNames = array(
+    private $postReferenceNames = array(
     );
-    private static $optionReferenceNames = array(
+    private $optionReferenceNames = array(
         'page_on_front',
         'rcp_settings' => "['foobar']",
     );
 
-    public static function import($e = null)
+    private $bootstrap;
+    private $resolver;
+    private static $self = false;
+
+    public static function getInstance()
     {
-        Bootstrap::init($e);
+        if (!self::$self) {
+            self::$self = new Import();
+        }
 
-        Bootstrap::includeWordPress();
-        require_once Bootstrap::$localSettings->wppath."/wp-admin/includes/image.php";
-
-        self::$baseUrl = get_option('siteurl');
-        self::$uploadDir = wp_upload_dir();
-
-        self::importSettings();
-        self::importContent();
-        self::resolveReferences();
+        return self::$self;
     }
 
-    private static function importSettings()
+    public function import($e = null)
     {
-        $wpcmd = Bootstrap::getWpCommand();
+        $this->bootstrap = Bootstrap::getInstance();
+        $this->resolver = Resolver::getInstance();
+        $this->bootstrap->init($e);
+
+        $this->bootstrap->includeWordPress();
+        require_once $this->bootstrap->localSettings->wppath."/wp-admin/includes/image.php";
+
+        $this->baseUrl = get_option('siteurl');
+        $this->uploadDir = wp_upload_dir();
+
+        $this->importSettings();
+        $this->importContent();
+        $this->resolveReferences();
+    }
+
+    private function importSettings()
+    {
+        $wpcmd = $this->bootstrap->getWpCommand();
 
         $cmd = $wpcmd.'config pull wpbootstrap';
         exec($cmd);
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
-        $trg = Bootstrap::$localSettings->wppath.'/wp-content/config/wpbootstrap.json';
+        $trg = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         @mkdir(dirname($trg), 0777, true);
         copy($src, $trg);
     }
 
-    private static function importContent()
+    private function importContent()
     {
-        self::$posts = new Pushposts();
+        $this->posts = new Pushposts();
         $menus = new Pushmenus();
     }
 
-    private static function resolveReferences()
+    private function resolveReferences()
     {
         // iterate metadata on all our managed posts and menuitems
         // and look out for stuff that might be a post reference
         // _thumbnail_id for instance...
 
-        foreach (self::$metaReferenceNames as $refName) {
-            foreach (self::$posts->posts as $post) {
+        foreach ($this->metaReferenceNames as $refName) {
+            foreach ($this->posts->posts as $post) {
                 if (isset($post->post->post_meta[$refName])) {
                     foreach ($post->post->post_meta[$refName] as $item) {
-                        $newId = self::$posts->findTargetPostId($item);
+                        $newId = $this->posts->findTargetPostId($item);
                         update_post_meta($post->id, $refName, $newId, $item);
                     }
                 }
             }
         }
-        foreach (self::$postReferenceNames as $refName) {
-            foreach (self::$posts->posts as $post) {
+        foreach ($this->postReferenceNames as $refName) {
+            foreach ($this->posts->posts as $post) {
                 if (isset($post->post->$refName)) {
-                    $newId = self::$posts->findTargetPostId($post->post->$refName);
+                    $newId = $this->posts->findTargetPostId($post->post->$refName);
                     $args = array(
                         'ID' => $post->id,
                         $refName => $newId,
-                );
+                    );
                     wp_update_post($args);
                 }
             }
         }
 
-        Resolver::resolveReferences(self::$optionReferenceNames);
+        $this->resolver->resolveReferences($this->optionReferenceNames);
     }
 
-    public static function findTargetPostId($target)
+    public function findTargetPostId($target)
     {
-        foreach (self::$posts->posts as $post) {
+        foreach ($this->posts->posts as $post) {
             if ($post->post->ID == $target) {
                 return $post->id;
             }

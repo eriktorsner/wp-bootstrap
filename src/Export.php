@@ -3,31 +3,46 @@ namespace Wpbootstrap;
 
 class Export
 {
-    private static $baseUrl;
-    private static $uploadDir;
-    private static $posts;
-    private static $taxonomies;
+    private $baseUrl;
+    private $uploadDir;
+    private $posts;
+    private $taxonomies;
 
-    public static function export($e = null)
+    private $bootstrap;
+    private $resolver;
+    private static $self = false;
+
+    public static function getInstance()
     {
-        Bootstrap::init($e);
-        Bootstrap::includeWordPress();
+        if (!self::$self) {
+            self::$self = new Export();
+        }
 
-        self::$baseUrl = get_option('siteurl');
-        self::$uploadDir = wp_upload_dir();
-
-        self::exportSettings();
-        self::exportContent();
+        return self::$self;
     }
 
-    private static function exportSettings()
+    public function export($e = null)
     {
-        $wpcmd = Bootstrap::getWpCommand();
+        $this->bootstrap = Bootstrap::getInstance();
+        $this->resolver = Resolver::getInstance();
+        $this->bootstrap->init($e);
+        $this->bootstrap->includeWordPress();
+
+        $this->baseUrl = get_option('siteurl');
+        $this->uploadDir = wp_upload_dir();
+
+        $this->exportSettings();
+        $this->exportContent();
+    }
+
+    private function exportSettings()
+    {
+        $wpcmd = $this->bootstrap->getWpCommand();
 
         $cmd = $wpcmd.'config push wpbootstrap 2>/dev/null';
         exec($cmd);
 
-        $src = Bootstrap::$localSettings->wppath.'/wp-content/config/wpbootstrap.json';
+        $src = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         $trg = BASEPATH.'/bootstrap/config/wpbootstrap.json';
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
@@ -38,77 +53,75 @@ class Export
             $label = '.label';
             if (is_null($settings->$label)) {
                 $settings->$label = 'wpbootstrap';
-                file_put_contents($trg, Bootstrap::prettyPrint(json_encode($settings)));
+                file_put_contents($trg, $this->bootstrap->prettyPrint(json_encode($settings)));
             }
         }
     }
 
-    private static function exportContent()
+    private function exportContent()
     {
         $base = BASEPATH.'/bootstrap';
 
-        Bootstrap::recursiveRemoveDirectory($base.'/menus');
-        Bootstrap::recursiveRemoveDirectory($base.'/posts');
-        Bootstrap::recursiveRemoveDirectory($base.'/media');
-        Bootstrap::recursiveRemoveDirectory($base.'/taxonomies');
+        $this->bootstrap->recursiveRemoveDirectory($base.'/menus');
+        $this->bootstrap->recursiveRemoveDirectory($base.'/posts');
+        $this->bootstrap->recursiveRemoveDirectory($base.'/media');
+        $this->bootstrap->recursiveRemoveDirectory($base.'/taxonomies');
 
-        self::$posts = new \stdClass();
-        if (isset(Bootstrap::$appSettings->wpbootstrap->posts)) {
-            foreach (Bootstrap::$appSettings->wpbootstrap->posts as $postType => $arr) {
-                self::$posts->$postType = array();
+        $this->posts = new \stdClass();
+        if (isset($this->bootstrap->appSettings->wpbootstrap->posts)) {
+            foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $arr) {
+                $this->posts->$postType = array();
                 foreach ($arr as $post) {
                     $newPost = new \stdClass();
                     $newPost->slug = $post;
                     $newPost->done = false;
-                    array_push(self::$posts->$postType, $newPost);
+                    array_push($this->posts->$postType, $newPost);
                 }
             }
         }
 
-        self::$taxonomies = new \stdClass();
-        if (isset(Bootstrap::$appSettings->wpbootstrap->taxonomies)) {
-            foreach (Bootstrap::$appSettings->wpbootstrap->taxonomies as $taxonomy => $terms) {
-                self::$taxonomies->$taxonomy = array();
-                echo "Terms: $terms \n";
+        $this->taxonomies = new \stdClass();
+        if (isset($this->bootstrap->appSettings->wpbootstrap->taxonomies)) {
+            foreach ($this->bootstrap->appSettings->wpbootstrap->taxonomies as $taxonomy => $terms) {
+                $this->taxonomies->$taxonomy = array();
                 if ($terms == "*") {
                     $allTerms = get_terms($taxonomy);
                     foreach ($allTerms as $term) {
                         $newTerm = new \stdClass();
                         $newTerm->slug = $term->slug;
                         $newTerm->done = false;
-                        array_push(self::$taxonomies->$taxonomy, $newTerm);
+                        array_push($this->taxonomies->$taxonomy, $newTerm);
                     }
                 } else {
-                    print_r($terms);
                     foreach ($terms as $term) {
                         $newTerm = new \stdClass();
                         $newTerm->slug = $term;
                         $newTerm->done = false;
-                        array_push(self::$taxonomies->$taxonomy, $newTerm);
+                        array_push($this->taxonomies->$taxonomy, $newTerm);
                     }
                 }
             }
         }
 
-        self::exportMenus();
+        $this->exportMenus();
         $count = 999;
         while ($count > 0) {
-            $count = self::exportPosts();
+            $count = $this->exportPosts();
         }
 
         $count = 999;
         while ($count > 0) {
-            $count = self::exportTaxonomies();
+            $count = $this->exportTaxonomies();
         }
-        self::exportMedia();
+        $this->exportMedia();
     }
 
-    private static function exportPosts()
+    private function exportPosts()
     {
         global $wpdb;
         $count = 0;
 
-        foreach (self::$posts as $postType => &$posts) {
+        foreach ($this->posts as $postType => &$posts) {
             foreach ($posts as &$post) {
                 if ($post->done == true) {
                     continue;
@@ -124,7 +137,7 @@ class Export
                 }
                 $meta = get_post_meta($objPost->ID);
                 $objPost->post_meta = $meta;
-                Resolver::fieldSearchReplace($objPost, self::$baseUrl, Bootstrap::NETURALURL);
+                $this->resolver->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
 
                 $file = BASEPATH."/bootstrap/posts/{$objPost->post_type}/{$objPost->post_name}";
                 @mkdir(dirname($file), 0777, true);
@@ -137,10 +150,10 @@ class Export
         return $count;
     }
 
-    private static function exportMedia()
+    private function exportMedia()
     {
         global $wpdb;
-        foreach (self::$posts as $postType => &$posts) {
+        foreach ($this->posts as $postType => &$posts) {
             foreach ($posts as &$post) {
                 $postId = $wpdb->get_var($wpdb->prepare(
                     "SELECT ID FROM $wpdb->posts WHERE post_type='%s' AND post_name = %s",
@@ -154,7 +167,7 @@ class Export
                     $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
                     @mkdir($dir, 0777, true);
                     file_put_contents($dir.'/meta', serialize($item));
-                    $src = self::$uploadDir['basedir'].'/'.$itemMeta['file'];
+                    $src = $this->uploadDir['basedir'].'/'.$itemMeta['file'];
                     $trg = $dir.'/'.basename($itemMeta['file']);
                     copy($src, $trg);
                 }
@@ -162,18 +175,18 @@ class Export
         }
     }
 
-    private static function exportMenus()
+    private function exportMenus()
     {
-        if (!isset(Bootstrap::$appSettings->wpbootstrap->menus)) {
+        if (!isset($this->bootstrap->appSettings->wpbootstrap->menus)) {
             return;
         }
-        foreach (Bootstrap::$appSettings->wpbootstrap->menus as $menu => $locations) {
+        foreach ($this->bootstrap->appSettings->wpbootstrap->menus as $menu => $locations) {
             wp_set_current_user(1);
             $loggedInmenuItems = wp_get_nav_menu_items($menu);
             wp_set_current_user(0);
             $notloggedInmenuItems = wp_get_nav_menu_items($menu);
             $menuItems = array_merge($loggedInmenuItems, $notloggedInmenuItems);
-            $menuItems = Bootstrap::uniqueObjectArray($menuItems, 'ID');
+            $menuItems = $this->bootstrap->uniqueObjectArray($menuItems, 'ID');
 
             $dir = BASEPATH.'/bootstrap/menus/'.$menu;
             array_map('unlink', glob("$dir/*"));
@@ -188,16 +201,18 @@ class Export
                         $postType = $obj->post_meta['_menu_item_object'][0];
                         $postId = $obj->post_meta['_menu_item_object_id'][0];
                         $objPost = get_post($postId);
-                        self::addPost($postType, $objPost->post_name);
+                        $this->addPost($postType, $objPost->post_name);
                         break;
                     case 'taxonomy':
                         $id = $obj->post_meta['_menu_item_object_id'][0];
                         $taxonomy = $obj->post_meta['_menu_item_object'][0];
                         $objTerm = get_term($id, $taxonomy);
-                        self::addTerm($taxonomy, $objTerm->slug);
+                        if (!is_wp_error($objTerm)) {
+                            $this->addTerm($taxonomy, $objTerm->slug);
+                        }
                         break;
                 }
-                Resolver::fieldSearchReplace($obj, self::$baseUrl, Bootstrap::NETURALURL);
+                $this->resolver->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NETURALURL);
 
                 $file = $dir.'/'.$menuItem->post_name;
                 file_put_contents($file, serialize($obj));
@@ -205,10 +220,10 @@ class Export
         }
     }
 
-    private static function exportTaxonomies()
+    private function exportTaxonomies()
     {
         $count = 0;
-        foreach (self::$taxonomies as $taxonomy => &$terms) {
+        foreach ($this->taxonomies as $taxonomy => &$terms) {
             foreach ($terms as &$term) {
                 if ($term->done == true) {
                     continue;
@@ -220,8 +235,8 @@ class Export
                 file_put_contents($file, serialize($objTerm));
 
                 if ($objTerm->parent) {
-                    $parentTerm = get_term_by('it', $objTerm->parent, $taxonomy);
-                    self::addTerm($taxonomy, $parentTerm->slug);
+                    $parentTerm = get_term_by('id', $objTerm->parent, $taxonomy);
+                    $this->addTerm($taxonomy, $parentTerm->slug);
                 }
                 $term->done = true;
                 $count++;
@@ -231,12 +246,12 @@ class Export
         return $count;
     }
 
-    private static function addTerm($taxonomy, $slug)
+    private function addTerm($taxonomy, $slug)
     {
-        if (!isset(self::$taxonomies->$taxonomy)) {
-            self::$taxonomies->$taxonomy = array();
+        if (!isset($this->taxonomies->$taxonomy)) {
+            $this->taxonomies->$taxonomy = array();
         }
-        foreach (self::$taxonomies->$taxonomy as $term) {
+        foreach ($this->taxonomies->$taxonomy as $term) {
             if ($term->slug == $slug) {
                 return;
             }
@@ -245,15 +260,15 @@ class Export
         $newTerm = new \stdClass();
         $newTerm->slug = $slug;
         $newTerm->done = false;
-        array_push(self::$taxonomies->$taxonomy, $newTerm);
+        array_push($this->taxonomies->$taxonomy, $newTerm);
     }
 
-    private static function addPost($postType, $slug)
+    private function addPost($postType, $slug)
     {
-        if (!isset(self::$posts->$postType)) {
-            self::$posts->$postType = array();
+        if (!isset($this->posts->$postType)) {
+            $this->posts->$postType = array();
         }
-        foreach (self::$posts->$postType as $post) {
+        foreach ($this->posts->$postType as $post) {
             if ($post->slug == $slug) {
                 return;
             }
@@ -262,6 +277,6 @@ class Export
         $newPost = new \stdClass();
         $newPost->slug = $slug;
         $newPost->done = false;
-        array_push(self::$posts->$postType, $newPost);
+        array_push($this->posts->$postType, $newPost);
     }
 }

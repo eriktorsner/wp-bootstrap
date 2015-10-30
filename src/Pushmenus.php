@@ -10,9 +10,17 @@ class Pushmenus
         '_menu_item_object',
     );
 
+    private $bootstrap;
+    private $import;
+    private $resolver;
+
     public function __construct()
     {
-        foreach (Bootstrap::$appSettings->wpbootstrap->menus as $menu => $locations) {
+        $this->bootstrap = Bootstrap::getInstance();
+        $this->import = Import::getInstance();
+        $this->resolver = Resolver::getInstance();
+
+        foreach ($this->bootstrap->appSettings->wpbootstrap->menus as $menu => $locations) {
             $dir = BASEPATH."/bootstrap/menus/$menu";
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;
@@ -34,7 +42,7 @@ class Pushmenus
         }
         $baseUrl = get_option('siteurl');
         $neutralUrl = Bootstrap::NETURALURL;
-        Resolver::fieldSearchReplace($this->menus, Bootstrap::NETURALURL, Import::$baseUrl);
+        $this->resolver->fieldSearchReplace($this->menus, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -65,13 +73,13 @@ class Pushmenus
         wp_set_current_user(0);
         $notloggedInmenuItems = wp_get_nav_menu_items($menu->slug);
         $existingMenuItems = array_merge($loggedInmenuItems, $notloggedInmenuItems);
-        $existingMenuItems = Bootstrap::uniqueObjectArray($existingMenuItems, 'ID');
+        $existingMenuItems = $this->bootstrap->uniqueObjectArray($existingMenuItems, 'ID');
         foreach ($existingMenuItems as $existingMenuItem) {
             $ret = wp_delete_post($existingMenuItem->ID, true);
         }
 
         foreach ($menu->items as &$objMenuItem) {
-            $newTarget = Import::$posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+            $newTarget = $this->import->posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
             $parentItem = $this->findMenuItem($objMenuItem->menu->post_meta['_menu_item_menu_item_parent'][0]);
 
             $args = array(

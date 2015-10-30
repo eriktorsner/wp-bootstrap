@@ -6,9 +6,17 @@ class Pushposts
     public $posts = array();
     public $media = array();
 
+    private $bootstrap;
+    private $import;
+    private $resolver;
+
     public function __construct()
     {
-        foreach (Bootstrap::$appSettings->wpbootstrap->posts as $postType => $val) {
+        $this->bootstrap = Bootstrap::getInstance();
+        $this->import = Import::getInstance();
+        $this->resolver = Resolver::getInstance();
+
+        foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $val) {
             foreach ($val as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
@@ -23,7 +31,7 @@ class Pushposts
             }
         }
 
-        Resolver::fieldSearchReplace($this->posts, Bootstrap::NETURALURL, Import::$baseUrl);
+        $this->resolver->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -79,8 +87,8 @@ class Pushposts
 
             // move the file
             $src = $dir.'/'.basename($item->meta['file']);
-            $trg = Import::$uploadDir['basedir'].'/'.$item->meta['file'];
-            @mkdir(Import::$uploadDir['basedir'].'/'.dirname($item->meta['file']), 0777, true);
+            $trg = $this->import->uploadDir['basedir'].'/'.$item->meta['file'];
+            @mkdir($this->import->uploadDir['basedir'].'/'.dirname($item->meta['file']), 0777, true);
             copy($src, $trg);
             // create metadata and other sizes
             $attachData = wp_generate_attachment_metadata($id, $trg);

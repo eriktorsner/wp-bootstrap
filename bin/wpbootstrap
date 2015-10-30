@@ -30,28 +30,36 @@ if(count($argv) < 2) {
 
 switch($argv[1]) {
     case 'wp-bootsrap':
-        Wpbootstrap\Bootstrap::bootstrap();
+        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap->bootstrap();
         break;
     case 'wp-install':
-        Wpbootstrap\Bootstrap::install();
+        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap->install();
         break;        
     case 'wp-setup':
-        Wpbootstrap\Bootstrap::setup();
+        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap->setup();
         break;                
     case 'wp-update':
-        Wpbootstrap\Bootstrap::update();
+        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap->update();
         break;
     case 'wp-export':
-        Wpbootstrap\Export::export();
+        $export = Wpbootstrap\Export::getInstance();
+        $export->export();
         break;
     case 'wp-import':
-        Wpbootstrap\Import::import();
+        $import = Wpbootstrap\Import::getInstance();
+        $import->import();
         break;
     case 'wp-init':
-        Wpbootstrap\Initbootstrap::init();
+        $initBootstrap = Wpbootstrap\Initbootstrap::getInstance();
+        $initBootstrap->init();
         break;                
     case 'wp-init-composer':
-        Wpbootstrap\Initbootstrap::initComposer();
+        $initBootstrap = Wpbootstrap\Initbootstrap::getInstance();
+        $initBootstrap->initComposer();
         break;        
     default:
         die("Command {$argv[1]} not recognized\n");       
