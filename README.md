@@ -1,3 +1,4 @@
+
 # wp-bootstrap
 Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation. Wp-bootstrap uses two configuration files, appsettings.json and localsettings.json to control it's behaviour. 
 
@@ -74,14 +75,14 @@ Then run your grunt task like this:
 Wp-bootstrap exposes it's commands as static functions so they are callable directly from a Composer script:
 
     "scripts": {
-		"wp-bootstrap": "Wpbootstrap\\Bootstrap::bootstrap",
-		"wp-install": "Wpbootstrap\\Bootstrap::install",
-		"wp-setup": "Wpbootstrap\\Bootstrap::setup",
-		"wp-update": "Wpbootstrap\\Bootstrap::update",
-		"wp-export": "Wpbootstrap\\Export::export",
-		"wp-import": "Wpbootstrap\\Import::import",
-		"wp-pullsettings": "Wpbootstrap\\Initbootstrap::updateAppSettings",
-		"wp-init-composer": "Wpbootstrap\\Initbootstrap::initComposer"
+        "wp-bootstrap": "Wpbootstrap\\Bootstrap::bootstrap",
+        "wp-install": "Wpbootstrap\\Bootstrap::install",
+        "wp-setup": "Wpbootstrap\\Bootstrap::setup",
+        "wp-update": "Wpbootstrap\\Bootstrap::update",
+        "wp-export": "Wpbootstrap\\Export::export",
+        "wp-import": "Wpbootstrap\\Import::import",
+        "wp-pullsettings": "Wpbootstrap\\Initbootstrap::updateAppSettings",
+        "wp-init-composer": "Wpbootstrap\\Initbootstrap::initComposer"
     }
 
 Then run a method from the cli like this:
@@ -165,4 +166,12 @@ An associative array of content that can be serialized to disk using the wp-expo
 
 **menus** contains zero or more keys with an associated array. The key represents the menu name (as defined in WordPress admin) and the array should contain each *location* that the menu appears in. The location identifiers are unique for each theme.
 
+
+## Testing
+
+Since wp-bootstrap relies a lot on WordPress, there's a separate Github repository for testing using Vagrant. The test repo is available at [https://github.com/eriktorsner/wp-bootstrap-test](https://github.com/eriktorsner/wp-bootstrap-test).
+
+## Contributing
+
+Contributions are welcome. Apart from code, the project is in need of better documentation, more test cases, testing with popular themes and plugins and so on. Any type of help is appreciated.
 
