@@ -72,18 +72,24 @@ Then run your grunt task like this:
 
 
 **Composer usage:**
-Wp-bootstrap exposes it's commands as static functions so they are callable directly from a Composer script:
+Wp-bootstrap can be added to your composer.json if you prefer to use composer as a task runner. You can manually edit your composer.json to include be below script entries:
 
     "scripts": {
-        "wp-bootstrap": "Wpbootstrap\\Bootstrap::bootstrap",
-        "wp-install": "Wpbootstrap\\Bootstrap::install",
-        "wp-setup": "Wpbootstrap\\Bootstrap::setup",
-        "wp-update": "Wpbootstrap\\Bootstrap::update",
-        "wp-export": "Wpbootstrap\\Export::export",
-        "wp-import": "Wpbootstrap\\Import::import",
-        "wp-pullsettings": "Wpbootstrap\\Initbootstrap::updateAppSettings",
-        "wp-init-composer": "Wpbootstrap\\Initbootstrap::initComposer"
+        "wp-bootstrap": "vendor\/bin\/wpbootstrap wp-bootstrap",
+        "wp-install": "vendor\/bin\/wpbootstrap wp-install",
+        "wp-setup": "vendor\/bin\/wpbootstrap wp-setup",
+        "wp-update": "vendor\/bin\/wpbootstrap wp-update",
+        "wp-export": "vendor\/bin\/wpbootstrap wp-export",
+        "wp-import": "vendor\/bin\/wpbootstrap wp-import",
+        "wp-pullsettings": "vendor\/bin\/wpbootstrap wp-updateAppSettings",
+        "wp-init": "vendor\/bin\/wpbootstrap wp-init",
+        "wp-init-composer": "vendor\/bin\/wpbootstrap wp-initComposer"
     }
+
+Or, have wp-bootstrap edit your composer for you:
+
+    $ vendor/bin/wpbootstrap wp-init-composer
+
 
 Then run a method from the cli like this:
 
@@ -136,7 +142,10 @@ The various settings in localsettings.json are self explanatory. This file is no
             },
             "menus": {
                 "main": ["primary", "footer"]
-            }
+            },
+            "taxonomies": {
+                "category": "*"
+            }            
         }
     }
 
@@ -165,6 +174,17 @@ An associative array of content that can be serialized to disk using the wp-expo
 **posts** contains zero or more keys with an associated array. The key specifies a post_type (page, post etc) and the array contains post_name for each post to include. The export process also includes any media (images) that are attached to the specific post.
 
 **menus** contains zero or more keys with an associated array. The key represents the menu name (as defined in WordPress admin) and the array should contain each *location* that the menu appears in. The location identifiers are unique for each theme.
+
+**taxonomies** contains zero or more keys with either a string or array as the value. Use asterisk (*) if you want to include all terms in the taxonomy. Use an array of term slugs if you want to only include specific terms from that taxonomy.
+
+###References and automatic includes
+
+Wp-bootstrap tries it's hardest to preseve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data. 
+
+###Import matching
+When importing into a WordPress installation, wp-bootstrap will use the **slug** to match pages, menus and taxonomy terms. So if the dataset to be imported contains a page with the **slug** 'foobar', that page will be (a) created if it didn't previously exist or (b) updated if it did. The same logic applies to posts (pages, attachments, posts etc), menu items and taxonomy terms.
+
+**Note:** Taxonomies are defined in code rather than in the database. So the exact taxonomies that exist in a WordPress installation are defined at load time. The built in taxonomies are always there, but some taxonomies are defined in a theme or plugin. In order for your taxonomy terms to be imported during the wp-import process, the theme or plugin that defined the taxonomy needs to exist.
 
 
 ## Testing
