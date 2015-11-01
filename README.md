@@ -9,7 +9,7 @@ To add this package as a local, per-project dependency to your project, simply a
 
     {
         "require": {
-            "eriktorsner/wp-bootstrap": "0.1.*"
+            "eriktorsner/wp-bootstrap": "0.2.*"
         }
     }
 
@@ -195,3 +195,4 @@ Since wp-bootstrap relies a lot on WordPress, there's a separate Github reposito
 
 Contributions are welcome. Apart from code, the project is in need of better documentation, more test cases, testing with popular themes and plugins and so on. Any type of help is appreciated.
 
+im
