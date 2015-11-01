@@ -6,7 +6,7 @@ class Initbootstrap
     private $bootstrap;
     private static $self = false;
 
-    public static function getInstance()
+    public function getInstance()
     {
         if (!self::$self) {
             self::$self = new Initbootstrap();
@@ -20,7 +20,7 @@ class Initbootstrap
         $this->bootstrap = Bootstrap::getInstance();
     }
 
-    private static $scriptMaps = array(
+    private $scriptMaps = array(
         "wp-bootstrap"     => "vendor/bin/wpbootstrap wp-bootstrap",
         "wp-install"       => "vendor/bin/wpbootstrap wp-install",
         "wp-setup"         => "vendor/bin/wpbootstrap wp-setup",
@@ -32,7 +32,7 @@ class Initbootstrap
         "wp-init-composer" => "vendor/bin/wpbootstrap wp-initComposer",
     );
 
-    public static function init($e = null)
+    public function init($e = null)
     {
         $this->bootstrap->requireSettings = false;
         $this->bootstrap->init($e);
@@ -57,7 +57,7 @@ class Initbootstrap
         }
     }
 
-    public static function initComposer($e = null)
+    public function initComposer($e = null)
     {
         $this->bootstrap->requireSettings = false;
         $this->bootstrap->init($e);
@@ -80,7 +80,7 @@ class Initbootstrap
         file_put_contents(BASEPATH.'/composer.json', $this->bootstrap->prettyPrint(json_encode($composer)));
     }
 
-    public static function updateAppSettings($e = null)
+    public function updateAppSettings($e = null)
     {
         $this->bootstrap->init($e);
         $this->bootstrap->includeWordPress();
@@ -88,7 +88,7 @@ class Initbootstrap
         if (!isset($this->bootstrap->appSettings->wpbootstrap)) {
             $this->bootstrap->appSettings->wpbootstrap = new \stdClass();
         }
-        if (!isset(Bootstrap::$appSettings->wpbootstrap->posts)) {
+        if (!isset($this->bootstrap->appSettings->wpbootstrap->posts)) {
             $this->bootstrap->appSettings->wpbootstrap->posts = new \stdClass();
         }
         $args = array(

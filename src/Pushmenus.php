@@ -79,7 +79,16 @@ class Pushmenus
         }
 
         foreach ($menu->items as &$objMenuItem) {
-            $newTarget = $this->import->posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+            $menuItemType = $objMenuItem->menu->post_meta['_menu_item_type'][0];
+            switch ($menuItemType) {
+                case 'post_type':
+                    $newTarget = $this->import->posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+                    break;
+                case 'taxonomy':
+                    $newTarget = $this->import->taxonomies->findTargetTermId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+                    break;
+            }
+
             $parentItem = $this->findMenuItem($objMenuItem->menu->post_meta['_menu_item_menu_item_parent'][0]);
 
             $args = array(
@@ -88,7 +97,7 @@ class Pushmenus
                     'menu-item-description' =>  $objMenuItem->menu->post_content,
                     'menu-item-attr-title'  =>  $objMenuItem->menu->post_title,
                     'menu-item-status'      =>  $objMenuItem->menu->post_status,
-                    'menu-item-type'        =>  $objMenuItem->menu->post_meta['_menu_item_type'][0],
+                    'menu-item-type'        =>  $menuItemType,
                     'menu-item-object'      =>  $objMenuItem->menu->post_meta['_menu_item_object'][0],
                     'menu-item-object-id'   =>  $newTarget,
                     'menu-item-url'         =>  $objMenuItem->menu->post_meta['_menu_item_url'][0],

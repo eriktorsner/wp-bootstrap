@@ -10,6 +10,7 @@ class Bootstrap
     public $argv = array();
 
     private static $self = false;
+    private $wpIncluded = false;
 
     const NETURALURL = '@@__NEUTRAL__@@';
 
@@ -30,15 +31,9 @@ class Bootstrap
             define('BASEPATH', getcwd());
         }
 
-        if (get_class($e) == 'Composer\Script\Event') {
-            // We've been called from Composer
-            $this->fromComposer = true;
-            $this->argv = $e->getArguments();
-        } else {
-            $this->argv = $argv;
-            array_shift($this->argv);
-            array_shift($this->argv);
-        }
+        $this->argv = $argv;
+        array_shift($this->argv);
+        array_shift($this->argv);
 
         if ($this->requireSettings) {
             $this->localSettings = new Settings('local');
@@ -372,12 +367,27 @@ class Bootstrap
 
     public function includeWordPress()
     {
-        $old = set_error_handler("\\Wpbootstrap\\Bootstrap::noError");
-        require_once $this->localSettings->wppath."/wp-load.php";
-        set_error_handler($old);
+        if (!$this->wpIncluded) {
+            $old = set_error_handler("\\Wpbootstrap\\Bootstrap::noError");
+            require_once $this->localSettings->wppath."/wp-load.php";
+            set_error_handler($old);
+            $this->wpIncluded = true;
+        }
     }
 
     public static function noError($errno, $errstr, $errfile, $errline)
     {
+    }
+
+    public function getFiles($folder)
+    {
+        $files = scandir($folder);
+        foreach ($files as $file) {
+            if ($file != '..' && $file != '.') {
+                $ret[] = $file;
+            }
+        }
+
+        return $ret;
     }
 }

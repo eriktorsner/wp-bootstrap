@@ -4,8 +4,13 @@ namespace Wpbootstrap;
 class Import
 {
     public $posts;
+    public $taxonomies;
     public $baseUrl;
     public $uploadDir;
+
+    private $bootstrap;
+    private $resolver;
+    private static $self = false;
 
     private $metaReferenceNames = array(
         '_thumbnail_id',
@@ -16,10 +21,6 @@ class Import
         'page_on_front',
         'rcp_settings' => "['foobar']",
     );
-
-    private $bootstrap;
-    private $resolver;
-    private static $self = false;
 
     public static function getInstance()
     {
@@ -62,6 +63,7 @@ class Import
 
     private function importContent()
     {
+        $this->taxonomies = new Pushtaxonomies();
         $this->posts = new Pushposts();
         $menus = new Pushmenus();
     }
