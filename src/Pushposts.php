@@ -16,8 +16,9 @@ class Pushposts
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
-        foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $val) {
-            foreach ($val as $slug) {
+        $dir = BASEPATH."/bootstrap/posts";
+        foreach ($this->bootstrap->getFiles($dir) as $postType) {
+            foreach ($this->bootstrap->getFiles($dir.'/'.$postType) as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
                 $newPost->id = 0;
