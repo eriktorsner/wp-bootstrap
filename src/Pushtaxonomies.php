@@ -3,7 +3,7 @@ namespace Wpbootstrap;
 
 class Pushtaxonomies
 {
-    private $taxonomies = array();
+    public $taxonomies = array();
 
     private $bootstrap;
 
@@ -25,7 +25,6 @@ class Pushtaxonomies
             }
             $this->taxonomies[] = $taxonomy;
         }
-        //print_r($this->taxonomies);
         $this->process();
     }
 
