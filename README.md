@@ -1,7 +1,37 @@
 
 # wp-bootstrap
-Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation. Wp-bootstrap uses two configuration files, appsettings.json and localsettings.json to control it's behaviour. 
+Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation.
 
+Wp-bootstrap depends on [wp-cli](http://wp-cli.org/) and a plugin named [WP-CFM](https://wordpress.org/plugins/wp-cfm/) to do a lot of the heavy lifting under the hood. The ideas and rationale that inspired this project was originally presented on [my blog](http://erik.torgesta.com/) and  in the book [WordPress DevOps](https://leanpub.com/wordpressdevops) available on [Leanpub](https://leanpub.com/wordpressdevops).  Wp-bootsrap also assumes that you are using Composer even if it's not strictly needed.
+
+Wp-bootstrap uses two configuration files, appsettings.json and localsettings.json to control it's behaviour, all data is stored in subfolder "bootstrap" under the project root.
+
+Besides being able to configure and script the setup of a target environment, one of the main goals with with wp-bootstrap is to be able to **export** settings, pages, menus etc. from a WordPress development environment and later to **import** that data into a staging or production WordPress environment. Pages, menus or taxonomy terms that already exists on the target installation will be updated. 
+
+This project scratches a very specific WordPress itch: being able to develop locally, managing the WordPress site in Git and being able to push changes (releases) to a production environment without worrying about overwriting content or having to manually migrate any setting or content. The workflow is intended to be:
+
+#### On the development server (hint: use Vagrant):
+
+ - Start a new project by requiring wp-bootstrap in composer.json
+ - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+ - Create a localsettings.json and appsettings.json
+ - Make sure you exclude localsettings.json from source code control
+ - Initiate the development installation with commands `composer wp-install` and `composer wp-setup`
+ - As settings are updated, use the WP-CFM interface in WordPress Admin to include the relevant settings into the application configuration
+ - As plugins and themes are needed, add them to appsettings.json and rerun the wp-setup command to get them installed into your local environment
+ - As posts and menus are added, include them in appsettings.json.
+ - When it's time to deploy to a staging or production environment, run `composer wp-export` command to get all content serialized to disk. Add them to your Git repo
+
+#### On the staging or production server:
+
+  - Create the local database
+  - Check out the project from Git
+  - Create up your localsettings.json file with the relevant passwords and paths.
+  - Run composer update
+  - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+  - Run `composer wp-install`, `composer wp-setup` and `composer wp-import`
+
+Once the target environment has been setup, new changes from the development environment can be pushed by checking out the new changes using Git and rerunning `wp-setup` and `wp-import`.
 
 ## Installation
 
@@ -124,12 +154,21 @@ The various settings in localsettings.json are self explanatory. This file is no
     {
         "title": "Your WordPress site title",
         "plugins": {
-            "standard": ["google-analyticator", "if-menu:0.2.1"],
-            "local": ["myplugin"]
+            "standard": [
+                "google-analyticator",
+                "if-menu:0.2.1"
+            ],
+            "local": [
+                "myplugin"
+            ]
         },
         "themes": {
-            "standard": ["twentyfourteen"],
-            "local": ["mychildtheme"],
+            "standard": [
+                "twentyfourteen"
+            ],
+            "local": [
+                "mychildtheme"
+            ],
             "active": "mychildtheme"
         },
         "settings": {
@@ -138,14 +177,39 @@ The various settings in localsettings.json are self explanatory. This file is no
         },
         "wpbootstrap": {
             "posts": {
-                "page": ["about","members"],
+                "page": [
+                    "about",
+                    "members"
+                ]
             },
             "menus": {
-                "main": ["primary", "footer"]
+                "main": [
+                    "primary",
+                    "footer"
+                ]
             },
             "taxonomies": {
                 "category": "*"
-            }            
+            },
+            "references": {
+                "posts": {
+                    "options": [
+                        "some_setting",
+                        {
+                            "mysettings": "->term_id"
+                        },
+                        {
+                            "mysettings2": "[2]"
+                        },
+                        {
+                            "mysettings3": [
+                                "->term_id",
+                                "->other_term_id"
+                            ]
+                        }
+                    ]
+                }
+            }
         }
     }
 
@@ -169,15 +233,25 @@ A list of settings that will be applied to the WordPress installation using the 
 
 ###Section: wpbootstrap
 
-An associative array of content that can be serialized to disk using the wp-export method and later unserialized back into a WordPress install using the wp-import method.
+This sections defines how to handle content during export and import of data using the wp-export or wp-import command. 
 
-**posts** contains zero or more keys with an associated array. The key specifies a post_type (page, post etc) and the array contains post_name for each post to include. The export process also includes any media (images) that are attached to the specific post.
+**posts** Used during the export process. Contains zero or more keys with an associated array. The key specifies a post_type (page, post etc) and the array contains **post_name** for each post to include. The export process also includes any media (images) that are attached to the specific post.
 
-**menus** contains zero or more keys with an associated array. The key represents the menu name (as defined in WordPress admin) and the array should contain each *location* that the menu appears in. The location identifiers are unique for each theme.
+**menus** Used during the export process. Contains zero or more keys with an associated array. The key represents the menu name (as defined in WordPress admin) and the array should contain each *location* that the menu appears in. Note that location identifiers are unique for each theme.
 
-**taxonomies** contains zero or more keys with either a string or array as the value. Use asterisk (*) if you want to include all terms in the taxonomy. Use an array of term slugs if you want to only include specific terms from that taxonomy.
+**taxonomies** Used during the export process. Contains zero or more keys with either a string or array as the value. Use asterisk (*) if you want to include all terms in the taxonomy. Use an array of term slugs if you want to only include specific terms from that taxonomy.
 
-###References and automatic includes
+**references** Used during the import process. This is a structure that describes option values (in the wp_option table) that contains references to a page or a taxonomy term. The reference item can contain a "posts" and a "terms" object describing settings that points to either posts or taxonomy terms. Each of these objects contains one single member "options" referring to the wp_options table (support for other references will be added later). The "options" member contains an array with names of options in the wp_option table. There are three ways to refer to an option:
+
+  - **1.** A simple string, for instance "page_on_front". Meaning that there is an option in the wp_options table named "page_on_front" and that option is a reference to a post ID.
+  - **2.** An object with a single name-value pair, for instance {"mysetting": "[2]"} or {"mysetting2":"->page_id"} meaning:
+    -  There is an option in the wp_options table named "mysetting"
+    - That setting is an array or object and the value tells wp-bootstrap how to access the array element or member variable of interest. The value follows PHP syntax, so an array element is accessed via "[]" notation and an object member variable is accessed via the "->" syntax.
+  - **3.** As above, but instead of a simple string value, the value is an array of strings.
+
+Reference resolving will only look at the pages/posts/terms included in your import set.  The import set might include an option "mypage" in the config/wpbootstrap.json file that points to post ID=10. Also in the import set, there is that page with id=10. When this page is imported in the target WordPress installation, it might get anohter ID, 22 for instance. By telling wp-bootstrap that the setting "mypage" in the wp_options table refers to a page, wp-bootstrap will update that option to the new value 22 as part of the process.
+
+###Parent child references and automatic includes
 
 Wp-bootstrap tries it's hardest to preseve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data. 
 
@@ -195,4 +269,15 @@ Since wp-bootstrap relies a lot on WordPress, there's a separate Github reposito
 
 Contributions are welcome. Apart from code, the project is in need of better documentation, more test cases, testing with popular themes and plugins and so on. Any type of help is appreciated.
 
-im
+## Version history
+
+**0.2.2** 
+
+  - Support for ***references***. Possible to add names of options that are references to other posts or taxonomy terms. 
+  - Fixed issues found when  Test coverage up to over 80%. 
+  
+
+**0.2.1**  
+
+ - Support for taxonomy terms
+
