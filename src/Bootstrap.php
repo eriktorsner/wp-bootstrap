@@ -23,6 +23,11 @@ class Bootstrap
         return self::$self;
     }
 
+    public static function destroy()
+    {
+        self::$self = false;
+    }
+
     public function init($e)
     {
         global $argv;
