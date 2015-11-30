@@ -1,4 +1,5 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Import
@@ -34,20 +35,22 @@ class Import
     public static function getInstance()
     {
         if (!self::$self) {
-            self::$self = new Import();
+            self::$self = new self();
         }
 
         return self::$self;
     }
 
-    public function import($e = null)
+    public function import()
     {
+        error_reporting(-1);
+
         $this->bootstrap = Bootstrap::getInstance();
         $this->resolver = Resolver::getInstance();
-        $this->bootstrap->init($e);
+        $this->bootstrap->init();
 
         $this->bootstrap->includeWordPress();
-        require_once $this->bootstrap->localSettings->wppath."/wp-admin/includes/image.php";
+        require_once $this->bootstrap->localSettings->wppath.'/wp-admin/includes/image.php';
 
         $this->baseUrl = get_option('siteurl');
         $this->uploadDir = wp_upload_dir();
@@ -67,11 +70,12 @@ class Import
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
         $trg = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
-        @mkdir(dirname($trg), 0777, true);
-        copy($src, $trg);
-
-        $cmd = $wpcmd.'config pull wpbootstrap';
-        exec($cmd);
+        if (file_exists($src)) {
+            @mkdir(dirname($trg), 0777, true);
+            copy($src, $trg);
+            $cmd = $wpcmd.'config pull wpbootstrap';
+            exec($cmd);
+        }
     }
 
     private function importContent()
@@ -79,6 +83,7 @@ class Import
         $this->taxonomies = new Pushtaxonomies();
         $this->posts = new Pushposts();
         $menus = new Pushmenus();
+        $sidebars = new Pushsidebars();
     }
 
     private function resolveMetaReferences()

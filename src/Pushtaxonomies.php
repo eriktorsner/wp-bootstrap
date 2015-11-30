@@ -1,4 +1,5 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Pushtaxonomies
@@ -10,7 +11,7 @@ class Pushtaxonomies
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
-        $dir = BASEPATH."/bootstrap/taxonomies";
+        $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($this->bootstrap->getFiles($dir) as $subdir) {
             $taxonomy = new \stdClass();
             $taxonomy->slug = $subdir;
@@ -51,10 +52,10 @@ class Pushtaxonomies
                         $existingTermId = $this->findExistingTerm($term, $currentTerms);
                         $args = array(
                             'description' => $term->term->description,
-                            'parent'      => $parentId,
-                            'slug'        => $term->term->slug,
-                            'term_group'  => $term->term->term_group,
-                            'name'        => $term->term->name,
+                            'parent' => $parentId,
+                            'slug' => $term->term->slug,
+                            'term_group' => $term->term->term_group,
+                            'name' => $term->term->name,
                         );
 
                         if ($existingTermId > 0) {
@@ -66,7 +67,7 @@ class Pushtaxonomies
                         }
                         $term->done = true;
                     } else {
-                        $deferred++;
+                        ++$deferred;
                     }
                 }
                 if ($deferred == 0) {
@@ -90,7 +91,7 @@ class Pushtaxonomies
     private function findExistingTerm($term, $currentTerms)
     {
         foreach ($currentTerms as $currentTerm) {
-            if ($currentTerm->slug == $term->slug) {
+            if ($currentTerm->slug == $term->term->slug) {
                 return $currentTerm->term_id;
             }
         }

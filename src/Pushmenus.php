@@ -1,4 +1,5 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Pushmenus
@@ -92,16 +93,16 @@ class Pushmenus
             $parentItem = $this->findMenuItem($objMenuItem->menu->post_meta['_menu_item_menu_item_parent'][0]);
 
             $args = array(
-                    'menu-item-title'       =>  $objMenuItem->menu->post_title,
-                    'menu-item-position'    =>  $objMenuItem->menu->menu_order,
-                    'menu-item-description' =>  $objMenuItem->menu->post_content,
-                    'menu-item-attr-title'  =>  $objMenuItem->menu->post_title,
-                    'menu-item-status'      =>  $objMenuItem->menu->post_status,
-                    'menu-item-type'        =>  $menuItemType,
-                    'menu-item-object'      =>  $objMenuItem->menu->post_meta['_menu_item_object'][0],
-                    'menu-item-object-id'   =>  $newTarget,
-                    'menu-item-url'         =>  $objMenuItem->menu->post_meta['_menu_item_url'][0],
-                    'menu-item-parent-id'   =>  $parentItem,
+                    'menu-item-title' => $objMenuItem->menu->post_title,
+                    'menu-item-position' => $objMenuItem->menu->menu_order,
+                    'menu-item-description' => $objMenuItem->menu->post_content,
+                    'menu-item-attr-title' => $objMenuItem->menu->post_title,
+                    'menu-item-status' => $objMenuItem->menu->post_status,
+                    'menu-item-type' => $menuItemType,
+                    'menu-item-object' => $objMenuItem->menu->post_meta['_menu_item_object'][0],
+                    'menu-item-object-id' => $newTarget,
+                    'menu-item-url' => $objMenuItem->menu->post_meta['_menu_item_url'][0],
+                    'menu-item-parent-id' => $parentItem,
             );
             $ret = wp_update_nav_menu_item($menuId, 0, $args);
             $objMenuItem->id = $ret;

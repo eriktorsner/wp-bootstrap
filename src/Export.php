@@ -1,35 +1,38 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Export
 {
     private $baseUrl;
-    private $uploadDir;
     private $posts;
     private $taxonomies;
-
     private $bootstrap;
     private $resolver;
+    private $mediaIds;
+    private $extractMedia;
+
     private static $self = false;
 
     public static function getInstance()
     {
         if (!self::$self) {
-            self::$self = new Export();
+            self::$self = new self();
         }
 
         return self::$self;
     }
 
-    public function export($e = null)
+    public function export()
     {
         $this->bootstrap = Bootstrap::getInstance();
         $this->resolver = Resolver::getInstance();
-        $this->bootstrap->init($e);
+        $this->extractMedia = new Extractmedia();
+        $this->bootstrap->init();
         $this->bootstrap->includeWordPress();
+        $this->mediaIds = array();
 
         $this->baseUrl = get_option('siteurl');
-        $this->uploadDir = wp_upload_dir();
 
         $this->exportSettings();
         $this->exportContent();
@@ -38,6 +41,7 @@ class Export
     private function exportSettings()
     {
         $wpcmd = $this->bootstrap->getWpCommand();
+        $this->ensureBundleExists();
 
         $cmd = $wpcmd.'config push wpbootstrap 2>/dev/null';
         exec($cmd);
@@ -66,16 +70,28 @@ class Export
         $this->bootstrap->recursiveRemoveDirectory($base.'/posts');
         $this->bootstrap->recursiveRemoveDirectory($base.'/media');
         $this->bootstrap->recursiveRemoveDirectory($base.'/taxonomies');
+        $this->bootstrap->recursiveRemoveDirectory($base.'/sidebars');
 
         $this->posts = new \stdClass();
         if (isset($this->bootstrap->appSettings->wpbootstrap->posts)) {
-            foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $arr) {
+            foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $posts) {
                 $this->posts->$postType = array();
-                foreach ($arr as $post) {
-                    $newPost = new \stdClass();
-                    $newPost->slug = $post;
-                    $newPost->done = false;
-                    array_push($this->posts->$postType, $newPost);
+                if ($posts == '*') {
+                    $args = array('post_type' => $postType, 'posts_per_page' => -1, 'post_status' => 'publish');
+                    $allPosts = get_posts($args);
+                    foreach ($allPosts as $post) {
+                        $newPost = new \stdClass();
+                        $newPost->slug = $post->post_name;
+                        $newPost->done = false;
+                        array_push($this->posts->$postType, $newPost);
+                    }
+                } else {
+                    foreach ($posts as $post) {
+                        $newPost = new \stdClass();
+                        $newPost->slug = $post;
+                        $newPost->done = false;
+                        array_push($this->posts->$postType, $newPost);
+                    }
                 }
             }
         }
@@ -84,7 +100,7 @@ class Export
         if (isset($this->bootstrap->appSettings->wpbootstrap->taxonomies)) {
             foreach ($this->bootstrap->appSettings->wpbootstrap->taxonomies as $taxonomy => $terms) {
                 $this->taxonomies->$taxonomy = array();
-                if ($terms == "*") {
+                if ($terms == '*') {
                     $allTerms = get_terms($taxonomy);
                     foreach ($allTerms as $term) {
                         $newTerm = new \stdClass();
@@ -104,11 +120,11 @@ class Export
         }
 
         $this->exportMenus();
+        $this->exportSidebars();
         $count = 999;
         while ($count > 0) {
             $count = $this->exportPosts();
         }
-
         $count = 999;
         while ($count > 0) {
             $count = $this->exportTaxonomies();
@@ -136,6 +152,21 @@ class Export
                     continue;
                 }
                 $meta = get_post_meta($objPost->ID);
+
+                // extract media ids
+                // 1. from attached media:
+                $media = get_attached_media('', $postId);
+                foreach ($media as $item) {
+                    $this->mediaIds[] = $item->ID;
+                }
+
+                // 2. referenced in the content
+                $ret = $this->extractMedia->getReferencedMedia($objPost);
+                $this->mediaIds = array_merge($this->mediaIds, $ret);
+                // 2. referenced in meta data
+                $ret = $this->extractMedia->getReferencedMedia($meta);
+                $this->mediaIds = array_merge($this->mediaIds, $ret);
+
                 $objPost->post_meta = $meta;
                 $this->resolver->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
 
@@ -143,7 +174,7 @@ class Export
                 @mkdir(dirname($file), 0777, true);
                 file_put_contents($file, serialize($objPost));
                 $post->done = true;
-                $count++;
+                ++$count;
             }
         }
 
@@ -152,26 +183,21 @@ class Export
 
     private function exportMedia()
     {
-        global $wpdb;
-        foreach ($this->posts as $postType => &$posts) {
-            foreach ($posts as &$post) {
-                $postId = $wpdb->get_var($wpdb->prepare(
-                    "SELECT ID FROM $wpdb->posts WHERE post_type='%s' AND post_name = %s",
-                    $postType,
-                    $post->slug
-                ));
-                $media = get_attached_media('', $postId);
-                foreach ($media as $item) {
-                    $itemMeta = wp_get_attachment_metadata($item->ID, true);
-                    $item->meta = $itemMeta;
-                    $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
-                    @mkdir($dir, 0777, true);
-                    file_put_contents($dir.'/meta', serialize($item));
-                    $src = $this->uploadDir['basedir'].'/'.$itemMeta['file'];
-                    $trg = $dir.'/'.basename($itemMeta['file']);
-                    copy($src, $trg);
-                }
-            }
+        $e = new Extractmedia();
+        $this->mediaIds = array_unique($this->mediaIds);
+        //print_r($this->mediaIds);
+        $uploadDir = wp_upload_dir();
+
+        foreach ($this->mediaIds as $itemId) {
+            $item = get_post($itemId);
+            $itemMeta = wp_get_attachment_metadata($itemId, true);
+            $item->meta = $itemMeta;
+            $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
+            @mkdir($dir, 0777, true);
+            file_put_contents($dir.'/meta', serialize($item));
+            $src = $uploadDir['basedir'].'/'.$itemMeta['file'];
+            $trg = $dir.'/'.basename($itemMeta['file']);
+            copy($src, $trg);
         }
     }
 
@@ -220,6 +246,42 @@ class Export
         }
     }
 
+    private function exportSidebars()
+    {
+        if (!isset($this->bootstrap->appSettings->wpbootstrap->sidebars)) {
+            return;
+        }
+
+        $storedSidebars = get_option('sidebars_widgets', array());
+        foreach ($this->bootstrap->appSettings->wpbootstrap->sidebars as $sidebar) {
+            $dir = BASEPATH.'/bootstrap/sidebars/'.$sidebar;
+            array_map('unlink', glob("$dir/*"));
+            @mkdir($dir, 0777, true);
+
+            $obj = new \stdClass();
+            if (isset($storedSidebars[$sidebar])) {
+                $obj = $storedSidebars[$sidebar];
+            }
+            foreach ($obj as $key => $widget) {
+                $parts = explode('-', $widget);
+                $ord = end($parts);
+                $name = substr($widget, 0, -1 * strlen('-'.$ord));
+                $widgetTypeSettings = get_option('widget_'.$name);
+                $widgetSettings = $widgetTypeSettings[$ord];
+
+                $ret = $this->extractMedia->getReferencedMedia($widgetSettings);
+                $this->mediaIds = array_merge($this->mediaIds, $ret);
+
+                $file = $dir.'/'.$widget;
+                $this->resolver->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NETURALURL);
+                file_put_contents($file, serialize($widgetSettings));
+            }
+
+            $file = $dir.'/meta';
+            file_put_contents($file, serialize($obj));
+        }
+    }
+
     private function exportTaxonomies()
     {
         $count = 0;
@@ -239,7 +301,7 @@ class Export
                     $this->addTerm($taxonomy, $parentTerm->slug);
                 }
                 $term->done = true;
-                $count++;
+                ++$count;
             }
         }
 
@@ -278,5 +340,27 @@ class Export
         $newPost->slug = $slug;
         $newPost->done = false;
         array_push($this->posts->$postType, $newPost);
+    }
+
+    private function ensureBundleExists()
+    {
+        $wpcfm = json_decode(get_option('wpcfm_settings', '{}'));
+        if (!isset($wpcfm->bundles)) {
+            $wpcfm->bundles = array();
+        }
+        $found = false;
+        foreach ($wpcfm->bundles as $bundle) {
+            if ($bundle->name == 'wpbootstrap') {
+                $found = true;
+            }
+        }
+        if (!$found) {
+            $bundle = new \stdClass();
+            $bundle->name = 'wpbootstrap';
+            $bundle->label = 'wpbootstrap';
+            $bundle->config = null;
+            $wpcfm->bundles[] = $bundle;
+            update_option('wpcfm_settings', json_encode($wpcfm));
+        }
     }
 }

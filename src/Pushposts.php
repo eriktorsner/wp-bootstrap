@@ -1,4 +1,5 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Pushposts
@@ -16,7 +17,7 @@ class Pushposts
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
-        $dir = BASEPATH."/bootstrap/posts";
+        $dir = BASEPATH.'/bootstrap/posts';
         foreach ($this->bootstrap->getFiles($dir) as $postType) {
             foreach ($this->bootstrap->getFiles($dir.'/'.$postType) as $slug) {
                 $newPost = new \stdClass();
@@ -38,6 +39,8 @@ class Pushposts
 
     private function process()
     {
+        remove_all_actions('transition_post_status');
+
         $done = false;
         while (!$done) {
             $deferred = 0;
@@ -48,7 +51,7 @@ class Pushposts
                         $this->updatePost($post, $parentId);
                         $post->done = true;
                     } else {
-                        $deferred++;
+                        ++$deferred;
                     }
                 }
             }
@@ -73,11 +76,11 @@ class Pushposts
             $existing = new \WP_Query($args);
             if (!$existing->have_posts()) {
                 $args = array(
-                    'post_title'     => $item->post_title,
-                    'post_name'      => $item->post_name,
-                    'post_type'      => $item->post_type,
-                    'post_parent'    => $parentId,
-                    'post_status'    => $item->post_status,
+                    'post_title' => $item->post_title,
+                    'post_name' => $item->post_name,
+                    'post_type' => $item->post_type,
+                    'post_parent' => $parentId,
+                    'post_status' => $item->post_status,
                     'post_mime_type' => $item->post_mime_type,
                 );
                 $id = wp_insert_post($args);
@@ -91,6 +94,7 @@ class Pushposts
             $trg = $this->import->uploadDir['basedir'].'/'.$item->meta['file'];
             @mkdir($this->import->uploadDir['basedir'].'/'.dirname($item->meta['file']), 0777, true);
             copy($src, $trg);
+
             // create metadata and other sizes
             $attachData = wp_generate_attachment_metadata($id, $trg);
             wp_update_attachment_metadata($id, $attachData);
@@ -108,14 +112,14 @@ class Pushposts
 
         $postId = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s", $post->slug));
         $args = array(
-          'post_type'      => $post->post->post_type,
-          'post_parent'      => $parentId,
-          'post_title'     => $post->post->post_title,
-          'post_content'   => $post->post->post_content,
-          'post_status'    => $post->post->post_status,
-          'post_name'      => $post->post->post_name,
-          'post_exerp'     => $post->post->post_exerp,
-          'ping_status'    => $post->post->ping_status,
+          'post_type' => $post->post->post_type,
+          'post_parent' => $parentId,
+          'post_title' => $post->post->post_title,
+          'post_content' => $post->post->post_content,
+          'post_status' => $post->post->post_status,
+          'post_name' => $post->post->post_name,
+          'post_exerp' => $post->post->post_exerp,
+          'ping_status' => $post->post->ping_status,
           'comment_status' => $post->post->comment_status,
           //'page_template'  => $post->post->page_template_slug,
         );
