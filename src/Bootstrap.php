@@ -15,6 +15,7 @@ class Bootstrap
     private $initiated = false;
 
     const NETURALURL = '@@__NEUTRAL__@@';
+    const VERSION = '0.2.4';
 
     public static function getInstance()
     {
