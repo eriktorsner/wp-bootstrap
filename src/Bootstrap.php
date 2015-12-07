@@ -67,7 +67,14 @@ class Bootstrap
         $this->init();
         $wpcmd = $this->getWpCommand();
 
+        $cmd = 'rm -rf ~/.wp-cli/cache/core/';
+        exec($cmd);
+
         $cmd = $wpcmd.'core download --force';
+        if (isset($this->appSettings->version)) {
+            $cmd .= ' --version='.$this->appSettings->version;
+        }
+        echo "$cmd\n";
         exec($cmd);
 
         $cmd = $wpcmd.sprintf(
@@ -99,6 +106,18 @@ class Bootstrap
         $this->installPlugins();
         $this->installThemes();
         $this->applySettings();
+    }
+
+    public function reset()
+    {
+        $this->init();
+        $this->init();
+        $wpcmd = $this->getWpCommand();
+        $cmd = $wpcmd.'db reset --yes';
+        exec($cmd);
+
+        $cmd = 'rm -rf '.$this->localSettings->wppath.'/*';
+        exec($cmd);
     }
 
     public function update()
