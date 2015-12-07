@@ -40,11 +40,17 @@ class Export
 
     private function exportSettings()
     {
-        $wpcmd = $this->bootstrap->getWpCommand();
-        $this->ensureBundleExists();
+        if (function_exists('WPCFM')) {
+            // running inside WordPress, use WPCFM directly
+            echo "Using WPCFM directly\n";
+            WPCFM()->readwrite->push_bundle('wpbootstrap');
+        } else {
+            $wpcmd = $this->bootstrap->getWpCommand();
+            $this->ensureBundleExists();
 
-        $cmd = $wpcmd.'config push wpbootstrap 2>/dev/null';
-        exec($cmd);
+            $cmd = $wpcmd.'config push wpbootstrap 2>/dev/null';
+            exec($cmd);
+        }
 
         $src = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         $trg = BASEPATH.'/bootstrap/config/wpbootstrap.json';

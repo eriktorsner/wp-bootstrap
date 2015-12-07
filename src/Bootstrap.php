@@ -44,8 +44,12 @@ class Bootstrap
         }
 
         $this->argv = $argv;
-        array_shift($this->argv);
-        array_shift($this->argv);
+        if (is_null($this->argv)) {
+            $argv = array();
+        } else {
+            array_shift($this->argv);
+            array_shift($this->argv);
+        }
 
         if ($this->requireSettings) {
             $this->localSettings = new Settings('local');
