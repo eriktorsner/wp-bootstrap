@@ -1,4 +1,5 @@
 <?php
+
 namespace Wpbootstrap;
 
 class Settings
@@ -29,6 +30,9 @@ class Settings
         }
 
         $this->obj = json_decode(file_get_contents(BASEPATH.$file));
+        if (!$this->obj) {
+            return false;
+        }
 
         if (isset($this->obj->environment) && $this->obj->environment == 'test') {
             if (!defined('TESTMODE')) {
