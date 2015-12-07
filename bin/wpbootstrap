@@ -61,6 +61,10 @@ switch($argv[1]) {
         $initBootstrap = Wpbootstrap\Initbootstrap::getInstance();
         $initBootstrap->initComposer();
         break;        
+    case 'wp-reset':
+        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap->reset();
+        break;                        
     default:
         die("Command {$argv[1]} not recognized\n");       
 }
