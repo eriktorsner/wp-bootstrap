@@ -21,6 +21,10 @@ class Pushmenus
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
+        if (!isset($this->bootstrap->appSettings->wpbootstrap->menus)) {
+            return;
+        }
+
         foreach ($this->bootstrap->appSettings->wpbootstrap->menus as $menu => $locations) {
             $dir = BASEPATH."/bootstrap/menus/$menu";
             $newMenu = new \stdClass();
