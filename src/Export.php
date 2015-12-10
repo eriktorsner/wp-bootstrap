@@ -221,13 +221,19 @@ class Export
         foreach ($this->mediaIds as $itemId) {
             $item = get_post($itemId);
             if ($item) {
-                $itemMeta = wp_get_attachment_metadata($itemId, true);
-                $item->meta = $itemMeta;
+                $meta = get_post_meta($itemId);
+                $item->post_meta = $meta;
+
+                $file = $meta['_wp_attached_file'][0];
+
+                $attachmentMeta = wp_get_attachment_metadata($itemId, true);
+                $item->attachment_meta = $attachmentMeta;
+
                 $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
                 @mkdir($dir, 0777, true);
                 file_put_contents($dir.'/meta', serialize($item));
-                $src = $uploadDir['basedir'].'/'.$itemMeta['file'];
-                $trg = $dir.'/'.basename($itemMeta['file']);
+                $src = $uploadDir['basedir'].'/'.$file;
+                $trg = $dir.'/'.basename($file);
                 if (file_exists($src)) {
                     copy($src, $trg);
                 }

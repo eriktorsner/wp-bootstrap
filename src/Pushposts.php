@@ -89,6 +89,8 @@ class Pushposts
                 'name' => $item->post_name,
                 'post_type' => $item->post_type,
             );
+
+            $file = $item->post_meta['_wp_attached_file'][0];
             $id = 0;
             $existing = new \WP_Query($args);
             if (!$existing->have_posts()) {
@@ -99,18 +101,18 @@ class Pushposts
                     'post_parent' => $parentId,
                     'post_status' => $item->post_status,
                     'post_mime_type' => $item->post_mime_type,
-                    'guid' => $this->import->uploadDir['basedir'].'/'.$item->meta['file'],
+                    'guid' => $this->import->uploadDir['basedir'].'/'.$file,
                 );
                 $id = wp_insert_post($args);
             } else {
                 $id = $existing->post->ID;
             }
-            update_post_meta($id, '_wp_attached_file', $item->meta['file']);
+            update_post_meta($id, '_wp_attached_file', $file);
 
             // move the file
-            $src = $dir.'/'.basename($item->meta['file']);
-            $trg = $this->import->uploadDir['basedir'].'/'.$item->meta['file'];
-            @mkdir($this->import->uploadDir['basedir'].'/'.dirname($item->meta['file']), 0777, true);
+            $src = $dir.'/'.basename($file);
+            $trg = $this->import->uploadDir['basedir'].'/'.$file;
+            @mkdir($this->import->uploadDir['basedir'].'/'.dirname($file), 0777, true);
             copy($src, $trg);
 
             // create metadata and other sizes
