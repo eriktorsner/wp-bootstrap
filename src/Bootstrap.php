@@ -2,6 +2,9 @@
 
 namespace Wpbootstrap;
 
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
 class Bootstrap
 {
     public $localSettings;
@@ -13,6 +16,7 @@ class Bootstrap
     private static $self = false;
     private $wpIncluded = false;
     private $initiated = false;
+    private $log = false;
 
     const NETURALURL = '@@__NEUTRAL__@@';
     const VERSION = '0.2.4';
@@ -57,7 +61,27 @@ class Bootstrap
             $this->validateSettings();
         }
 
-        $this->initated = false;
+        // Set up logging
+        $this->log = new Logger('wp-bootstrap');
+        $consoleloglevel = 1000;
+        if (isset($this->localSettings->logfile)) {
+            $level = Logger::WARNING;
+            if (isset($this->localSettings->loglevel)) {
+                $level = constant('Monolog\Logger::'.$this->localSettings->loglevel);
+            }
+            $this->log->pushHandler(new StreamHandler($this->localSettings->logfile, $level));
+        }
+        if (isset($this->localSettings->consoleloglevel)) {
+            $consoleloglevel = constant('Monolog\Logger::'.$this->localSettings->consoleloglevel);
+        }
+        $this->log->pushHandler(new StreamHandler('php://stdout', $consoleloglevel));
+        $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
+        $this->initiated = true;
+    }
+
+    public function getLog()
+    {
+        return $this->log;
     }
 
     public function bootstrap()
@@ -115,7 +139,6 @@ class Bootstrap
 
     public function reset()
     {
-        $this->init();
         $this->init();
         $wpcmd = $this->getWpCommand();
         $cmd = $wpcmd.'db reset --yes';
