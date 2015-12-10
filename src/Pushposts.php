@@ -62,6 +62,57 @@ class Pushposts
             }
         }
 
+        $this->importMedia();
+    }
+
+    private function updatePost(&$post, $parentId)
+    {
+        global $wpdb;
+
+        $postId = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s", $post->slug));
+        $args = array(
+          'post_type' => $post->post->post_type,
+          'post_parent' => $parentId,
+          'post_title' => $post->post->post_title,
+          'post_content' => $post->post->post_content,
+          'post_status' => $post->post->post_status,
+          'post_name' => $post->post->post_name,
+          'post_exerp' => $post->post->post_exerp,
+          'ping_status' => $post->post->ping_status,
+          'pinged' => $post->post->pinged,
+          'comment_status' => $post->post->comment_status,
+          'post_date' => $post->post->post_date,
+          'post_date_gmt' => $post->post->post_date_gmt,
+          'post_modified' => $post->post->post_modified,
+          'post_modified_gmt' => $post->post->post_modified_gmt,
+        );
+
+        if (!$postId) {
+            $postId = wp_insert_post($args);
+        } else {
+            $args['ID'] = $postId;
+            wp_update_post($args);
+        }
+
+        $existingMeta = get_post_meta($postId);
+        foreach ($post->post->post_meta as $meta => $value) {
+            if (isset($existingMeta[$meta])) {
+                $existingMetaItem = $existingMeta[$meta];
+            }
+            $i = 0;
+            foreach ($value as $val) {
+                if (isset($existingMetaItem[$i])) {
+                    update_post_meta($postId, $meta, $val, $existingMetaItem[$i]);
+                } else {
+                    update_post_meta($postId, $meta, $val);
+                }
+            }
+        }
+        $post->id = $postId;
+    }
+
+    private function importMedia()
+    {
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = unserialize(file_get_contents("$dir/meta"));
@@ -113,7 +164,9 @@ class Pushposts
             $src = $dir.'/'.basename($file);
             $trg = $this->import->uploadDir['basedir'].'/'.$file;
             @mkdir($this->import->uploadDir['basedir'].'/'.dirname($file), 0777, true);
-            copy($src, $trg);
+            if (file_exists($src)) {
+                copy($src, $trg);
+            }
 
             // create metadata and other sizes
             $attachData = wp_generate_attachment_metadata($id, $trg);
@@ -129,48 +182,6 @@ class Pushposts
             $mediaItem->id = $id;
             $this->media[] = $mediaItem;
         }
-    }
-
-    private function updatePost(&$post, $parentId)
-    {
-        global $wpdb;
-
-        $postId = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s", $post->slug));
-        $args = array(
-          'post_type' => $post->post->post_type,
-          'post_parent' => $parentId,
-          'post_title' => $post->post->post_title,
-          'post_content' => $post->post->post_content,
-          'post_status' => $post->post->post_status,
-          'post_name' => $post->post->post_name,
-          'post_exerp' => $post->post->post_exerp,
-          'ping_status' => $post->post->ping_status,
-          'comment_status' => $post->post->comment_status,
-          //'page_template'  => $post->post->page_template_slug,
-        );
-
-        if (!$postId) {
-            $postId = wp_insert_post($args);
-        } else {
-            $args['ID'] = $postId;
-            wp_update_post($args);
-        }
-
-        $existingMeta = get_post_meta($postId);
-        foreach ($post->post->post_meta as $meta => $value) {
-            if (isset($existingMeta[$meta])) {
-                $existingMetaItem = $existingMeta[$meta];
-            }
-            $i = 0;
-            foreach ($value as $val) {
-                if (isset($existingMetaItem[$i])) {
-                    update_post_meta($postId, $meta, $val, $existingMetaItem[$i]);
-                } else {
-                    update_post_meta($postId, $meta, $val);
-                }
-            }
-        }
-        $post->id = $postId;
     }
 
     private function parentId($foreignParentId, $objects)
