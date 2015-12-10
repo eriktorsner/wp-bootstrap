@@ -84,6 +84,7 @@ class Import
         $this->posts = new Pushposts();
         $menus = new Pushmenus();
         $sidebars = new Pushsidebars();
+        $this->taxonomies->assignObjects();
     }
 
     private function resolveMetaReferences()
