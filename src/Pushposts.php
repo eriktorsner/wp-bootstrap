@@ -10,10 +10,12 @@ class Pushposts
     private $bootstrap;
     private $import;
     private $resolver;
+    private $log;
 
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
+        $this->log = $this->bootstrap->getLog();
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
@@ -63,8 +65,23 @@ class Pushposts
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = unserialize(file_get_contents("$dir/meta"));
+            $include = false;
+
+            // does this image have an imported post as it's parent?
             $parentId = $this->parentId($item->post_parent, $this->posts);
-            if ($parentId == 0) {
+            if ($parentId != 0) {
+                $this->log->addDebug('Media is attached to post', array($item->ID), array($parentId));
+                $include = true;
+            }
+
+            // does an imported post have this image as thumbnail?
+            $isAThumbnail = $this->isAThumbnail($item->ID);
+            if ($isAThumbnail) {
+                $this->log->addDebug('Media is thumbnail to (at least) one post', array($item->id));
+                $include = true;
+            }
+
+            if (!$include) {
                 continue;
             }
 
@@ -82,6 +99,7 @@ class Pushposts
                     'post_parent' => $parentId,
                     'post_status' => $item->post_status,
                     'post_mime_type' => $item->post_mime_type,
+                    'guid' => $this->import->uploadDir['basedir'].'/'.$item->meta['file'],
                 );
                 $id = wp_insert_post($args);
             } else {
@@ -98,6 +116,11 @@ class Pushposts
             // create metadata and other sizes
             $attachData = wp_generate_attachment_metadata($id, $trg);
             wp_update_attachment_metadata($id, $attachData);
+
+            // set this image as a thumbnail if needed
+            if ($isAThumbnail) {
+                $this->setAsThumbnail($item->ID, $id);
+            }
 
             $mediaItem = new \stdClass();
             $mediaItem->meta = $item;
@@ -157,6 +180,32 @@ class Pushposts
         }
 
         return 0;
+    }
+
+    private function isAThumbnail($id)
+    {
+        foreach ($this->posts as $post) {
+            if (isset($post->post->post_meta['_thumbnail_id'])) {
+                $thumbId = $post->post->post_meta['_thumbnail_id'][0];
+                if ($thumbId == $id) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function setAsThumbnail($oldId, $newId)
+    {
+        foreach ($this->posts as $post) {
+            if (isset($post->post->post_meta['_thumbnail_id'])) {
+                $thumbId = $post->post->post_meta['_thumbnail_id'][0];
+                if ($thumbId == $oldId) {
+                    set_post_thumbnail($post->id, $newId);
+                }
+            }
+        }
     }
 
     public function findTargetPostId($target)
