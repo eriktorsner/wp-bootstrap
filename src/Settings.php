@@ -26,12 +26,12 @@ class Settings
         }
 
         if (!file_exists(BASEPATH.$file)) {
-            return false;
+            return;
         }
 
         $this->obj = json_decode(file_get_contents(BASEPATH.$file));
         if (!$this->obj) {
-            return false;
+            return;
         }
 
         if (isset($this->obj->environment) && $this->obj->environment == 'test') {
