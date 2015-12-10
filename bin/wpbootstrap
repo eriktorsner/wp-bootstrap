@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-define('BASEPATH', realpath(dirname(__DIR__) . '/../'));
+define('BASEPATH', getcwd());
 require_once BASEPATH . '/vendor/autoload.php';
 
 if(count($argv) < 2) {
