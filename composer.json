@@ -18,7 +18,8 @@
         "issues": "https://github.com/eriktorsner/wp-bootstrap/issues"
     },
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "monolog/monolog": "^1.17"
     },
     "autoload": {
         "psr-4": {
