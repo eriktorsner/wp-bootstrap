@@ -228,7 +228,9 @@ class Export
                 file_put_contents($dir.'/meta', serialize($item));
                 $src = $uploadDir['basedir'].'/'.$itemMeta['file'];
                 $trg = $dir.'/'.basename($itemMeta['file']);
-                copy($src, $trg);
+                if (file_exists($src)) {
+                    copy($src, $trg);
+                }
             }
         }
     }
