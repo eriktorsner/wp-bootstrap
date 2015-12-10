@@ -7,10 +7,13 @@ class Pushtaxonomies
     public $taxonomies = array();
 
     private $bootstrap;
+    private $import;
 
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
+        $this->import = Import::getInstance();
+
         $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($this->bootstrap->getFiles($dir) as $subdir) {
             $taxonomy = new \stdClass();
@@ -32,9 +35,24 @@ class Pushtaxonomies
     private function process()
     {
         $currentTaxonomies = get_taxonomies();
+
         foreach ($this->taxonomies as &$taxonomy) {
             if (isset($currentTaxonomies[$taxonomy->slug])) {
                 $this->processTaxonomy($taxonomy);
+            }
+        }
+    }
+
+    public function assignObjects()
+    {
+        // Posts
+        $posts = $this->import->posts->posts;
+        foreach ($this->taxonomies as &$taxonomy) {
+            foreach ($posts as $post) {
+                if (isset($post->post->taxonomies[$taxonomy->slug])) {
+                    $term = $post->post->taxonomies[$taxonomy->slug][0];
+                    $ret = wp_set_object_terms($post->id, $term, $taxonomy->slug);
+                }
             }
         }
     }
