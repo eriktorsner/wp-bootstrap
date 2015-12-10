@@ -13,6 +13,7 @@ class Export
     private $extractMedia;
 
     private static $self = false;
+    private $excludedTaxonomies = array('nav_menu', 'link_category', 'post_format');
 
     public static function getInstance()
     {
@@ -167,6 +168,7 @@ class Export
 
                 $this->log->addDebug('Exporting post', array($postId));
                 $meta = get_post_meta($objPost->ID);
+                $objPost->taxonomies = array();
 
                 // extract media ids
                 // 1. from attached media:
@@ -195,6 +197,23 @@ class Export
                 if (count($ret) > 0) {
                     $this->log->addDebug('Including meta referenced media', $ret);
                     $this->mediaIds = array_merge($this->mediaIds, $ret);
+                }
+
+                // terms
+                foreach (get_taxonomies() as $taxonomy) {
+                    if (in_array($taxonomy, $this->excludedTaxonomies)) {
+                        continue;
+                    }
+                    $terms = wp_get_object_terms($postId, $taxonomy);
+                    foreach ($terms as $objTerm) {
+                        // add it to the exported terms
+                        $this->addTerm($taxonomy, $objTerm->slug);
+
+                        if (!isset($objPost->taxonomies[$taxonomy])) {
+                            $objPost->taxonomies[$taxonomy] = array();
+                        }
+                        $objPost->taxonomies[$taxonomy][] = $objTerm->slug;
+                    }
                 }
 
                 $objPost->post_meta = $meta;
