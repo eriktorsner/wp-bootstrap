@@ -1,28 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-$search = array(
-    __DIR__ . '/../../../autoload.php', __DIR__ . '/../../autoload.php', 
-    __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php',
-    __DIR__ . '/../../vendor/autoload.php',
-);
-
-foreach ($search as $file) {
-    if (file_exists($file)) {
-        define('WPBOOTSTRAP_COMPOSER_INSTALL', $file);
-        break;
-    }
-}
-if (!defined('WPBOOTSTRAP_COMPOSER_INSTALL')) {
-    fwrite(STDERR,
-        'You need to set up the project dependencies using the following commands:' . PHP_EOL .
-        'wget http://getcomposer.org/composer.phar' . PHP_EOL .
-        'php composer.phar install' . PHP_EOL
-    );
-    die(1);
-}
-require_once WPBOOTSTRAP_COMPOSER_INSTALL;
-define('BASEPATH', realpath(dirname(WPBOOTSTRAP_COMPOSER_INSTALL) . '/../'));
+define('BASEPATH', realpath(dirname(__DIR__) . '/../'));
+require_once BASEPATH . '/vendor/autoload.php';
 
 if(count($argv) < 2) {
     die("At least one argument expected\n");
