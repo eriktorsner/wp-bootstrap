@@ -26,15 +26,19 @@ class Export
     public function export()
     {
         $this->bootstrap = Bootstrap::getInstance();
+        $this->bootstrap->init();
+        $this->log = $this->bootstrap->getLog();
+
         $this->resolver = Resolver::getInstance();
         $this->extractMedia = new Extractmedia();
-        $this->bootstrap->init();
         $this->bootstrap->includeWordPress();
-        $this->mediaIds = array();
 
+        $this->mediaIds = array();
         $this->baseUrl = get_option('siteurl');
 
+        $this->log->addInfo('Exporting settings');
         $this->exportSettings();
+        $this->log->addInfo('Exporting content');
         $this->exportContent();
     }
 
@@ -42,9 +46,10 @@ class Export
     {
         if (function_exists('WPCFM')) {
             // running inside WordPress, use WPCFM directly
-            echo "Using WPCFM directly\n";
+            $this->log->addDebug('Using WPCFM directly');
             WPCFM()->readwrite->push_bundle('wpbootstrap');
         } else {
+            $this->log->addDebug('Using WPCFM via wp-cli');
             $wpcmd = $this->bootstrap->getWpCommand();
             $this->ensureBundleExists();
 
@@ -57,6 +62,7 @@ class Export
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
             copy($src, $trg);
+            $this->log->addDebug("Copied $src to $trg");
 
             // sanity check
             $settings = json_decode(file_get_contents($trg));
@@ -72,6 +78,7 @@ class Export
     {
         $base = BASEPATH.'/bootstrap';
 
+        $this->log->addDebug("Cleaning folder $base");
         $this->bootstrap->recursiveRemoveDirectory($base.'/menus');
         $this->bootstrap->recursiveRemoveDirectory($base.'/posts');
         $this->bootstrap->recursiveRemoveDirectory($base.'/media');
@@ -157,21 +164,38 @@ class Export
                 if (!$objPost) {
                     continue;
                 }
+
+                $this->log->addDebug('Exporting post', array($postId));
                 $meta = get_post_meta($objPost->ID);
 
                 // extract media ids
                 // 1. from attached media:
                 $media = get_attached_media('', $postId);
                 foreach ($media as $item) {
+                    $this->log->addDebug('Including attached media', array($item->ID));
                     $this->mediaIds[] = $item->ID;
                 }
 
-                // 2. referenced in the content
+                // 2. from featured image:
+                if (has_post_thumbnail($postId)) {
+                    $mediaId = get_post_thumbnail_id($postId);
+                    $this->log->addDebug('Including thumbnail media', array($mediaId));
+                    $this->mediaIds[] = $mediaId;
+                }
+
+                // 3. referenced in the content
                 $ret = $this->extractMedia->getReferencedMedia($objPost);
-                $this->mediaIds = array_merge($this->mediaIds, $ret);
-                // 2. referenced in meta data
+                if (count($ret) > 0) {
+                    $this->log->addDebug('Including media referenced', $ret);
+                    $this->mediaIds = array_merge($this->mediaIds, $ret);
+                }
+
+                // 4. referenced in meta data
                 $ret = $this->extractMedia->getReferencedMedia($meta);
-                $this->mediaIds = array_merge($this->mediaIds, $ret);
+                if (count($ret) > 0) {
+                    $this->log->addDebug('Including meta referenced media', $ret);
+                    $this->mediaIds = array_merge($this->mediaIds, $ret);
+                }
 
                 $objPost->post_meta = $meta;
                 $this->resolver->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
@@ -196,14 +220,16 @@ class Export
 
         foreach ($this->mediaIds as $itemId) {
             $item = get_post($itemId);
-            $itemMeta = wp_get_attachment_metadata($itemId, true);
-            $item->meta = $itemMeta;
-            $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
-            @mkdir($dir, 0777, true);
-            file_put_contents($dir.'/meta', serialize($item));
-            $src = $uploadDir['basedir'].'/'.$itemMeta['file'];
-            $trg = $dir.'/'.basename($itemMeta['file']);
-            copy($src, $trg);
+            if ($item) {
+                $itemMeta = wp_get_attachment_metadata($itemId, true);
+                $item->meta = $itemMeta;
+                $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
+                @mkdir($dir, 0777, true);
+                file_put_contents($dir.'/meta', serialize($item));
+                $src = $uploadDir['basedir'].'/'.$itemMeta['file'];
+                $trg = $dir.'/'.basename($itemMeta['file']);
+                copy($src, $trg);
+            }
         }
     }
 
