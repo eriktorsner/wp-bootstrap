@@ -115,7 +115,7 @@ class Export
             foreach ($this->bootstrap->appSettings->wpbootstrap->taxonomies as $taxonomy => $terms) {
                 $this->taxonomies->$taxonomy = array();
                 if ($terms == '*') {
-                    $allTerms = get_terms($taxonomy);
+                    $allTerms = get_terms($taxonomy, array('hide_empty' => false));
                     foreach ($allTerms as $term) {
                         $newTerm = new \stdClass();
                         $newTerm->slug = $term->slug;

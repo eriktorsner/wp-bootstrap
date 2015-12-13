@@ -19,7 +19,7 @@ class Bootstrap
     private $log = false;
 
     const NETURALURL = '@@__NEUTRAL__@@';
-    const VERSION = '0.2.4';
+    const VERSION = '0.2.8';
 
     public static function getInstance()
     {
@@ -47,18 +47,12 @@ class Bootstrap
             define('BASEPATH', getcwd());
         }
 
-        $this->argv = $argv;
-        if (is_null($this->argv)) {
-            $argv = array();
-        } else {
-            array_shift($this->argv);
-            array_shift($this->argv);
-        }
-
         if ($this->requireSettings) {
             $this->localSettings = new Settings('local');
             $this->appSettings = new Settings('app');
             $this->validateSettings();
+        } else {
+            return;
         }
 
         // Set up logging
@@ -75,6 +69,16 @@ class Bootstrap
             $consoleloglevel = constant('Monolog\Logger::'.$this->localSettings->consoleloglevel);
         }
         $this->log->pushHandler(new StreamHandler('php://stdout', $consoleloglevel));
+
+        $this->argv = $argv;
+        if (is_null($this->argv)) {
+            $argv = array();
+        } else {
+            array_shift($this->argv);
+            array_shift($this->argv);
+        }
+        $this->log->addDebug('Parsed argv', $this->argv);
+
         $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
         $this->initiated = true;
     }
@@ -87,6 +91,7 @@ class Bootstrap
     public function bootstrap()
     {
         $this->init();
+        $this->log->addDebug('Running Bootstap::bootstrap');
         $this->install();
         $this->setup();
     }
@@ -94,16 +99,19 @@ class Bootstrap
     public function install()
     {
         $this->init();
+        $this->log->addDebug('Running Bootstap::install');
         $wpcmd = $this->getWpCommand();
 
         $cmd = 'rm -rf ~/.wp-cli/cache/core/';
         exec($cmd);
+        $this->log->addDebug('Executed: '.$cmd);
+        $files = $this->getFiles('~/.wp-cli/cache/core/');
+        $this->log->addDebug('Files in cache', $files);
 
         $cmd = $wpcmd.'core download --force';
         if (isset($this->appSettings->version)) {
             $cmd .= ' --version='.$this->appSettings->version;
         }
-        echo "$cmd\n";
         exec($cmd);
 
         $cmd = $wpcmd.sprintf(
@@ -131,9 +139,13 @@ class Bootstrap
     public function setup()
     {
         $this->init();
+        $this->log->addDebug('Running Bootstap::setup');
 
+        $this->log->addDebug('Installing plugins');
         $this->installPlugins();
+        $this->log->addDebug('Installing themes');
         $this->installThemes();
+        $this->log->addDebug('Applying settings from appsettings.json');
         $this->applySettings();
     }
 
@@ -151,25 +163,31 @@ class Bootstrap
     public function update()
     {
         $this->init();
+        $this->log->addDebug('Running Bootstrap::update');
         $wpcmd = $this->getWpCommand();
+        $commands = array();
 
         if (count($this->argv) == 0) {
-            $cmd = $wpcmd.'plugin update --all';
-            exec($cmd);
-            $cmd = $wpcmd.'theme update --all';
-            exec($cmd);
-            $cmd = $wpcmd.'core update';
-            exec($cmd);
+            $commands[] = $wpcmd.'plugin update --all';
+            $commands[] = $wpcmd.'theme update --all';
+            $commands[] = $wpcmd.'core update';
         } elseif ($this->argv[0] == 'plugins') {
             if (count($this->argv) == 1) {
-                $cmd = $wpcmd.'plugin update --all';
-                exec($cmd);
+                $commands[] = $wpcmd.'plugin update --all';
+            } else {
+                $commands[] = $wpcmd.'plugin update '.$this->argv[1];
             }
         } elseif ($this->argv[0] == 'themes') {
             if (count($this->argv) == 1) {
-                $cmd = $wpcmd.'theme update --all';
-                exec($cmd);
+                $commands[] = $wpcmd.'theme update --all';
+            } else {
+                $commands[] = $wpcmd.'theme update '.$this->argv[1];
             }
+        }
+
+        foreach ($commands as $cmd) {
+            $this->log->addDebug("Executing: $cmd");
+            exec($cmd);
         }
     }
 
