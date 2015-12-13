@@ -271,6 +271,39 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.2.8** 
+
+  - Lots of logging added to the debug level.
+  - Fixed bugs found from unit testing.
+  - Brought test coverage back up to 80%
+
+**0.2.7** 
+
+  - When exporting, all taxonomy terms that are referenced by a post will be included. Better taxonomy handling (assignment) when importing the terms
+  - Improved import of Posts
+  - Added Monolog as a dependency
+  - Logging to console and file can be configured via localsettings
+
+**0.2.6** 
+
+  - Improves handling for media that are not images (zip files etc).
+
+
+**0.2.5** 
+
+  - Simplified BASEPATH heuristics
+  - When exporting, missing media files does not generate an error message
+
+**0.2.4** 
+
+  - Added VERSION constant.
+  - Improvements for being called from within a WordPress plugin (such as Wp-bootstrap-ui)
+
+**0.2.3** 
+
+  - Referenced media handled better, so media that is referenced (used) in posts and widgets are included even if they are not properly attached
+  - Code style cleanup using php-cs-fixer.
+
 **0.2.2** 
 
   - Support for ***references***. Possible to add names of options that are references to other posts or taxonomy terms. 
