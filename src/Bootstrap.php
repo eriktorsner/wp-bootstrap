@@ -175,6 +175,7 @@ class Bootstrap
         $wpcmd = $this->utils->getWpCommand();
         if (isset($this->appSettings->plugins->standard)) {
             $standard = $this->appSettings->plugins->standard;
+            $this->log->addDebug('Plugins installed from repo or URL', $standard);
             foreach ($standard as $plugin) {
                 $parts = explode(':', $plugin);
                 if (count($parts) == 1 || $this->helpers->isUrl($plugin)) {
@@ -188,6 +189,7 @@ class Bootstrap
 
         if (isset($this->appSettings->plugins->local)) {
             $local = $this->appSettings->plugins->local;
+            $this->log->addDebug('Plugins symlinked to wp-content', $local);
             foreach ($local as $plugin) {
                 $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
                 exec($cmd);
@@ -207,7 +209,8 @@ class Bootstrap
         }
 
         if (isset($this->appSettings->plugins->localcopy)) {
-            $this->local = $appSettings->plugins->localcopy;
+            $local = $this->appSettings->plugins->localcopy;
+            $this->log->addDebug('Plugins copied to wp-content', $local);
             foreach ($local as $plugin) {
                 $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
                 exec($cmd);
@@ -232,6 +235,7 @@ class Bootstrap
         $wpcmd = $this->utils->getWpCommand();
         if (isset($this->appSettings->themes->standard)) {
             $standard = $this->appSettings->themes->standard;
+            $this->log->addDebug('Themes installed from repo or URL', $standard);
             foreach ($standard as $theme) {
                 $parts = explode(':', $theme);
                 if (count($parts) == 1 || $this->helpers->isUrl($theme)) {
@@ -245,6 +249,7 @@ class Bootstrap
 
         if (isset($this->appSettings->themes->local)) {
             $local = $this->appSettings->themes->local;
+            $this->log->addDebug('Themes symlinked to wp-content', $local);
             foreach ($local as $theme) {
                 $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
                 exec($cmd);
@@ -262,6 +267,7 @@ class Bootstrap
 
         if (isset($this->appSettings->themes->localcopy)) {
             $local = $this->appSettings->themes->localcopy;
+            $this->log->addDebug('Themes copied to wp-content', $local);
             foreach ($local as $theme) {
                 $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
                 exec($cmd);
@@ -269,9 +275,9 @@ class Bootstrap
                 $cmd = sprintf(
                     'cp -a %s/wp-content/themes/%s %s/wp-content/themes/%s',
                     BASEPATH,
-                    $plugin,
+                    $theme,
                     $this->localSettings->wppath,
-                    $plugin
+                    $theme
                 );
                 exec($cmd);
             }
