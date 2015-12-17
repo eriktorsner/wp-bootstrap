@@ -4,13 +4,16 @@ namespace Wpbootstrap;
 
 class Extractmedia
 {
+    private $utils;
     private $uploadDir = false;
 
-    public function __construct()
+    public function __construct($initiated = true)
     {
-        $b = Bootstrap::getInstance();
-        $b->init();
-        $b->includeWordPress();
+        if ($initiated) {
+            $this->utils = Bootstrap::getInstance()->getUtils();
+            $this->utils->includeWordPress();
+        }
+
         $this->uploadDir = wp_upload_dir();
     }
 
@@ -52,12 +55,6 @@ class Extractmedia
                 $base = $this->uploadDir['baseurl'];
                 $pattern = '~('.preg_quote($base, '~').'[^.]+.\w\w\w\w?)~i';
                 preg_match_all($pattern, $obj, $matches);
-                /*if (strlen($obj) > 30) {
-                    echo $obj."\n\n";
-                    echo "Pattern: $pattern \n";
-                    print_r($matches);
-                }*/
-
                 if (isset($matches[0]) && is_array($matches[0])) {
                     $ret = array_merge($ret, $matches[0]);
                 }

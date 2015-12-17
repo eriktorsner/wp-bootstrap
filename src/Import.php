@@ -11,6 +11,7 @@ class Import
 
     private $bootstrap;
     private $resolver;
+    private $utils;
     private static $self = false;
 
     private $metaPostReferenceNames = array(
@@ -47,9 +48,9 @@ class Import
 
         $this->bootstrap = Bootstrap::getInstance();
         $this->resolver = Resolver::getInstance();
-        $this->bootstrap->init();
+        $this->utils = $this->bootstrap->getUtils();
 
-        $this->bootstrap->includeWordPress();
+        $this->utils->includeWordPress();
         require_once $this->bootstrap->localSettings->wppath.'/wp-admin/includes/image.php';
 
         $this->baseUrl = get_option('siteurl');
@@ -66,7 +67,7 @@ class Import
 
     private function importSettings()
     {
-        $wpcmd = $this->bootstrap->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
         $trg = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
@@ -144,8 +145,8 @@ class Import
     private function resolveOptionReferences()
     {
         $appSettings = $this->bootstrap->appSettings;
-        if (isset($appSettings->wpbootstrap->references->posts->options)) {
-            $options = $appSettings->wpbootstrap->references->posts->options;
+        if (isset($appSettings->content->references->posts->options)) {
+            $options = $appSettings->content->references->posts->options;
             if (is_array($options)) {
                 foreach ($options as $value) {
                     if (is_string($value)) {
@@ -160,8 +161,8 @@ class Import
         }
         $this->resolver->resolveOptionReferences($this->optionPostReferenceNames, 'posts');
 
-        if (isset($appSettings->wpbootstrap->references->terms->options)) {
-            $options = $appSettings->wpbootstrap->references->terms->options;
+        if (isset($appSettings->content->references->terms->options)) {
+            $options = $appSettings->content->references->terms->options;
             if (is_array($options)) {
                 foreach ($options as $value) {
                     if (is_string($value)) {

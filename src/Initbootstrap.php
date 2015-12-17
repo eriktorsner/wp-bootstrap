@@ -4,7 +4,7 @@ namespace Wpbootstrap;
 
 class Initbootstrap
 {
-    private $bootstrap;
+    private $helpers;
     private static $self = false;
 
     public function getInstance()
@@ -18,7 +18,7 @@ class Initbootstrap
 
     public function __construct()
     {
-        $this->bootstrap = Bootstrap::getInstance();
+        $this->helpers = new Helpers();
     }
 
     private $scriptMaps = array(
@@ -35,13 +35,10 @@ class Initbootstrap
 
     public function init()
     {
-        $this->bootstrap->requireSettings = false;
-        $this->bootstrap->init();
-
         if (!file_exists(BASEPATH.'/appsettings.json')) {
             $appSettings = new \stdClass();
             $appSettings->title = '[title]';
-            file_put_contents(BASEPATH.'/appsettings.json', $this->bootstrap->prettyPrint(json_encode($appSettings)));
+            file_put_contents(BASEPATH.'/appsettings.json', $this->helpers->prettyPrint(json_encode($appSettings)));
         }
         if (!file_exists(BASEPATH.'/localsettings.json')) {
             $localSettings = new \stdClass();
@@ -54,14 +51,12 @@ class Initbootstrap
             $localSettings->wpuser = '[wpuser]';
             $localSettings->wppass = '[wppass]';
             $localSettings->wppath = '[wppath]';
-            file_put_contents(BASEPATH.'/localsettings.json', $this->bootstrap->prettyPrint(json_encode($localSettings)));
+            file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
         }
     }
 
     public function initComposer()
     {
-        $this->bootstrap->requireSettings = false;
-        $this->bootstrap->init();
         if (!file_exists(BASEPATH.'/composer.json')) {
             die("Error: composer.json not found in current folder\n");
         }
@@ -78,41 +73,6 @@ class Initbootstrap
             $composer->scripts->$key = $script;
         }
 
-        file_put_contents(BASEPATH.'/composer.json', $this->bootstrap->prettyPrint(json_encode($composer)));
-    }
-
-    public function updateAppSettings()
-    {
-        $this->bootstrap->init();
-        $this->bootstrap->includeWordPress();
-
-        if (!isset($this->bootstrap->appSettings->wpbootstrap)) {
-            $this->bootstrap->appSettings->wpbootstrap = new \stdClass();
-        }
-        if (!isset($this->bootstrap->appSettings->wpbootstrap->posts)) {
-            $this->bootstrap->appSettings->wpbootstrap->posts = new \stdClass();
-        }
-        $args = array(
-            'meta_query' => array(
-                array(
-                    'key' => 'wpbootstrap_export',
-                    'value' => 1,
-                ),
-            ),
-            'posts_per_page' => -1,
-            'post_type' => 'any',
-        );
-        $posts = new \WP_Query($args);
-        foreach ($posts->posts as $post) {
-            $postType = $post->post_type;
-            $slug = $post->post_name;
-            if (!isset($this->bootstrap->appSettings->wpbootstrap->posts->$postType)) {
-                $this->bootstrap->appSettings->wpbootstrap->posts->$postType = array();
-            }
-            if (!in_array($slug, $this->bootstrap->appSettings->wpbootstrap->posts->$postType)) {
-                array_push($this->bootstrap->appSettings->wpbootstrap->posts->$postType, $slug);
-            }
-        }
-        file_put_contents(BASEPATH.'/appsettings.json', $this->bootstrap->prettyPrint($this->bootstrap->appSettings->toString()));
+        file_put_contents(BASEPATH.'/composer.json', $this->helpers->prettyPrint(json_encode($composer)));
     }
 }

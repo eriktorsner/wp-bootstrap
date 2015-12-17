@@ -8,9 +8,9 @@ class Export
     private $posts;
     private $taxonomies;
     private $bootstrap;
-    private $resolver;
     private $mediaIds;
     private $extractMedia;
+    private $helpers;
 
     private static $self = false;
     private $excludedTaxonomies = array('nav_menu', 'link_category', 'post_format');
@@ -27,13 +27,12 @@ class Export
     public function export()
     {
         $this->bootstrap = Bootstrap::getInstance();
-        $this->bootstrap->init();
+        $this->utils = $this->bootstrap->getUtils();
+        $this->helpers = $this->bootstrap->getHelpers();
         $this->log = $this->bootstrap->getLog();
-
-        $this->resolver = Resolver::getInstance();
         $this->extractMedia = new Extractmedia();
-        $this->bootstrap->includeWordPress();
 
+        $this->utils->includeWordPress();
         $this->mediaIds = array();
         $this->baseUrl = get_option('siteurl');
 
@@ -51,11 +50,11 @@ class Export
             WPCFM()->readwrite->push_bundle('wpbootstrap');
         } else {
             $this->log->addDebug('Using WPCFM via wp-cli');
-            $wpcmd = $this->bootstrap->getWpCommand();
+            $wpcmd = $this->utils->getWpCommand();
             $this->ensureBundleExists();
 
             $cmd = $wpcmd.'config push wpbootstrap 2>/dev/null';
-            exec($cmd);
+            $this->utils->exec($cmd);
         }
 
         $src = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
@@ -70,7 +69,7 @@ class Export
             $label = '.label';
             if (is_null($settings->$label)) {
                 $settings->$label = 'wpbootstrap';
-                file_put_contents($trg, $this->bootstrap->prettyPrint(json_encode($settings)));
+                file_put_contents($trg, $this->helpers->prettyPrint(json_encode($settings)));
             }
         }
     }
@@ -80,15 +79,15 @@ class Export
         $base = BASEPATH.'/bootstrap';
 
         $this->log->addDebug("Cleaning folder $base");
-        $this->bootstrap->recursiveRemoveDirectory($base.'/menus');
-        $this->bootstrap->recursiveRemoveDirectory($base.'/posts');
-        $this->bootstrap->recursiveRemoveDirectory($base.'/media');
-        $this->bootstrap->recursiveRemoveDirectory($base.'/taxonomies');
-        $this->bootstrap->recursiveRemoveDirectory($base.'/sidebars');
+        $this->helpers->recursiveRemoveDirectory($base.'/menus');
+        $this->helpers->recursiveRemoveDirectory($base.'/posts');
+        $this->helpers->recursiveRemoveDirectory($base.'/media');
+        $this->helpers->recursiveRemoveDirectory($base.'/taxonomies');
+        $this->helpers->recursiveRemoveDirectory($base.'/sidebars');
 
         $this->posts = new \stdClass();
-        if (isset($this->bootstrap->appSettings->wpbootstrap->posts)) {
-            foreach ($this->bootstrap->appSettings->wpbootstrap->posts as $postType => $posts) {
+        if (isset($this->bootstrap->appSettings->content->posts)) {
+            foreach ($this->bootstrap->appSettings->content->posts as $postType => $posts) {
                 $this->posts->$postType = array();
                 if ($posts == '*') {
                     $args = array('post_type' => $postType, 'posts_per_page' => -1, 'post_status' => 'publish');
@@ -111,8 +110,8 @@ class Export
         }
 
         $this->taxonomies = new \stdClass();
-        if (isset($this->bootstrap->appSettings->wpbootstrap->taxonomies)) {
-            foreach ($this->bootstrap->appSettings->wpbootstrap->taxonomies as $taxonomy => $terms) {
+        if (isset($this->bootstrap->appSettings->content->taxonomies)) {
+            foreach ($this->bootstrap->appSettings->content->taxonomies as $taxonomy => $terms) {
                 $this->taxonomies->$taxonomy = array();
                 if ($terms == '*') {
                     $allTerms = get_terms($taxonomy, array('hide_empty' => false));
@@ -217,7 +216,7 @@ class Export
                 }
 
                 $objPost->post_meta = $meta;
-                $this->resolver->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
+                $this->helpers->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
 
                 $file = BASEPATH."/bootstrap/posts/{$objPost->post_type}/{$objPost->post_name}";
                 @mkdir(dirname($file), 0777, true);
@@ -232,7 +231,6 @@ class Export
 
     private function exportMedia()
     {
-        $e = new Extractmedia();
         $this->mediaIds = array_unique($this->mediaIds);
         //print_r($this->mediaIds);
         $uploadDir = wp_upload_dir();
@@ -262,16 +260,23 @@ class Export
 
     private function exportMenus()
     {
-        if (!isset($this->bootstrap->appSettings->wpbootstrap->menus)) {
+        if (!isset($this->bootstrap->appSettings->content->menus)) {
             return;
         }
-        foreach ($this->bootstrap->appSettings->wpbootstrap->menus as $menu => $locations) {
+
+        foreach ($this->bootstrap->appSettings->content->menus as $menu => $locations) {
+            $menuItems = array();
             wp_set_current_user(1);
             $loggedInmenuItems = wp_get_nav_menu_items($menu);
+            if (is_array($loggedInmenuItems)) {
+                $menuItems = array_merge($menuItems, $loggedInmenuItems);
+            }
             wp_set_current_user(0);
             $notloggedInmenuItems = wp_get_nav_menu_items($menu);
-            $menuItems = array_merge($loggedInmenuItems, $notloggedInmenuItems);
-            $menuItems = $this->bootstrap->uniqueObjectArray($menuItems, 'ID');
+            if (is_array($notloggedInmenuItems)) {
+                $menuItems = @array_merge($menuItems, $notloggedInmenuItems);
+            }
+            $menuItems = $this->helpers->uniqueObjectArray($menuItems, 'ID');
 
             $dir = BASEPATH.'/bootstrap/menus/'.$menu;
             array_map('unlink', glob("$dir/*"));
@@ -297,7 +302,7 @@ class Export
                         }
                         break;
                 }
-                $this->resolver->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NETURALURL);
+                $this->helpers->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NETURALURL);
 
                 $file = $dir.'/'.$menuItem->post_name;
                 file_put_contents($file, serialize($obj));
@@ -307,12 +312,12 @@ class Export
 
     private function exportSidebars()
     {
-        if (!isset($this->bootstrap->appSettings->wpbootstrap->sidebars)) {
+        if (!isset($this->bootstrap->appSettings->content->sidebars)) {
             return;
         }
 
         $storedSidebars = get_option('sidebars_widgets', array());
-        foreach ($this->bootstrap->appSettings->wpbootstrap->sidebars as $sidebar) {
+        foreach ($this->bootstrap->appSettings->content->sidebars as $sidebar) {
             $dir = BASEPATH.'/bootstrap/sidebars/'.$sidebar;
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);
@@ -332,7 +337,7 @@ class Export
                 $this->mediaIds = array_merge($this->mediaIds, $ret);
 
                 $file = $dir.'/'.$widget;
-                $this->resolver->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NETURALURL);
+                $this->helpers->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NETURALURL);
                 file_put_contents($file, serialize($widgetSettings));
             }
 

@@ -9,15 +9,17 @@ class Pushsidebars
     private $bootstrap;
     private $import;
     private $resolver;
+    private $helpers;
 
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
+        $this->helpers = $this->bootstrap->getHelpers();
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
         $dir = BASEPATH.'/bootstrap/sidebars';
-        foreach ($this->bootstrap->getFiles($dir) as $sidebar) {
+        foreach ($this->helpers->getFiles($dir) as $sidebar) {
             $subdir = BASEPATH."/bootstrap/sidebars/$sidebar";
             $newSidebar = new \stdClass();
             $newSidebar->slug = $sidebar;
@@ -40,7 +42,7 @@ class Pushsidebars
 
         $baseUrl = get_option('siteurl');
         $neutralUrl = Bootstrap::NETURALURL;
-        $this->resolver->fieldSearchReplace($this->sidebars, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->sidebars, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -61,7 +63,7 @@ class Pushsidebars
                 $currentWidgetDef = get_option('widget_'.$widget->type, array());
                 $ord = $this->findFirstFree($currentWidgetDef);
 
-                $this->resolver->fieldSearchReplace($widget->meta, Bootstrap::NETURALURL, $this->import->baseUrl);
+                $this->helpers->fieldSearchReplace($widget->meta, Bootstrap::NETURALURL, $this->import->baseUrl);
                 $currentWidgetDef[$ord] = $widget->meta;
                 update_option('widget_'.$widget->type, $currentWidgetDef);
 

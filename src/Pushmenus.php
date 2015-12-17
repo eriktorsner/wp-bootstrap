@@ -12,26 +12,28 @@ class Pushmenus
     );
 
     private $bootstrap;
+    private $helpers;
     private $import;
     private $resolver;
 
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
+        $this->helpers = $this->bootstrap->getHelpers();
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
-        if (!isset($this->bootstrap->appSettings->wpbootstrap->menus)) {
+        if (!isset($this->bootstrap->appSettings->content->menus)) {
             return;
         }
 
-        foreach ($this->bootstrap->appSettings->wpbootstrap->menus as $menu => $locations) {
+        foreach ($this->bootstrap->appSettings->content->menus as $menu => $locations) {
             $dir = BASEPATH."/bootstrap/menus/$menu";
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;
             $newMenu->locations = $locations;
             $newMenu->items = array();
-            foreach ($this->getFiles($dir) as $file) {
+            foreach ($this->helpers->getFiles($dir) as $file) {
                 $menuItem = new \stdClass();
                 $menuItem->done = false;
                 $menuItem->id = 0;
@@ -47,7 +49,7 @@ class Pushmenus
         }
         $baseUrl = get_option('siteurl');
         $neutralUrl = Bootstrap::NETURALURL;
-        $this->resolver->fieldSearchReplace($this->menus, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->menus, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -78,7 +80,7 @@ class Pushmenus
         wp_set_current_user(0);
         $notloggedInmenuItems = wp_get_nav_menu_items($menu->slug);
         $existingMenuItems = array_merge($loggedInmenuItems, $notloggedInmenuItems);
-        $existingMenuItems = $this->bootstrap->uniqueObjectArray($existingMenuItems, 'ID');
+        $existingMenuItems = $this->helpers->uniqueObjectArray($existingMenuItems, 'ID');
         foreach ($existingMenuItems as $existingMenuItem) {
             $ret = wp_delete_post($existingMenuItem->ID, true);
         }
@@ -132,17 +134,5 @@ class Pushmenus
         }
 
         return 0;
-    }
-
-    private function getFiles($folder)
-    {
-        $files = scandir($folder);
-        foreach ($files as $file) {
-            if ($file != '..' && $file != '.') {
-                $ret[] = $file;
-            }
-        }
-
-        return $ret;
     }
 }

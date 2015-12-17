@@ -9,14 +9,11 @@ class Bootstrap
 {
     public $localSettings;
     public $appSettings;
-    public $fromComposer = false;
-    public $requireSettings = true;
     public $argv = array();
 
     private static $self = false;
-    private $wpIncluded = false;
-    private $initiated = false;
     private $log = false;
+    private $utils;
 
     const NETURALURL = '@@__NEUTRAL__@@';
     const VERSION = '0.2.8';
@@ -35,25 +32,17 @@ class Bootstrap
         self::$self = false;
     }
 
-    public function init()
+    public function __construct()
     {
         global $argv;
-
-        if ($this->initiated) {
-            return;
-        }
 
         if (!defined('BASEPATH')) {
             define('BASEPATH', getcwd());
         }
 
-        if ($this->requireSettings) {
-            $this->localSettings = new Settings('local');
-            $this->appSettings = new Settings('app');
-            $this->validateSettings();
-        } else {
-            return;
-        }
+        $this->localSettings = new Settings('local');
+        $this->appSettings = new Settings('app');
+        $this->validateSettings();
 
         // Set up logging
         $this->log = new Logger('wp-bootstrap');
@@ -77,20 +66,16 @@ class Bootstrap
             array_shift($this->argv);
             array_shift($this->argv);
         }
+
+        $this->utils = new Utils($this);
+        $this->helpers = new Helpers();
+
         $this->log->addDebug('Parsed argv', $this->argv);
-
         $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
-        $this->initiated = true;
-    }
-
-    public function getLog()
-    {
-        return $this->log;
     }
 
     public function bootstrap()
     {
-        $this->init();
         $this->log->addDebug('Running Bootstap::bootstrap');
         $this->install();
         $this->setup();
@@ -98,15 +83,12 @@ class Bootstrap
 
     public function install()
     {
-        $this->init();
         $this->log->addDebug('Running Bootstap::install');
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
 
         $cmd = 'rm -rf ~/.wp-cli/cache/core/';
         exec($cmd);
         $this->log->addDebug('Executed: '.$cmd);
-        $files = $this->getFiles('~/.wp-cli/cache/core/');
-        $this->log->addDebug('Files in cache', $files);
 
         $cmd = $wpcmd.'core download --force';
         if (isset($this->appSettings->version)) {
@@ -138,7 +120,6 @@ class Bootstrap
 
     public function setup()
     {
-        $this->init();
         $this->log->addDebug('Running Bootstap::setup');
 
         $this->log->addDebug('Installing plugins');
@@ -151,8 +132,7 @@ class Bootstrap
 
     public function reset()
     {
-        $this->init();
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
         $cmd = $wpcmd.'db reset --yes';
         exec($cmd);
 
@@ -162,9 +142,8 @@ class Bootstrap
 
     public function update()
     {
-        $this->init();
         $this->log->addDebug('Running Bootstrap::update');
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
         $commands = array();
 
         if (count($this->argv) == 0) {
@@ -193,12 +172,12 @@ class Bootstrap
 
     private function installPlugins()
     {
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
         if (isset($this->appSettings->plugins->standard)) {
             $standard = $this->appSettings->plugins->standard;
             foreach ($standard as $plugin) {
                 $parts = explode(':', $plugin);
-                if (count($parts) == 1 || $this->isUrl($plugin)) {
+                if (count($parts) == 1 || $this->helpers->isUrl($plugin)) {
                     $cmd = $wpcmd.'plugin install --activate '.$plugin;
                 } else {
                     $cmd = $wpcmd.'plugin install --activate --version='.$parts[1].' '.$parts[0];
@@ -250,12 +229,12 @@ class Bootstrap
 
     private function installThemes()
     {
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
         if (isset($this->appSettings->themes->standard)) {
             $standard = $this->appSettings->themes->standard;
             foreach ($standard as $theme) {
                 $parts = explode(':', $theme);
-                if (count($parts) == 1 || $this->isUrl($theme)) {
+                if (count($parts) == 1 || $this->helpers->isUrl($theme)) {
                     $cmd = $wpcmd.'theme install '.$theme;
                 } else {
                     $cmd = $wpcmd.'theme install --version='.$parts[1].' '.$parts[0];
@@ -306,7 +285,7 @@ class Bootstrap
 
     private function applySettings()
     {
-        $wpcmd = $this->getWpCommand();
+        $wpcmd = $this->utils->getWpCommand();
         if (isset($this->appSettings->settings)) {
             foreach ($this->appSettings->settings as $key => $value) {
                 $cmd = $wpcmd."option update $key ";
@@ -334,151 +313,18 @@ class Bootstrap
         }
     }
 
-    public function getWpCommand()
+    public function getLog()
     {
-        $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
-
-        return $wpcmd;
+        return $this->log;
     }
 
-    public function isUrl($url)
+    public function getUtils()
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
-            return false;
-        } else {
-            return true;
-        }
+        return $this->utils;
     }
 
-    public function recursiveRemoveDirectory($directory)
+    public function getHelpers()
     {
-        foreach (glob("{$directory}/*") as $file) {
-            if (is_dir($file)) {
-                $this->recursiveRemoveDirectory($file);
-            } else {
-                unlink($file);
-            }
-        }
-        if (file_exists($directory)) {
-            rmdir($directory);
-        }
-    }
-
-    public function uniqueObjectArray($array, $key)
-    {
-        $temp_array = array();
-        $i = 0;
-        $key_array = array();
-
-        foreach ($array as $val) {
-            if (!in_array($val->$key, $key_array)) {
-                $key_array[$i] = $val->$key;
-                $temp_array[$i] = $val;
-            }
-            ++$i;
-        }
-
-        return $temp_array;
-    }
-
-    public function prettyPrint($json)
-    {
-        $result = '';
-        $level = 0;
-        $in_quotes = false;
-        $in_escape = false;
-        $ends_line_level = null;
-        $json_length = strlen($json);
-
-        for ($i = 0; $i < $json_length; ++$i) {
-            $char = $json[$i];
-            $new_line_level = null;
-            $post = '';
-            if ($ends_line_level !== null) {
-                $new_line_level = $ends_line_level;
-                $ends_line_level = null;
-            }
-            if ($in_escape) {
-                $in_escape = false;
-            } elseif ($char === '"') {
-                $in_quotes = !$in_quotes;
-            } elseif (!$in_quotes) {
-                switch ($char) {
-                    case '}':
-                    case ']':
-                        $level--;
-                        $ends_line_level = null;
-                        $new_line_level = $level;
-                        break;
-
-                    case '{':
-                    case '[':
-                        $level++;
-                        // intentonal
-                    case ',':
-                        $ends_line_level = $level;
-                        break;
-
-                    case ':':
-                        $post = ' ';
-                        break;
-
-                    case ' ':
-                    case "\t":
-                    case "\n":
-                    case "\r":
-                        $char = '';
-                        $ends_line_level = $new_line_level;
-                        $new_line_level = null;
-                        break;
-                }
-            } elseif ($char === '\\') {
-                $in_escape = true;
-            }
-            if ($new_line_level !== null) {
-                $result .= "\n".str_repeat("\t", $new_line_level);
-            }
-            $result .= $char.$post;
-        }
-
-        // arrays with zero or one item goes on the same line
-        $result = preg_replace('/\[\s+\]/', '[]', $result);
-        $result = preg_replace('/\[(\s+)(".*")(\s+)\]/', '[$2]', $result);
-
-        return $result;
-    }
-
-    public function includeWordPress()
-    {
-        if (!$this->wpIncluded) {
-            $before = ob_get_level();
-            $old = set_error_handler('\\Wpbootstrap\\Bootstrap::noError');
-            require_once $this->localSettings->wppath.'/wp-load.php';
-            set_error_handler($old);
-            $this->wpIncluded = true;
-            if (ob_get_level() > $before) {
-                ob_end_clean();
-            }
-        }
-    }
-
-    public static function noError($errno, $errstr, $errfile, $errline)
-    {
-    }
-
-    public function getFiles($folder)
-    {
-        $ret = array();
-        if (!file_exists($folder)) {
-            return $ret;
-        }
-        $files = scandir($folder);
-        foreach ($files as $file) {
-            if ($file != '..' && $file != '.') {
-                $ret[] = $file;
-            }
-        }
-
-        return $ret;
+        return $this->helpers;
     }
 }

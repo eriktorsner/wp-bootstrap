@@ -10,18 +10,20 @@ class Pushposts
     private $bootstrap;
     private $import;
     private $resolver;
+    private $helpers;
     private $log;
 
     public function __construct()
     {
         $this->bootstrap = Bootstrap::getInstance();
         $this->log = $this->bootstrap->getLog();
+        $this->helpers = $this->bootstrap->getHelpers();
         $this->import = Import::getInstance();
         $this->resolver = Resolver::getInstance();
 
         $dir = BASEPATH.'/bootstrap/posts';
-        foreach ($this->bootstrap->getFiles($dir) as $postType) {
-            foreach ($this->bootstrap->getFiles($dir.'/'.$postType) as $slug) {
+        foreach ($this->helpers->getFiles($dir) as $postType) {
+            foreach ($this->helpers->getFiles($dir.'/'.$postType) as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
                 $newPost->id = 0;
@@ -35,7 +37,7 @@ class Pushposts
             }
         }
 
-        $this->resolver->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
