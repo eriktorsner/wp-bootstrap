@@ -15,11 +15,6 @@ class Utils
         self::$self = $this;
     }
 
-    public static function getInstance()
-    {
-        return self::$self;
-    }
-
     public function exec($cmd)
     {
         exec($cmd);
