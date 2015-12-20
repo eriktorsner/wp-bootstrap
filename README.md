@@ -271,6 +271,12 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.2.9** 
+
+  - Refactored and renamed classes
+  - Introduced class Container as a (sorf of) depencency injection container
+  - Brought test coverage up to 85%
+
 **0.2.8** 
 
   - Lots of logging added to the debug level.
