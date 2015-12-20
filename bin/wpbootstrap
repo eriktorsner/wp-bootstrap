@@ -8,43 +8,52 @@ if(count($argv) < 2) {
     die("At least one argument expected\n");
 }
 
+$container = Wpbootstrap\Container::getInstance();
+
 switch($argv[1]) {
     case 'wp-bootsrap':
-        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $bootstrap = $container->getBootstrap();
+        $container->validateSettings();
         $bootstrap->bootstrap();
         break;
     case 'wp-install':
-        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $container->validateSettings();    
+        $bootstrap = $container->getBootstrap();
         $bootstrap->install();
         break;        
     case 'wp-setup':
-        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $container->validateSettings();    
+        $bootstrap = $container->getBootstrap();
         $bootstrap->setup();
         break;                
     case 'wp-update':
-        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
+        $container->validateSettings();
+        $bootstrap = $container->getBootstrap();
         $bootstrap->update();
         break;
     case 'wp-export':
-        $export = Wpbootstrap\Export::getInstance();
+        $container->validateSettings();
+        $export = $container->getExport();
         $export->export();
         break;
     case 'wp-import':
-        $import = Wpbootstrap\Import::getInstance();
+        $container->validateSettings();    
+        $import = $container->getImport();
         $import->import();
         break;
+    case 'wp-reset':
+        $container->validateSettings();
+        $bootstrap = $container->getBootstrap();
+        $bootstrap->reset();
+        break;        
     case 'wp-init':
-        $initBootstrap = Wpbootstrap\Initbootstrap::getInstance();
+        $initBootstrap = $container->getInitBootstrap();
         $initBootstrap->init();
         break;                
     case 'wp-init-composer':
-        $initBootstrap = Wpbootstrap\Initbootstrap::getInstance();
+        $initBootstrap = $container->getInitBootstrap();
         $initBootstrap->initComposer();
         break;        
-    case 'wp-reset':
-        $bootstrap = Wpbootstrap\Bootstrap::getInstance();
-        $bootstrap->reset();
-        break;                        
     default:
         die("Command {$argv[1]} not recognized\n");       
 }

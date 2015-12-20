@@ -4,15 +4,15 @@ namespace Wpbootstrap;
 
 class Utils
 {
-    private static $self = false;
-    private $bootstrap = false;
     private $wpIncluded = false;
+    private $log = false;
+    private $localSettings = false;
 
-    public function __construct($bootstrap)
+    public function __construct()
     {
-        $this->bootstrap = $bootstrap;
-        $this->log = $this->bootstrap->getLog();
-        self::$self = $this;
+        $container = Container::getInstance();
+        $this->log = $container->getLog();
+        $this->localSettings = $container->getLocalSettings();
     }
 
     public function exec($cmd)
@@ -23,7 +23,7 @@ class Utils
 
     public function getWpCommand()
     {
-        $wpcmd = 'wp --path='.$this->bootstrap->localSettings->wppath.' --allow-root ';
+        $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
 
         return $wpcmd;
     }
@@ -31,9 +31,10 @@ class Utils
     public function includeWordPress()
     {
         if (!$this->wpIncluded) {
+            $ls = Container::getInstance()->getLocalSettings();
             $before = ob_get_level();
             $old = set_error_handler('\\Wpbootstrap\\Utils::noError');
-            require_once $this->bootstrap->localSettings->wppath.'/wp-load.php';
+            require_once $this->localSettings->wppath.'/wp-load.php';
             set_error_handler($old);
             $this->wpIncluded = true;
             if (ob_get_level() > $before) {

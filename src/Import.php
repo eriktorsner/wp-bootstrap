@@ -6,11 +6,12 @@ class Import
 {
     public $posts;
     public $taxonomies;
+    public $menus;
+    public $sidebars;
+
     public $baseUrl;
     public $uploadDir;
 
-    private $bootstrap;
-    private $resolver;
     private $utils;
     private static $self = false;
 
@@ -46,16 +47,17 @@ class Import
     {
         error_reporting(-1);
 
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->resolver = Resolver::getInstance();
-        $this->utils = $this->bootstrap->getUtils();
+        $container = Container::getInstance();
 
-        $this->utils->includeWordPress();
-        require_once $this->bootstrap->localSettings->wppath.'/wp-admin/includes/image.php';
+        $localSettings = Container::getInstance()->getLocalSettings();
+
+        Container::getInstance()->getUtils()->includeWordPress();
+        require_once $localSettings->wppath.'/wp-admin/includes/image.php';
 
         $this->baseUrl = get_option('siteurl');
         $this->uploadDir = wp_upload_dir();
 
+        // Run the import
         $this->importSettings();
         $this->importContent();
 
@@ -67,10 +69,13 @@ class Import
 
     private function importSettings()
     {
-        $wpcmd = $this->utils->getWpCommand();
+        $container = Container::getInstance();
+        $localSettings = $container->getLocalSettings();
+        $utils = $container->getUtils();
+        $wpcmd = $utils->getWpCommand();
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
-        $trg = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
+        $trg = $localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
             copy($src, $trg);
@@ -81,10 +86,10 @@ class Import
 
     private function importContent()
     {
-        $this->taxonomies = new Pushtaxonomies();
-        $this->posts = new Pushposts();
-        $menus = new Pushmenus();
-        $sidebars = new Pushsidebars();
+        $this->taxonomies = new ImportTaxonomies();
+        $this->posts = new ImportPosts();
+        $this->menus = new ImportMenus();
+        $this->sidebars = new ImportSidebars();
         $this->taxonomies->assignObjects();
     }
 
@@ -144,7 +149,10 @@ class Import
 
     private function resolveOptionReferences()
     {
-        $appSettings = $this->bootstrap->appSettings;
+        $container = Container::getInstance();
+        $appSettings = $container->getAppSettings();
+        $resolver = $container->getResolver();
+
         if (isset($appSettings->content->references->posts->options)) {
             $options = $appSettings->content->references->posts->options;
             if (is_array($options)) {
@@ -159,7 +167,7 @@ class Import
                 }
             }
         }
-        $this->resolver->resolveOptionReferences($this->optionPostReferenceNames, 'posts');
+        $resolver->resolveOptionReferences($this->optionPostReferenceNames, 'posts');
 
         if (isset($appSettings->content->references->terms->options)) {
             $options = $appSettings->content->references->terms->options;
@@ -175,7 +183,7 @@ class Import
                 }
             }
         }
-        $this->resolver->resolveOptionReferences($this->optionTermReferenceNames, 'terms');
+        $resolver->resolveOptionReferences($this->optionTermReferenceNames, 'terms');
     }
 
     public function findTargetObjectId($target, $type)

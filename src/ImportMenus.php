@@ -2,7 +2,7 @@
 
 namespace Wpbootstrap;
 
-class Pushmenus
+class ImportMenus
 {
     private $menus = array();
     private $skipped_meta_fields = array(
@@ -11,23 +11,22 @@ class Pushmenus
         '_menu_item_object',
     );
 
-    private $bootstrap;
     private $helpers;
     private $import;
-    private $resolver;
 
     public function __construct()
     {
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->helpers = $this->bootstrap->getHelpers();
-        $this->import = Import::getInstance();
-        $this->resolver = Resolver::getInstance();
+        $container = Container::getInstance();
 
-        if (!isset($this->bootstrap->appSettings->content->menus)) {
+        $this->helpers = $container->getHelpers();
+        $this->import = $container->getImport();
+        $appSettings = $container->getAppSettings();
+
+        if (!isset($appSettings->content->menus)) {
             return;
         }
 
-        foreach ($this->bootstrap->appSettings->content->menus as $menu => $locations) {
+        foreach ($appSettings->content->menus as $menu => $locations) {
             $dir = BASEPATH."/bootstrap/menus/$menu";
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;

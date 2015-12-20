@@ -5,20 +5,11 @@ namespace Wpbootstrap;
 class Resolver
 {
     private $import;
-    private static $self = false;
-
-    public static function getInstance()
-    {
-        if (!self::$self) {
-            self::$self = new self();
-        }
-
-        return self::$self;
-    }
 
     public function __construct()
     {
-        $this->import = Import::getInstance();
+        $container = Container::getInstance();
+        $this->import = $container->getImport();
     }
 
     public function resolveOptionReferences($references, $type)

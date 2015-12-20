@@ -8,10 +8,6 @@ class Settings
 
     public function __construct($type = null)
     {
-        if (!defined('BASEPATH')) {
-            define('BASEPATH', dirname(dirname(__FILE__)));
-        }
-
         $file = '';
         switch ($type) {
             case 'local':

@@ -2,9 +2,6 @@
 
 namespace Wpbootstrap;
 
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
-
 class Bootstrap
 {
     public $localSettings;
@@ -16,48 +13,13 @@ class Bootstrap
     private $utils;
 
     const NETURALURL = '@@__NEUTRAL__@@';
-    const VERSION = '0.2.8';
-
-    public static function getInstance()
-    {
-        if (!self::$self) {
-            self::$self = new self();
-        }
-
-        return self::$self;
-    }
-
-    public static function destroy()
-    {
-        self::$self = false;
-    }
+    const VERSION = '0.2.9';
 
     public function __construct()
     {
         global $argv;
 
-        if (!defined('BASEPATH')) {
-            define('BASEPATH', getcwd());
-        }
-
-        $this->localSettings = new Settings('local');
-        $this->appSettings = new Settings('app');
-        $this->validateSettings();
-
-        // Set up logging
-        $this->log = new Logger('wp-bootstrap');
-        $consoleloglevel = 1000;
-        if (isset($this->localSettings->logfile)) {
-            $level = Logger::WARNING;
-            if (isset($this->localSettings->loglevel)) {
-                $level = constant('Monolog\Logger::'.$this->localSettings->loglevel);
-            }
-            $this->log->pushHandler(new StreamHandler($this->localSettings->logfile, $level));
-        }
-        if (isset($this->localSettings->consoleloglevel)) {
-            $consoleloglevel = constant('Monolog\Logger::'.$this->localSettings->consoleloglevel);
-        }
-        $this->log->pushHandler(new StreamHandler('php://stdout', $consoleloglevel));
+        $container = Container::getInstance();
 
         $this->argv = $argv;
         if (is_null($this->argv)) {
@@ -67,8 +29,11 @@ class Bootstrap
             array_shift($this->argv);
         }
 
-        $this->utils = new Utils($this);
-        $this->helpers = new Helpers();
+        $this->utils = $container->getUtils();
+        $this->helpers = $container->getHelpers();
+        $this->log = $container->getLog();
+        $this->localSettings = $container->getLocalSettings();
+        $this->appSettings = $container->getAppSettings();
 
         $this->log->addDebug('Parsed argv', $this->argv);
         $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
@@ -299,38 +264,5 @@ class Bootstrap
                 exec($cmd);
             }
         }
-    }
-
-    private function validateSettings()
-    {
-        $good = true;
-        if (!$this->localSettings->isValid()) {
-            echo "localsettings.json does not exist or contains invalid JSON\n";
-            $good = false;
-        }
-        if (!$this->appSettings->isValid()) {
-            echo "appsettings.json does not exist or contains invalid JSON\n";
-            $good = false;
-        }
-        if (!$good) {
-            echo "\nAt least one configuration file is missing or contains invalid JSON\n";
-            echo "Consider running command wp-init to set up template setting files\n";
-            die();
-        }
-    }
-
-    public function getLog()
-    {
-        return $this->log;
-    }
-
-    public function getUtils()
-    {
-        return $this->utils;
-    }
-
-    public function getHelpers()
-    {
-        return $this->helpers;
     }
 }

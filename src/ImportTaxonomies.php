@@ -2,26 +2,25 @@
 
 namespace Wpbootstrap;
 
-class Pushtaxonomies
+class ImportTaxonomies
 {
     public $taxonomies = array();
 
-    private $bootstrap;
-    private $helpers;
     private $import;
 
     public function __construct()
     {
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->helpers = $this->bootstrap->getHelpers();
-        $this->import = Import::getInstance();
+        $container = Container::getInstance();
+
+        $helpers = $container->getHelpers();
+        $this->import = $container->getImport();
 
         $dir = BASEPATH.'/bootstrap/taxonomies';
-        foreach ($this->helpers->getFiles($dir) as $subdir) {
+        foreach ($helpers->getFiles($dir) as $subdir) {
             $taxonomy = new \stdClass();
             $taxonomy->slug = $subdir;
             $taxonomy->terms = array();
-            foreach ($this->helpers->getFiles($dir.'/'.$subdir) as $file) {
+            foreach ($helpers->getFiles($dir.'/'.$subdir) as $file) {
                 $term = new \stdClass();
                 $term->done = false;
                 $term->id = 0;

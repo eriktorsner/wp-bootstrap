@@ -12,25 +12,18 @@ class Export
     private $extractMedia;
     private $helpers;
 
-    private static $self = false;
     private $excludedTaxonomies = array('nav_menu', 'link_category', 'post_format');
-
-    public static function getInstance()
-    {
-        if (!self::$self) {
-            self::$self = new self();
-        }
-
-        return self::$self;
-    }
 
     public function export()
     {
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->utils = $this->bootstrap->getUtils();
-        $this->helpers = $this->bootstrap->getHelpers();
-        $this->log = $this->bootstrap->getLog();
-        $this->extractMedia = new Extractmedia();
+        $container = Container::getInstance();
+
+        $this->utils = $container->getUtils();
+        $this->helpers = $container->getHelpers();
+        $this->log = $container->getLog();
+        $this->extractMedia = $container->getExportMedia();
+        $this->localSettings = $container->getLocalSettings();
+        $this->appSettings = $container->getAppSettings();
 
         $this->utils->includeWordPress();
         $this->mediaIds = array();
@@ -57,7 +50,7 @@ class Export
             $this->utils->exec($cmd);
         }
 
-        $src = $this->bootstrap->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
+        $src = $this->localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         $trg = BASEPATH.'/bootstrap/config/wpbootstrap.json';
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
@@ -86,8 +79,8 @@ class Export
         $this->helpers->recursiveRemoveDirectory($base.'/sidebars');
 
         $this->posts = new \stdClass();
-        if (isset($this->bootstrap->appSettings->content->posts)) {
-            foreach ($this->bootstrap->appSettings->content->posts as $postType => $posts) {
+        if (isset($this->appSettings->content->posts)) {
+            foreach ($this->appSettings->content->posts as $postType => $posts) {
                 $this->posts->$postType = array();
                 if ($posts == '*') {
                     $args = array('post_type' => $postType, 'posts_per_page' => -1, 'post_status' => 'publish');
@@ -110,8 +103,8 @@ class Export
         }
 
         $this->taxonomies = new \stdClass();
-        if (isset($this->bootstrap->appSettings->content->taxonomies)) {
-            foreach ($this->bootstrap->appSettings->content->taxonomies as $taxonomy => $terms) {
+        if (isset($this->appSettings->content->taxonomies)) {
+            foreach ($this->appSettings->content->taxonomies as $taxonomy => $terms) {
                 $this->taxonomies->$taxonomy = array();
                 if ($terms == '*') {
                     $allTerms = get_terms($taxonomy, array('hide_empty' => false));
@@ -260,11 +253,11 @@ class Export
 
     private function exportMenus()
     {
-        if (!isset($this->bootstrap->appSettings->content->menus)) {
+        if (!isset($this->appSettings->content->menus)) {
             return;
         }
 
-        foreach ($this->bootstrap->appSettings->content->menus as $menu => $locations) {
+        foreach ($this->appSettings->content->menus as $menu => $locations) {
             $menuItems = array();
             wp_set_current_user(1);
             $loggedInmenuItems = wp_get_nav_menu_items($menu);
@@ -312,12 +305,12 @@ class Export
 
     private function exportSidebars()
     {
-        if (!isset($this->bootstrap->appSettings->content->sidebars)) {
+        if (!isset($this->appSettings->content->sidebars)) {
             return;
         }
 
         $storedSidebars = get_option('sidebars_widgets', array());
-        foreach ($this->bootstrap->appSettings->content->sidebars as $sidebar) {
+        foreach ($this->appSettings->content->sidebars as $sidebar) {
             $dir = BASEPATH.'/bootstrap/sidebars/'.$sidebar;
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);

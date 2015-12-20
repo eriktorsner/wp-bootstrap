@@ -2,28 +2,25 @@
 
 namespace Wpbootstrap;
 
-class Pushposts
+class ImportPosts
 {
     public $posts = array();
     public $media = array();
 
-    private $bootstrap;
     private $import;
-    private $resolver;
-    private $helpers;
     private $log;
 
     public function __construct()
     {
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->log = $this->bootstrap->getLog();
-        $this->helpers = $this->bootstrap->getHelpers();
-        $this->import = Import::getInstance();
-        $this->resolver = Resolver::getInstance();
+        $container = Container::getInstance();
+
+        $this->log = $container->getLog();
+        $helpers = $container->getHelpers();
+        $this->import = $container->getImport();
 
         $dir = BASEPATH.'/bootstrap/posts';
-        foreach ($this->helpers->getFiles($dir) as $postType) {
-            foreach ($this->helpers->getFiles($dir.'/'.$postType) as $slug) {
+        foreach ($helpers->getFiles($dir) as $postType) {
+            foreach ($helpers->getFiles($dir.'/'.$postType) as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
                 $newPost->id = 0;
@@ -37,7 +34,7 @@ class Pushposts
             }
         }
 
-        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 

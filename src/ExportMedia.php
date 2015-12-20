@@ -2,7 +2,7 @@
 
 namespace Wpbootstrap;
 
-class Extractmedia
+class ExportMedia
 {
     private $utils;
     private $uploadDir = false;
@@ -10,7 +10,8 @@ class Extractmedia
     public function __construct($initiated = true)
     {
         if ($initiated) {
-            $this->utils = Bootstrap::getInstance()->getUtils();
+            $container = Container::getInstance();
+            $this->utils = $container->getUtils();
             $this->utils->includeWordPress();
         }
 

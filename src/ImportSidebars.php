@@ -2,21 +2,18 @@
 
 namespace Wpbootstrap;
 
-class Pushsidebars
+class ImportSidebars
 {
     private $sidebars = array();
 
-    private $bootstrap;
     private $import;
-    private $resolver;
     private $helpers;
 
     public function __construct()
     {
-        $this->bootstrap = Bootstrap::getInstance();
-        $this->helpers = $this->bootstrap->getHelpers();
-        $this->import = Import::getInstance();
-        $this->resolver = Resolver::getInstance();
+        $container = Container::getInstance();
+        $this->helpers = $container->getHelpers();
+        $this->import = $container->getImport();
 
         $dir = BASEPATH.'/bootstrap/sidebars';
         foreach ($this->helpers->getFiles($dir) as $sidebar) {
