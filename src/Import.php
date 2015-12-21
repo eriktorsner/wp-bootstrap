@@ -13,7 +13,6 @@ class Import
     public $uploadDir;
 
     private $utils;
-    private static $self = false;
 
     private $metaPostReferenceNames = array(
         '_thumbnail_id',
@@ -33,15 +32,6 @@ class Import
 
     private $optionTermReferenceNames = array(
     );
-
-    public static function getInstance()
-    {
-        if (!self::$self) {
-            self::$self = new self();
-        }
-
-        return self::$self;
-    }
 
     public function import()
     {

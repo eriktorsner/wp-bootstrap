@@ -8,7 +8,6 @@ class Bootstrap
     public $appSettings;
     public $argv = array();
 
-    private static $self = false;
     private $log = false;
     private $utils;
 

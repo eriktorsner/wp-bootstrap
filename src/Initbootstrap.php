@@ -5,20 +5,11 @@ namespace Wpbootstrap;
 class Initbootstrap
 {
     private $helpers;
-    private static $self = false;
-
-    public function getInstance()
-    {
-        if (!self::$self) {
-            self::$self = new self();
-        }
-
-        return self::$self;
-    }
 
     public function __construct()
     {
-        $this->helpers = new Helpers();
+        $container = Container::getInstance();
+        $this->helpers = $container->getHelpers();
     }
 
     private $scriptMaps = array(
