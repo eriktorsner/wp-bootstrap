@@ -57,13 +57,20 @@ class Export
             copy($src, $trg);
             $this->log->addDebug("Copied $src to $trg");
 
-            // sanity check
+            // read settings
             $settings = json_decode(file_get_contents($trg));
+
+            // sanity check
             $label = '.label';
             if (is_null($settings->$label)) {
                 $settings->$label = 'wpbootstrap';
-                file_put_contents($trg, $this->helpers->prettyPrint(json_encode($settings)));
             }
+
+            // neutralize
+            $this->helpers->fieldSearchReplace($settings, $this->baseUrl, Bootstrap::NETURALURL);
+
+            // save
+            file_put_contents($trg, $this->helpers->prettyPrint(json_encode($settings)));
         }
     }
 
