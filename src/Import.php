@@ -62,15 +62,23 @@ class Import
         $container = Container::getInstance();
         $localSettings = $container->getLocalSettings();
         $utils = $container->getUtils();
+        $helpers = $container->getHelpers();
         $wpcmd = $utils->getWpCommand();
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
+
         $trg = $localSettings->wppath.'/wp-content/config/wpbootstrap.json';
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
             copy($src, $trg);
             $cmd = $wpcmd.'config pull wpbootstrap';
-            exec($cmd);
+
+            // deneutralize
+            $settings = json_decode(file_get_contents($trg));
+            $helpers->fieldSearchReplace($settings, Bootstrap::NETURALURL, $this->baseUrl);
+            file_put_contents($trg, $helpers->prettyPrint(json_encode($settings)));
+
+            $utils->exec($cmd);
         }
     }
 
