@@ -17,8 +17,8 @@ class Utils
 
     public function exec($cmd)
     {
-        exec($cmd);
         $this->log->addDebug("Executing: $cmd");
+        exec($cmd);
     }
 
     public function getWpCommand()
