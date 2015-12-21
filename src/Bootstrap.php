@@ -11,8 +11,8 @@ class Bootstrap
     private $log = false;
     private $utils;
 
-    const NETURALURL = '@@__NEUTRAL__@@';
-    const VERSION = '0.2.9';
+    const NETURALURL = '@@__**--**NEUTRAL**--**__@@';
+    const VERSION = '0.2.10';
 
     public function __construct()
     {
@@ -51,14 +51,13 @@ class Bootstrap
         $wpcmd = $this->utils->getWpCommand();
 
         $cmd = 'rm -rf ~/.wp-cli/cache/core/';
-        exec($cmd);
-        $this->log->addDebug('Executed: '.$cmd);
+        $this->utils->exec($cmd);
 
         $cmd = $wpcmd.'core download --force';
         if (isset($this->appSettings->version)) {
             $cmd .= ' --version='.$this->appSettings->version;
         }
-        exec($cmd);
+        $this->utils->exec($cmd);
 
         $cmd = $wpcmd.sprintf(
             'core config --dbname=%s --dbuser=%s --dbpass=%s --quiet',
@@ -66,7 +65,7 @@ class Bootstrap
             $this->localSettings->dbuser,
             $this->localSettings->dbpass
         );
-        exec($cmd);
+        $this->utils->exec($cmd);
 
         if (!isset($this->localSettings->wpemail)) {
             $this->localSettings->wpemail = 'admin@local.dev';
@@ -79,7 +78,7 @@ class Bootstrap
             $this->localSettings->wpemail,
             $this->localSettings->wppass
         );
-        exec($cmd);
+        $this->utils->exec($cmd);
     }
 
     public function setup()
@@ -101,7 +100,7 @@ class Bootstrap
         exec($cmd);
 
         $cmd = 'rm -rf '.$this->localSettings->wppath.'/*';
-        exec($cmd);
+        $this->utils->exec($cmd);
     }
 
     public function update()
@@ -130,7 +129,7 @@ class Bootstrap
 
         foreach ($commands as $cmd) {
             $this->log->addDebug("Executing: $cmd");
-            exec($cmd);
+            $this->utils->exec($cmd);
         }
     }
 
@@ -147,7 +146,7 @@ class Bootstrap
                 } else {
                     $cmd = $wpcmd.'plugin install --activate --version='.$parts[1].' '.$parts[0];
                 }
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
 
@@ -165,10 +164,10 @@ class Bootstrap
                     $this->localSettings->wppath,
                     $plugin
                 );
-                exec($cmd);
+                $this->utils->exec($cmd);
 
                 $cmd = $wpcmd.'plugin activate '.$plugin;
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
 
@@ -177,7 +176,7 @@ class Bootstrap
             $this->log->addDebug('Plugins copied to wp-content', $local);
             foreach ($local as $plugin) {
                 $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
-                exec($cmd);
+                $this->utils->exec($cmd);
 
                 $cmd = sprintf(
                     'cp -a %s/wp-content/plugins/%s %s/wp-content/plugins/%s',
@@ -186,10 +185,10 @@ class Bootstrap
                     $this->localSettings->wppath,
                     $plugin
                 );
-                exec($cmd);
+                $this->utils->exec($cmd);
 
                 $cmd = $wpcmd.'plugin activate '.$plugin;
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
     }
@@ -207,7 +206,7 @@ class Bootstrap
                 } else {
                     $cmd = $wpcmd.'theme install --version='.$parts[1].' '.$parts[0];
                 }
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
 
@@ -216,7 +215,7 @@ class Bootstrap
             $this->log->addDebug('Themes symlinked to wp-content', $local);
             foreach ($local as $theme) {
                 $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
-                exec($cmd);
+                $this->utils->exec($cmd);
 
                 $cmd = sprintf(
                     'ln -s %s/wp-content/themes/%s %s/wp-content/themes/%s',
@@ -225,7 +224,7 @@ class Bootstrap
                     $this->localSettings->wppath,
                     $theme
                 );
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
 
@@ -234,7 +233,7 @@ class Bootstrap
             $this->log->addDebug('Themes copied to wp-content', $local);
             foreach ($local as $theme) {
                 $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
-                exec($cmd);
+                $this->utils->exec($cmd);
 
                 $cmd = sprintf(
                     'cp -a %s/wp-content/themes/%s %s/wp-content/themes/%s',
@@ -243,13 +242,13 @@ class Bootstrap
                     $this->localSettings->wppath,
                     $theme
                 );
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
 
         if (isset($this->appSettings->themes->active)) {
             $cmd = $wpcmd.'theme activate '.$this->appSettings->themes->active;
-            exec($cmd);
+            $this->utils->exec($cmd);
         }
     }
 
@@ -260,7 +259,7 @@ class Bootstrap
             foreach ($this->appSettings->settings as $key => $value) {
                 $cmd = $wpcmd."option update $key ";
                 $cmd .= '"'.$value.'"';
-                exec($cmd);
+                $this->utils->exec($cmd);
             }
         }
     }
