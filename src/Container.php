@@ -8,19 +8,56 @@ use Monolog\Handler\StreamHandler;
 class Container
 {
     public static $self = false;
+    private $singeltons = array(
+        'Bootstrap',
+        'Log',
+        'Utils',
+        'Resolver',
+        'Helpers',
+        'Initbootstrap',
+        'Import',
+        'Export',
+        'ExportMedia',
+        'ExportMenus',
+        'ExportPosts',
+        'ExportSidebars',
+        'ExportTaxonomies',
+        'ExtractMedia',
+    );
+    private $singletonInstances = array();
+    private $log;
+    private $appSettings;
+    private $localSettings;
 
-    private $bootstrap = false;
-    private $log = false;
-    private $utils = false;
-    private $resolver = false;
-    private $helpers = false;
-    private $export = false;
-    private $exportMedia = false;
-    private $import = false;
-    private $initBootstrap = false;
+    public function __construct()
+    {
+        $this->localSettings = new Settings('local');
+        $this->appSettings = new Settings('app');
+    }
 
-    private $localSettings = false;
-    private $appSettings = false;
+    public function __call($name, $args)
+    {
+        $class = substr($name, 3);
+
+        if ($class == 'AppSettings') {
+            return $this->appSettings;
+        }
+
+        if ($class == 'LocalSettings') {
+            return $this->localSettings;
+        }
+
+        if (in_array($class, $this->singeltons)) {
+            if (!isset($this->singletonInstances[$class])) {
+                $fullClass = 'Wpbootstrap\\'.$class;
+                $this->singletonInstances[$class] = new $fullClass();
+            }
+
+            return $this->singletonInstances[$class];
+        }
+
+        die("Class $class not found\n");
+    }
 
     public static function getInstance()
     {
@@ -29,12 +66,6 @@ class Container
         }
 
         return self::$self;
-    }
-
-    public function __construct()
-    {
-        $this->localSettings = new Settings('local');
-        $this->appSettings = new Settings('app');
     }
 
     public static function destroy()
@@ -63,88 +94,6 @@ class Container
         }
 
         return $this->log;
-    }
-
-    public function getLocalSettings()
-    {
-        return $this->localSettings;
-    }
-
-    public function getAppSettings()
-    {
-        return $this->appSettings;
-    }
-
-    public function getBootstrap()
-    {
-        if (!$this->bootstrap) {
-            $this->bootstrap = new Bootstrap();
-        }
-
-        return $this->bootstrap;
-    }
-
-    public function getUtils()
-    {
-        if (!$this->utils) {
-            $this->utils = new Utils();
-        }
-
-        return $this->utils;
-    }
-
-    public function getHelpers()
-    {
-        if (!$this->helpers) {
-            $this->helpers = new Helpers();
-        }
-
-        return $this->helpers;
-    }
-
-    public function getResolver()
-    {
-        if (!$this->resolver) {
-            $this->resolver = new Resolver();
-        }
-
-        return $this->resolver;
-    }
-
-    public function getExport()
-    {
-        if (!$this->export) {
-            $this->export = new Export();
-        }
-
-        return $this->export;
-    }
-
-    public function getImport()
-    {
-        if (!$this->import) {
-            $this->import = new Import();
-        }
-
-        return $this->import;
-    }
-
-    public function getInitBootstrap()
-    {
-        if (!$this->initBootstrap) {
-            $this->initBootstrap = new Initbootstrap();
-        }
-
-        return $this->initBootstrap;
-    }
-
-    public function getExportMedia()
-    {
-        if (!$this->exportMedia) {
-            $this->exportMedia = new ExportMedia();
-        }
-
-        return $this->exportMedia;
     }
 
     public function validateSettings($die = true)
