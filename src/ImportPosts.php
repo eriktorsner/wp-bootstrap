@@ -9,18 +9,19 @@ class ImportPosts
 
     private $import;
     private $log;
+    private $helpers;
 
     public function __construct()
     {
         $container = Container::getInstance();
 
         $this->log = $container->getLog();
-        $helpers = $container->getHelpers();
+        $this->helpers = $container->getHelpers();
         $this->import = $container->getImport();
 
         $dir = BASEPATH.'/bootstrap/posts';
-        foreach ($helpers->getFiles($dir) as $postType) {
-            foreach ($helpers->getFiles($dir.'/'.$postType) as $slug) {
+        foreach ($this->helpers->getFiles($dir) as $postType) {
+            foreach ($this->helpers->getFiles($dir.'/'.$postType) as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
                 $newPost->id = 0;
@@ -34,7 +35,7 @@ class ImportPosts
             }
         }
 
-        $helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -71,6 +72,7 @@ class ImportPosts
         $postId = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s", $post->slug));
         $args = array(
           'post_type' => $post->post->post_type,
+          'post_mime_type' => $post->post->post_mime_type,
           'post_parent' => $parentId,
           'post_title' => $post->post->post_title,
           'post_content' => $post->post->post_content,
@@ -100,6 +102,9 @@ class ImportPosts
             }
             $i = 0;
             foreach ($value as $val) {
+                if ($this->helpers->isSerialized($val)) {
+                    $val = unserialize($val);
+                }
                 if (isset($existingMetaItem[$i])) {
                     update_post_meta($postId, $meta, $val, $existingMetaItem[$i]);
                 } else {
@@ -128,6 +133,13 @@ class ImportPosts
             $isAThumbnail = $this->isAThumbnail($item->ID);
             if ($isAThumbnail) {
                 $this->log->addDebug('Media is thumbnail to (at least) one post', array($item->id));
+                $include = true;
+            }
+
+            // is this the payload for an imported attachment?
+            $isAttachment = $this->isAnAttachment($item->ID);
+            if ($isAttachment) {
+                $this->log->addDebug('Media is payload for an included attachment', array($item->id));
                 $include = true;
             }
 
@@ -206,6 +218,15 @@ class ImportPosts
         }
 
         return false;
+    }
+
+    private function isAnAttachment($id)
+    {
+        foreach ($this->posts as $post) {
+            if ($post->post->post_type == 'attachment' && $post->post->ID == $id) {
+                return true;
+            }
+        }
     }
 
     private function setAsThumbnail($oldId, $newId)
