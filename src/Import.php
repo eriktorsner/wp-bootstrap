@@ -13,17 +13,12 @@ class Import
     public $uploadDir;
 
     private $utils;
+    private $log;
 
-    private $metaPostReferenceNames = array(
+    private $postPostMetaReferenceNames = array(
         '_thumbnail_id',
     );
-    private $metaTermReferenceNames = array(
-    );
-
-    private $postPostReferenceNames = array(
-    );
-
-    private $postTermReferenceNames = array(
+    private $termPostMetaReferenceNames = array(
     );
 
     private $optionPostReferenceNames = array(
@@ -46,14 +41,16 @@ class Import
 
         $this->baseUrl = get_option('siteurl');
         $this->uploadDir = wp_upload_dir();
+        $this->log = $container->getLog();
 
         // Run the import
+        $this->log->addDebug('Importing settings');
         $this->importSettings();
+        $this->log->addDebug('Importing content');
         $this->importContent();
 
         // references
-        $this->resolveMetaReferences();
-        $this->resolvePostReferences();
+        $this->resolvePostMetaReferences();
         $this->resolveOptionReferences();
     }
 
@@ -84,65 +81,50 @@ class Import
 
     private function importContent()
     {
-        $this->taxonomies = new ImportTaxonomies();
         $this->posts = new ImportPosts();
+        $this->taxonomies = new ImportTaxonomies();
         $this->menus = new ImportMenus();
         $this->sidebars = new ImportSidebars();
         $this->taxonomies->assignObjects();
     }
 
-    private function resolveMetaReferences()
+    private function resolvePostMetaReferences()
     {
-        foreach ($this->metaPostReferenceNames as $refName) {
-            foreach ($this->posts->posts as $post) {
-                if (isset($post->post->post_meta[$refName])) {
-                    foreach ($post->post->post_meta[$refName] as $item) {
-                        $newId = $this->findTargetObjectId($item, 'posts');
-                        if ($newId != 0) {
-                            update_post_meta($post->id, $refName, $newId, $item);
-                        }
-                    }
-                }
-            }
-        }
-        foreach ($this->metaTermReferenceNames as $refName) {
-            foreach ($this->posts->posts as $post) {
-                if (isset($post->post->post_meta[$refName])) {
-                    foreach ($post->post->post_meta[$refName] as $item) {
-                        $newId = $this->findTargetObjectId($item, 'terms');
-                        if ($newId != 0) {
-                            update_post_meta($post->id, $refName, $newId, $item);
-                        }
-                    }
-                }
-            }
-        }
-    }
+        $container = Container::getInstance();
+        $appSettings = $container->getAppSettings();
+        $resolver = $container->getResolver();
 
-    private function resolvePostReferences()
-    {
-        foreach ($this->postPostReferenceNames as $refName) {
-            foreach ($this->posts->posts as $post) {
-                if (isset($post->post->$refName)) {
-                    $newId = $this->findTargetObjectId($post->post->$refName, 'posts');
-                    if ($newId > 0) {
-                        $args = array('ID' => $post->id, $refName => $newId);
-                        wp_update_post($args);
+        if (isset($appSettings->references->posts->postmeta)) {
+            $references = $appSettings->references->posts->postmeta;
+            if (is_array($references)) {
+                foreach ($references as $value) {
+                    if (is_string($value)) {
+                        $this->postPostMetaReferenceNames[] = $value;
+                    } elseif (is_object($value)) {
+                        $arr = (array) $value;
+                        $key = key($arr);
+                        $this->postPostMetaReferenceNames[$key] = $arr[$key];
                     }
                 }
             }
         }
-        foreach ($this->postTermReferenceNames as $refName) {
-            foreach ($this->posts->posts as $post) {
-                if (isset($post->post->$refName)) {
-                    $newId = $this->findTargetObjectId($post->post->$refName, 'terms');
-                    if ($newId > 0) {
-                        $args = array('ID' => $post->id, $refName => $newId);
-                        wp_update_post($args);
+        $resolver->resolvePostMetaReferences($this->postPostMetaReferenceNames, 'posts');
+
+        if (isset($appSettings->references->terms->postmeta)) {
+            $references = $appSettings->references->terms->postmeta;
+            if (is_array($references)) {
+                foreach ($references as $value) {
+                    if (is_string($value)) {
+                        $this->termPostMetaReferenceNames[] = $value;
+                    } elseif (is_object($value)) {
+                        $arr = (array) $value;
+                        $key = key($arr);
+                        $this->termPostMetaReferenceNames[$key] = $arr[$key];
                     }
                 }
             }
         }
+        $resolver->resolvePostMetaReferences($this->termPostMetaReferenceNames, 'terms');
     }
 
     private function resolveOptionReferences()
@@ -151,7 +133,7 @@ class Import
         $appSettings = $container->getAppSettings();
         $resolver = $container->getResolver();
 
-        if (isset($appSettings->content->references->posts->options)) {
+        if (isset($appSettings->references->posts->options)) {
             $options = $appSettings->content->references->posts->options;
             if (is_array($options)) {
                 foreach ($options as $value) {
