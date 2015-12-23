@@ -51,6 +51,47 @@ class Resolver
         }
     }
 
+    public function resolvePostMetaReferences($references, $type)
+    {
+        foreach ($references as $key => $value) {
+            if (is_integer($key)) {
+                foreach ($this->import->posts->posts as $post) {
+                    if (isset($post->post->post_meta[$value])) {
+                        foreach ($post->post->post_meta[$value] as $currentValue) {
+                            $newValue = $this->calcNewValue($currentValue, $type);
+                            if ($newValue !== false) {
+                                update_post_meta($post->id, $value, $newValue, $currentValue);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function calcNewValue($currentValue, $type)
+    {
+        if (is_integer($currentValue)) {
+            $newId = $this->import->findTargetObjectId($currentValue, $type);
+            if ($newId != 0) {
+                return $newId;
+            }
+        } else {
+            $count = preg_match_all('!\d+!', $currentValue, $matches);
+            if ($count == 1) {
+                $oldId = $matches[0][0];
+                $newId = $this->import->findTargetObjectId($oldId, $type);
+                if ($newId != 0) {
+                    $newValue = str_replace($oldId, $newId, $currentValue);
+
+                    return $newValue;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private function getValue($obj, $path)
     {
         return eval('return $obj'.$path.';');
