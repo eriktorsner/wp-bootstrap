@@ -11,7 +11,7 @@ if(count($argv) < 2) {
 $container = Wpbootstrap\Container::getInstance();
 
 switch($argv[1]) {
-    case 'wp-bootsrap':
+    case 'wp-bootstrap':
         $bootstrap = $container->getBootstrap();
         $container->validateSettings();
         $bootstrap->bootstrap();
@@ -47,11 +47,11 @@ switch($argv[1]) {
         $bootstrap->reset();
         break;        
     case 'wp-init':
-        $initBootstrap = $container->getInitBootstrap();
+        $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->init();
         break;                
     case 'wp-init-composer':
-        $initBootstrap = $container->getInitBootstrap();
+        $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->initComposer();
         break;        
     default:
