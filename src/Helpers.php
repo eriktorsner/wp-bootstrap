@@ -179,7 +179,7 @@ class Helpers
         }
     }
 
-    private function isSerialized($data)
+    public function isSerialized($data)
     {
         if (!is_string($data)) {
             return false;
