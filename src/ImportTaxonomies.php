@@ -20,6 +20,7 @@ class ImportTaxonomies
             $taxonomy = new \stdClass();
             $taxonomy->slug = $subdir;
             $taxonomy->terms = array();
+            $this->readManifest($taxonomy, $subdir);
             foreach ($helpers->getFiles($dir.'/'.$subdir) as $file) {
                 $term = new \stdClass();
                 $term->done = false;
@@ -51,8 +52,10 @@ class ImportTaxonomies
         foreach ($this->taxonomies as &$taxonomy) {
             foreach ($posts as $post) {
                 if (isset($post->post->taxonomies[$taxonomy->slug])) {
-                    $term = $post->post->taxonomies[$taxonomy->slug][0];
-                    $ret = wp_set_object_terms($post->id, $term, $taxonomy->slug);
+                    foreach ($post->post->taxonomies[$taxonomy->slug] as $orgSlug) {
+                        $termSlug = $this->findNewTerm($taxonomy, $orgSlug);
+                        $ret = wp_set_object_terms($post->id, $termSlug, $taxonomy->slug);
+                    }
                 }
             }
         }
@@ -68,7 +71,6 @@ class ImportTaxonomies
                 if (!$term->done) {
                     $parentId = $this->parentId($term->term->parent, $taxonomy);
                     if ($parentId || $term->term->parent == 0) {
-                        $existingTermId = $this->findExistingTerm($term, $currentTerms);
                         $args = array(
                             'description' => $term->term->description,
                             'parent' => $parentId,
@@ -76,7 +78,13 @@ class ImportTaxonomies
                             'term_group' => $term->term->term_group,
                             'name' => $term->term->name,
                         );
+                        switch ($taxonomy->type) {
+                            case 'postid':
+                                $this->adjustTypePostId($taxonomy, $term->term, $args);
+                                break;
+                        }
 
+                        $existingTermId = $this->findExistingTerm($term, $currentTerms);
                         if ($existingTermId > 0) {
                             $ret = wp_update_term($existingTermId, $taxonomy->slug, $args);
                             $term->id = $existingTermId;
@@ -94,6 +102,31 @@ class ImportTaxonomies
                 }
             }
         }
+    }
+
+    private function adjustTypePostId($taxonomy, &$term, &$args)
+    {
+        // slug refers to a postid.
+        $importPosts = $this->import->posts;
+        $newId = $importPosts->findTargetPostId($term->slug);
+
+        if ($newId) {
+            $args['slug'] = $newId;
+            $args['name'] = $newId;
+            $term->name = $newId;
+            $term->slug = $newId;
+        }
+    }
+
+    private function findNewTerm($taxonomy, $orgSlug)
+    {
+        foreach ($taxonomy->terms as $term) {
+            if ($term->slug == $orgSlug) {
+                return $term->term->slug;
+            }
+        }
+
+        return $orgSlug;
     }
 
     private function parentId($foreignParentId, $taxonomy)
@@ -116,6 +149,22 @@ class ImportTaxonomies
         }
 
         return 0;
+    }
+
+    private function readManifest(&$taxonomy, $taxonomyName)
+    {
+        $taxonomy->type = 'standard';
+        $taxonomy->termDescriptor = 'indirect';
+        $file = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest.json";
+        if (file_exists($file)) {
+            $manifest = json_decode(file_get_contents($file));
+            if (isset($manifest->type)) {
+                $taxonomy->type = $manifest->type;
+            }
+            if (isset($manifest->termDescriptor)) {
+                $taxonomy->termDescriptor = $manifest->termDescriptor;
+            }
+        }
     }
 
     public function findTargetTermId($target)
