@@ -7,6 +7,9 @@ class ExportSidebars extends ExportBase
     public function __construct()
     {
         parent::__construct();
+        $container = Container::getInstance();
+        $this->extractMedia = $container->getExtractMedia();
+        $this->exportMedia = $container->getExportMedia();
     }
 
     public function export()
