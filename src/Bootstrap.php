@@ -12,7 +12,7 @@ class Bootstrap
     private $utils;
 
     const NETURALURL = '@@__**--**NEUTRAL**--**__@@';
-    const VERSION = '0.2.10';
+    const VERSION = '0.3.0';
 
     public function __construct()
     {
