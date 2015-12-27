@@ -14,9 +14,11 @@ class ImportTaxonomies
 
         $helpers = $container->getHelpers();
         $this->import = $container->getImport();
-
         $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($helpers->getFiles($dir) as $subdir) {
+            if (!is_dir("$dir/$subdir")) {
+                continue;
+            }
             $taxonomy = new \stdClass();
             $taxonomy->slug = $subdir;
             $taxonomy->terms = array();
