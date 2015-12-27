@@ -134,7 +134,7 @@ class Import
         $resolver = $container->getResolver();
 
         if (isset($appSettings->references->posts->options)) {
-            $options = $appSettings->content->references->posts->options;
+            $options = $appSettings->references->posts->options;
             if (is_array($options)) {
                 foreach ($options as $value) {
                     if (is_string($value)) {
@@ -147,10 +147,11 @@ class Import
                 }
             }
         }
+
         $resolver->resolveOptionReferences($this->optionPostReferenceNames, 'posts');
 
-        if (isset($appSettings->content->references->terms->options)) {
-            $options = $appSettings->content->references->terms->options;
+        if (isset($appSettings->references->terms->options)) {
+            $options = $appSettings->references->terms->options;
             if (is_array($options)) {
                 foreach ($options as $value) {
                     if (is_string($value)) {
