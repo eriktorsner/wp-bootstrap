@@ -29,6 +29,11 @@ class Initbootstrap
         if (!file_exists(BASEPATH.'/appsettings.json')) {
             $appSettings = new \stdClass();
             $appSettings->title = '[title]';
+            $appSettings->plugins = new \stdClass();
+            $appSettings->plugins->standard = array('wp-cfm');
+            $appSettings->themes = new \stdClass();
+            $appSettings->themes->standard = array('twentysixteen');
+            $appSettings->themes->active = 'twentysixteen';
             file_put_contents(BASEPATH.'/appsettings.json', $this->helpers->prettyPrint(json_encode($appSettings)));
         }
         if (!file_exists(BASEPATH.'/localsettings.json')) {
@@ -43,6 +48,15 @@ class Initbootstrap
             $localSettings->wppass = '[wppass]';
             $localSettings->wppath = '[wppath]';
             file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
+        }
+        if (!file_exists(BASEPATH.'/wp-cli.yml')) {
+            $ls = json_decode(file_get_contents(BASEPATH.'/localsettings.json'));
+            if (isset($ls->wppath)) {
+                if ($ls->wppath != '[wppath]') {
+                    $wpcli = "path: {$ls->wppath}\n";
+                    file_put_contents(BASEPATH.'/wp-cli.yml', $wpcli);
+                }
+            }
         }
     }
 
