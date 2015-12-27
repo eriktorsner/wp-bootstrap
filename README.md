@@ -39,7 +39,7 @@ To add this package as a local, per-project dependency to your project, simply a
 
     {
         "require": {
-            "eriktorsner/wp-bootstrap": "0.2.*"
+            "eriktorsner/wp-bootstrap": "0.3.*"
         }
     }
 
@@ -62,13 +62,13 @@ wp-bootstrap exposes a few command that can be called from various automation en
 
 | Command | Arguments | Decription |
 |---------|------------|------------|
+| wp-init-composer || Add Wp-Bootstrap bindings to composer.json |
 | wp-install || Download and install WordPress core. Creates a default WordPress installation |
 | wp-setup  || Add themes and plugins and import content |
 | wp-bootstrap || Alias for wp-install followed by wp-setup|
 | wp-update |none, "themes" or "plugins"| Updates core, themes or plugins that are installed from the WordPress repos |
 | wp-export || Exports content from the WordPress database into text and media files on disk|
 | wp-import || Imports content in text and media files on disk into the database. Updates existing pages / media if it already exists |
-| wp-pullsettings || Helper: Adds a wpbootstrap section to the appsettings file (if it doesn't already exist) |
 
 ## Usage
 
@@ -175,7 +175,7 @@ The various settings in localsettings.json are self explanatory. This file is no
             "blogname": "New title 2",
             "blogdescription": "The next tagline"
         },
-        "wpbootstrap": {
+        "content": {
             "posts": {
                 "page": [
                     "about",
@@ -190,25 +190,25 @@ The various settings in localsettings.json are self explanatory. This file is no
             },
             "taxonomies": {
                 "category": "*"
-            },
-            "references": {
-                "posts": {
-                    "options": [
-                        "some_setting",
-                        {
-                            "mysettings": "->term_id"
-                        },
-                        {
-                            "mysettings2": "[2]"
-                        },
-                        {
-                            "mysettings3": [
-                                "->term_id",
-                                "->other_term_id"
-                            ]
-                        }
-                    ]
-                }
+            }
+        },
+        "references": {
+            "posts": {
+                "options": [
+                    "some_setting",
+                    {
+                        "mysettings": "->term_id"
+                    },
+                    {
+                        "mysettings2": "[2]"
+                    },
+                    {
+                        "mysettings3": [
+                            "->term_id",
+                            "->other_term_id"
+                        ]
+                    }
+                ]
             }
         }
     }
@@ -231,7 +231,7 @@ Similar to the plugins section but for themes.
 
 A list of settings that will be applied to the WordPress installation using the wp-cli command "option update %s". Currently only supports simple scalar values (strings and integers)
 
-###Section: wpbootstrap
+###Section: content
 
 This sections defines how to handle content during export and import of data using the wp-export or wp-import command. 
 
@@ -241,7 +241,8 @@ This sections defines how to handle content during export and import of data usi
 
 **taxonomies** Used during the export process. Contains zero or more keys with either a string or array as the value. Use asterisk (*) if you want to include all terms in the taxonomy. Use an array of term slugs if you want to only include specific terms from that taxonomy.
 
-**references** Used during the import process. This is a structure that describes option values (in the wp_option table) that contains references to a page or a taxonomy term. The reference item can contain a "posts" and a "terms" object describing settings that points to either posts or taxonomy terms. Each of these objects contains one single member "options" referring to the wp_options table (support for other references will be added later). The "options" member contains an array with names of options in the wp_option table. There are three ways to refer to an option:
+###Section: references
+Used during the import process. This is a structure that describes option values (in the wp_option table) that contains references to a page or a taxonomy term. The reference item can contain a "posts" and a "terms" object describing settings that points to either posts or taxonomy terms. Each of these objects contains one single member "options" referring to the wp_options table (support for other references will be added later). The "options" member contains an array with names of options in the wp_option table. There are three ways to refer to an option:
 
   - **1.** A simple string, for instance "page_on_front". Meaning that there is an option in the wp_options table named "page_on_front" and that option is a reference to a post ID.
   - **2.** An object with a single name-value pair, for instance {"mysetting": "[2]"} or {"mysetting2":"->page_id"} meaning:
@@ -271,6 +272,16 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.0**
+
+  - Reference section is moved out from "content" into it's own section in appsettings.json
+  - Added handling for "postid" taxonomies
+  - Creating manifest files for taxonomies for better import control
+  - Fixed some issues with search/replace in options and metadata
+  - Neutralizing (urls) settings handled via wp-cfm
+  - Additional refactoring
+  - Logging all system calls done via PHP exec()
+
 **0.2.9** 
 
   - Refactored and renamed classes
@@ -279,6 +290,7 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 **0.2.8** 
 
+  - Renamed section "wpbootstrap" to "content" in appsettings.json
   - Lots of logging added to the debug level.
   - Fixed bugs found from unit testing.
   - Brought test coverage back up to 80%
