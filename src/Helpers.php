@@ -168,7 +168,13 @@ class Helpers
                 $obj = unserialize($obj);
             }
 
-            $obj = str_replace($search, $replace, $obj);
+            if (is_object($obj) || is_array($obj)) {
+                foreach ($obj as &$member) {
+                    $this->recurseSearchReplace($member, $search, $replace);
+                }
+            } else {
+                $obj = str_replace($search, $replace, $obj);
+            }
 
             if ($ser) {
                 $obj = serialize($obj);
