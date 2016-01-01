@@ -18,7 +18,12 @@ class ExportTaxonomies extends ExportBase
                 $this->taxonomies->$taxonomyName->type = 'standard';
                 $this->taxonomies->$taxonomyName->terms = array();
                 if (is_object($terms)) {
-                    $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
+                    if (isset($terms->terms)) {
+                        $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
+                    } else {
+                        $this->log->addWarning("No terms property defined on $taxonomyName, using *");
+                        $this->taxonomies->$taxonomyName->termsDescriptor = '*';
+                    }
                     $this->taxonomies->$taxonomyName->type = $terms->type;
                 }
                 if ($this->taxonomies->$taxonomyName->termsDescriptor == '*') {
