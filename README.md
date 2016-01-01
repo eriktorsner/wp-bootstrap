@@ -272,6 +272,11 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.1**
+
+  - Bugfixes for exporting and importing taxonomies of type "postid"
+  - wp-init generates a wp-cli.yml file if localsettings/wppath has non default value
+
 **0.3.0**
 
   - Reference section is moved out from "content" into it's own section in appsettings.json
