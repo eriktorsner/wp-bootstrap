@@ -13,6 +13,7 @@ class ExportPosts extends ExportBase
         $container = Container::getInstance();
         $this->exportMedia = $container->getExportMedia();
         $this->extractMedia = $container->getExtractMedia();
+        $this->exportTaxonomies = $container->getExportTaxonomies();
 
         $this->posts = new \stdClass();
         if (isset($this->appSettings->content->posts)) {
