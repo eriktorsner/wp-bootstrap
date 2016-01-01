@@ -14,6 +14,7 @@ class ImportTaxonomies
 
         $helpers = $container->getHelpers();
         $this->import = $container->getImport();
+        $this->log = $container->getLog();
         $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($helpers->getFiles($dir) as $subdir) {
             if (!is_dir("$dir/$subdir")) {
@@ -50,14 +51,18 @@ class ImportTaxonomies
     public function assignObjects()
     {
         // Posts
+        $this->log->addDebug('Assigning objets to taxonomies');
         $posts = $this->import->posts->posts;
         foreach ($this->taxonomies as &$taxonomy) {
             foreach ($posts as $post) {
                 if (isset($post->post->taxonomies[$taxonomy->slug])) {
+                    $newTerms = array();
                     foreach ($post->post->taxonomies[$taxonomy->slug] as $orgSlug) {
                         $termSlug = $this->findNewTerm($taxonomy, $orgSlug);
-                        $ret = wp_set_object_terms($post->id, $termSlug, $taxonomy->slug);
+                        $newTerms[] = $termSlug;
                     }
+                    $this->log->addDebug("adding terms to object {$post->id}", $newTerms);
+                    $ret = wp_set_object_terms($post->id, $newTerms, $taxonomy->slug, false);
                 }
             }
         }
@@ -72,6 +77,7 @@ class ImportTaxonomies
             foreach ($taxonomy->terms as &$term) {
                 if (!$term->done) {
                     $parentId = $this->parentId($term->term->parent, $taxonomy);
+                    $this->log->addDebug("Importing term {$term->term->name}/{$term->term->slug}");
                     if ($parentId || $term->term->parent == 0) {
                         $args = array(
                             'description' => $term->term->description,
@@ -85,7 +91,6 @@ class ImportTaxonomies
                                 $this->adjustTypePostId($taxonomy, $term->term, $args);
                                 break;
                         }
-
                         $existingTermId = $this->findExistingTerm($term, $currentTerms);
                         if ($existingTermId > 0) {
                             $ret = wp_update_term($existingTermId, $taxonomy->slug, $args);
@@ -113,10 +118,10 @@ class ImportTaxonomies
         $newId = $importPosts->findTargetPostId($term->slug);
 
         if ($newId) {
-            $args['slug'] = $newId;
-            $args['name'] = $newId;
-            $term->name = $newId;
-            $term->slug = $newId;
+            $args['slug'] = strval($newId);
+            $args['name'] = strval($newId);
+            $term->name = strval($newId);
+            $term->slug = strval($newId);
         }
     }
 
