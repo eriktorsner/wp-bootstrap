@@ -2,15 +2,40 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ImportPosts
+ * @package Wpbootstrap
+ */
 class ImportPosts
 {
+    /**
+     * @var array
+     */
     public $posts = array();
+
+    /**
+     * @var array
+     */
     public $media = array();
 
+    /**
+     * @var Import
+     */
     private $import;
+
+    /**
+     * @var \Monolog\Logger
+     */
     private $log;
+
+    /**
+     * @var Helpers
+     */
     private $helpers;
 
+    /**
+     * ImportPosts constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -39,6 +64,9 @@ class ImportPosts
         $this->process();
     }
 
+    /**
+     * The main import process
+     */
     private function process()
     {
         remove_all_actions('transition_post_status');
@@ -65,6 +93,12 @@ class ImportPosts
         $this->importMedia();
     }
 
+    /**
+     * Update individual post
+     *
+     * @param $post
+     * @param $parentId
+     */
     private function updatePost(&$post, $parentId)
     {
         global $wpdb;
@@ -115,6 +149,9 @@ class ImportPosts
         $post->id = $postId;
     }
 
+    /**
+     * Import media file and meta data
+     */
     private function importMedia()
     {
         // check all the media.
@@ -195,6 +232,13 @@ class ImportPosts
         }
     }
 
+    /**
+     * Finds a post parent based on it's original id. If found, returns the new (after import) id
+     *
+     * @param int $foreignParentId
+     * @param array $objects
+     * @return int
+     */
     private function parentId($foreignParentId, $objects)
     {
         foreach ($objects as $object) {
@@ -206,6 +250,12 @@ class ImportPosts
         return 0;
     }
 
+    /**
+     * Checks if a media/attachment is serves as a thumbnail for another post
+     *
+     * @param int $id
+     * @return bool
+     */
     private function isAThumbnail($id)
     {
         foreach ($this->posts as $post) {
@@ -220,6 +270,12 @@ class ImportPosts
         return false;
     }
 
+    /**
+     * Checks if a post id is an attachment
+     *
+     * @param int $id
+     * @return bool
+     */
     private function isAnAttachment($id)
     {
         foreach ($this->posts as $post) {
@@ -231,6 +287,12 @@ class ImportPosts
         return false;
     }
 
+    /**
+     * Assigns an attachment as a thumbnail
+     *
+     * @param int $oldId
+     * @param int $newId
+     */
     private function setAsThumbnail($oldId, $newId)
     {
         foreach ($this->posts as $post) {
@@ -243,6 +305,12 @@ class ImportPosts
         }
     }
 
+    /**
+     * Finds a post based on it's original id. If found, returns the new (after import) id
+     *
+     * @param $target
+     * @return int
+     */
     public function findTargetPostId($target)
     {
         foreach ($this->posts as $post) {
