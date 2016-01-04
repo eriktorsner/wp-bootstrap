@@ -2,21 +2,55 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Snapshots
+ * @package Wpbootstrap
+ */
 class Snapshots
 {
+    /**
+     * @var Bootstrap
+     */
     private $bootstrap;
+
+    /**
+     * @var
+     */
     private $localSettings;
+
+    /**
+     * @var Helpers
+     */
     private $helpers;
+
+    /**
+     * @var \Monolog\Logger
+     */
     private $log;
+
+    /**
+     * @var string
+     */
     private $baseFolder;
 
+    /**
+     * Max strlen to be printed in a output table
+     */
     const MAX_STRLEN = 40;
 
+    /**
+     * Options that we ignore all toghether
+     *
+     * @var array
+     */
     private $excludedOptions = array(
         'cron', 'rewrite_rules',
 
     );
 
+    /**
+     * Snapshots constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -31,6 +65,9 @@ class Snapshots
         $utils->includeWordpress();
     }
 
+    /**
+     * Main entry point, checks argv and calls sub commands
+     */
     public function manage()
     {
         if (count($this->bootstrap->argv) == 0) {
@@ -53,6 +90,14 @@ class Snapshots
         }
     }
 
+    /**
+     * Creates a snapshot
+     *
+     * Optional arguments passed via argv
+     *   arg1  name The name for the new snapshot, default to current UNIX timestamp
+     *   arg2  comment A comment
+     *
+     */
     private function takeSnapshot()
     {
         $snapshotName = ''.time();
@@ -85,6 +130,9 @@ class Snapshots
         file_put_contents($file, serialize($snapshot));
     }
 
+    /**
+     * Lists all current snapshots
+     */
     private function listSnapshots()
     {
         $snapshots = $this->helpers->getFiles($this->baseFolder);
@@ -103,11 +151,22 @@ class Snapshots
         }
     }
 
+    /**
+     * Shows all modified options between the current WordPress install or between two
+     * snapshots
+     *
+     * Required arguments passed via argv
+     *   arg1 snapshot Name of the snapshot to compare current options against
+     *
+     * Optional arbuments passed via argv
+     *   arg2 snapshot2 If a second name is passed in, the diff will be between snapshot and snapshot2
+     */
     private function diffSnapshots()
     {
         if (count($this->bootstrap->argv) < 2) {
-            $this->climate->out('wp-state diff requires at least 1 additional argument Name the snapshot name to compare');
-            $this->climate->out('current state with. Or name 2 existing snapshots to compare to each other');
+            $this->climate->out('wp-state diff requires at least 1 additional argument Name the snapshot');
+            $this->climate->out('name to compare current state with. Or name 2 existing snapshots to compare');
+            $this->climate->out('to each other');
 
             return;
         }
@@ -151,6 +210,9 @@ class Snapshots
         }
     }
 
+    /**
+     * Show all options contained in a snapshot
+     */
     private function showSnapshot()
     {
         if (count($this->bootstrap->argv) < 2) {
@@ -186,6 +248,13 @@ class Snapshots
         }
     }
 
+    /**
+     * Finds all new, modified and removed options between two snapshots
+     *
+     * @param \stdClass $oldState
+     * @param \stdClass $newState
+     * @return array
+     */
     private function diff($oldState, $newState)
     {
         $added = array();
@@ -224,6 +293,12 @@ class Snapshots
         return array_merge($added, $modified, $removed);
     }
 
+    /**
+     * Formats any value in a termnal output friendly way
+     *
+     * @param mixed $value
+     * @return mixed|string
+     */
     private function valueToString($value)
     {
         if (gettype($value) == 'object' || is_array($value)) {
@@ -240,16 +315,27 @@ class Snapshots
         return $ret;
     }
 
+    /**
+     * Reads a snapshot from file
+     *
+     * @param string $name
+     * @return mixed|null
+     */
     private function readSnapshot($name)
     {
         $snapshotFile = $name.'.snapshot';
         if (!file_exists($this->baseFolder.'/'.$snapshotFile)) {
-            return false;
+            return null;
         }
 
         return unserialize(file_get_contents($this->baseFolder.'/'.$snapshotFile));
     }
 
+    /**
+     * Get all current options from WordPress
+     *
+     * @return array
+     */
     private function getOptionsSnapshot()
     {
         global $wpdb;
