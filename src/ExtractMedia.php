@@ -2,13 +2,27 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExtractMedia
+ * @package Wpbootstrap
+ */
 class ExtractMedia extends ExportBase
 {
+    /**
+     * ExtractMedia constructor.
+     */
     public function __construct()
     {
         parent::__construct();
     }
 
+    /**
+     * Extracts id's of all attachments that this post/term/widget is referring to via
+     * an url in the content
+     *
+     * @param \stdClass $obj
+     * @return array
+     */
     public function getReferencedMedia($obj)
     {
         $links = $this->findMediaFromObj($obj);
@@ -32,6 +46,12 @@ class ExtractMedia extends ExportBase
         return $ret;
     }
 
+    /**
+     * Identifies links to images/attachments on WordPress installation
+     *
+     * @param \stdClass $obj
+     * @return array
+     */
     private function findMediaFromObj($obj)
     {
         $ret = array();
@@ -55,6 +75,12 @@ class ExtractMedia extends ExportBase
         return array_unique($ret);
     }
 
+    /**
+     * Removes the last (and only last) media size indicator at the end of an URL.
+     *
+     * @param string $link
+     * @return string
+     */
     public function removeLastSizeIndicator($link)
     {
         $ret = $link;
@@ -68,6 +94,12 @@ class ExtractMedia extends ExportBase
         return $ret;
     }
 
+    /**
+     * Returns the attachment/media id of an image by looking up the GUID
+     *
+     * @param string $link
+     * @return mixed
+     */
     public function getImageId($link)
     {
         global $wpdb;
@@ -81,6 +113,12 @@ class ExtractMedia extends ExportBase
         return $attachment[0];
     }
 
+    /**
+     * Determines if a link is infact a link to an image
+     *
+     * @param string $link
+     * @return bool
+     */
     public function isImageUrl($link)
     {
         $ret = false;
