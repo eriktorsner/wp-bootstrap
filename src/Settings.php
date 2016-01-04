@@ -96,7 +96,7 @@ class Settings
     }
 
     /**
-     * Magic method to set a memner in the internal obj
+     * Magic method to set a member in the internal obj
      *
      * @param string $name
      * @param mixed $value
@@ -107,7 +107,7 @@ class Settings
     }
 
     /**
-     * Magic function to check if a memner is set in the internal obj
+     * Magic function to check if a member is set in the internal obj
      *
      * @param string $name
      * @return bool

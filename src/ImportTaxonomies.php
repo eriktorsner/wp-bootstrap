@@ -194,7 +194,7 @@ class ImportTaxonomies
     }
 
     /**
-     * Searches all current trems in a traxonomy and returns the id
+     * Searches all current terms in a taxonomy and returns the id
      * for the searched term slug
      *
      * @param string $term

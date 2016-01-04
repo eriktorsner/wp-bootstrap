@@ -39,7 +39,7 @@ class Snapshots
     const MAX_STRLEN = 40;
 
     /**
-     * Options that we ignore all toghether
+     * Options that we ignore all together
      *
      * @var array
      */
@@ -158,7 +158,7 @@ class Snapshots
      * Required arguments passed via argv
      *   arg1 snapshot Name of the snapshot to compare current options against
      *
-     * Optional arbuments passed via argv
+     * Optional arguments passed via argv
      *   arg2 snapshot2 If a second name is passed in, the diff will be between snapshot and snapshot2
      */
     private function diffSnapshots()
@@ -294,7 +294,7 @@ class Snapshots
     }
 
     /**
-     * Formats any value in a termnal output friendly way
+     * Formats any value in a terminal output friendly way
      *
      * @param mixed $value
      * @return mixed|string

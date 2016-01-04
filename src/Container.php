@@ -24,6 +24,8 @@ use League\CLImate\CLImate;
  * @method ExportTaxonomies getExportTaxonomies
  * @method ExtractMedia     getExtractMedia
  * @method Snapshots        getSnapshots
+ * @method Settings         getLocalSettings
+ * @method Settings         getAppSettings
 
  *
  */
