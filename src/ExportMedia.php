@@ -2,15 +2,28 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExportMedia
+ * @package Wpbootstrap
+ */
 class ExportMedia extends ExportBase
 {
+    /**
+     * @var array mediaIds
+     */
     private $mediaIds = array();
 
+    /**
+     * ExportMedia constructor.
+     */
     public function __construct()
     {
         parent::__construct();
     }
 
+    /**
+     * Exports media
+     */
     public function export()
     {
         $this->mediaIds = array_unique($this->mediaIds);
@@ -39,6 +52,10 @@ class ExportMedia extends ExportBase
         }
     }
 
+    /**
+     * Add mediaId to the internal array
+     * @param int|array $mediaId
+     */
     public function addMedia($mediaId)
     {
         if (is_array($mediaId)) {
