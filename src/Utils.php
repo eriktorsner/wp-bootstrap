@@ -2,12 +2,33 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Utils
+ * @package Wpbootstrap
+ *
+ * Simple Utilities used from other classes. Assumes that localsettings.json is defined and valid.
+ *
+ */
 class Utils
 {
+    /**
+     * @var bool
+     */
     private $wpIncluded = false;
-    private $log = false;
-    private $localSettings = false;
 
+    /**
+     * @var \Monolog\Logger
+     */
+    private $log;
+
+    /**
+     * @var Settings
+     */
+    private $localSettings;
+
+    /**
+     * Utils constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -15,12 +36,22 @@ class Utils
         $this->localSettings = $container->getLocalSettings();
     }
 
+    /**
+     * Executes and logs external commands
+     *
+     * @param $cmd
+     */
     public function exec($cmd)
     {
         $this->log->addDebug("Executing: $cmd");
         exec($cmd);
     }
 
+    /**
+     * Returns the wp-cli command with correct path
+     *
+     * @return string
+     */
     public function getWpCommand()
     {
         $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
@@ -28,6 +59,9 @@ class Utils
         return $wpcmd;
     }
 
+    /**
+     * Include WordPres wp-load.php
+     */
     public function includeWordPress()
     {
         if (!$this->wpIncluded) {
@@ -42,6 +76,14 @@ class Utils
         }
     }
 
+    /**
+     * Temporary dummy error handler
+     *
+     * @param $errNo
+     * @param $errStr
+     * @param $errFile
+     * @param $errLine
+     */
     public static function noError($errNo, $errStr, $errFile, $errLine)
     {
     }
