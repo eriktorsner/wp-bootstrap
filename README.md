@@ -2,36 +2,8 @@
 # wp-bootstrap
 Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation.
 
-Wp-bootstrap depends on [wp-cli](http://wp-cli.org/) and a plugin named [WP-CFM](https://wordpress.org/plugins/wp-cfm/) to do a lot of the heavy lifting under the hood. The ideas and rationale that inspired this project was originally presented on [my blog](http://erik.torgesta.com/) and  in the book [WordPress DevOps](https://leanpub.com/wordpressdevops) available on [Leanpub](https://leanpub.com/wordpressdevops).  Wp-bootsrap also assumes that you are using Composer even if it's not strictly needed.
-
-Wp-bootstrap uses two configuration files, appsettings.json and localsettings.json to control it's behaviour, all data is stored in subfolder "bootstrap" under the project root.
-
-Besides being able to configure and script the setup of a target environment, one of the main goals with with wp-bootstrap is to be able to **export** settings, pages, menus etc. from a WordPress development environment and later to **import** that data into a staging or production WordPress environment. Pages, menus or taxonomy terms that already exists on the target installation will be updated. 
-
-This project scratches a very specific WordPress itch: being able to develop locally, managing the WordPress site in Git and being able to push changes (releases) to a production environment without worrying about overwriting content or having to manually migrate any setting or content. The workflow is intended to be:
-
-#### On the development server (hint: use Vagrant):
-
- - Start a new project by requiring wp-bootstrap in composer.json
- - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
- - Create a localsettings.json and appsettings.json
- - Make sure you exclude localsettings.json from source code control
- - Initiate the development installation with commands `composer wp-install` and `composer wp-setup`
- - As settings are updated, use the WP-CFM interface in WordPress Admin to include the relevant settings into the application configuration
- - As plugins and themes are needed, add them to appsettings.json and rerun the wp-setup command to get them installed into your local environment
- - As posts and menus are added, include them in appsettings.json.
- - When it's time to deploy to a staging or production environment, run `composer wp-export` command to get all content serialized to disk. Add them to your Git repo
-
-#### On the staging or production server:
-
-  - Create the local database
-  - Check out the project from Git
-  - Create up your localsettings.json file with the relevant passwords and paths.
-  - Run composer update
-  - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
-  - Run `composer wp-install`, `composer wp-setup` and `composer wp-import`
-
-Once the target environment has been setup, new changes from the development environment can be pushed by checking out the new changes using Git and rerunning `wp-setup` and `wp-import`.
+[Core concepts and intended workflow](doc/01-intro.md)
+[Tutorial on wpessentials.io](http://www.wpessentials.io/2015/12/preparing-a-wordpress-site-for-git-using-wp-bootstrap/)
 
 ## Installation
 
@@ -69,6 +41,13 @@ wp-bootstrap exposes a few command that can be called from various automation en
 | wp-update |none, "themes" or "plugins"| Updates core, themes or plugins that are installed from the WordPress repos |
 | wp-export || Exports content from the WordPress database into text and media files on disk|
 | wp-import || Imports content in text and media files on disk into the database. Updates existing pages / media if it already exists |
+| wp-snapshots || Utils for diffing WordPress options |
+|    -"- |list | Shows all currently available snapshots  |
+|    -"- |snapshot $name $comment | Create a new snapshot with $name (optional) and $comment (optional)  |
+|    -"- |diff $name  | Compare snapshot $name with current WordPress options  |
+|    -"- |diff $name $name2  | Compare 2 snapshots  |
+|    -"- |show $name  | List all option with values in snapshot $name  |
+|    -"- |show $name $option  | Display a single option from snapshot $name  |
 
 ## Usage
 
