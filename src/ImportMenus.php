@@ -2,18 +2,39 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ImportMenus
+ * @package Wpbootstrap
+ */
 class ImportMenus
 {
+    /**
+     * @var array
+     */
     private $menus = array();
+
+    /**
+     * @var array
+     */
     private $skipped_meta_fields = array(
         '_menu_item_menu_item_parent',
         '_menu_item_object_id',
         '_menu_item_object',
     );
 
+    /**
+     * @var Helpers
+     */
     private $helpers;
+
+    /**
+     * @var Import
+     */
     private $import;
 
+    /**
+     * ImportMenus constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -51,6 +72,9 @@ class ImportMenus
         $this->process();
     }
 
+    /**
+     * The main import process
+     */
     private function process()
     {
         $locations = array();
@@ -63,6 +87,11 @@ class ImportMenus
         set_theme_mod('nav_menu_locations', $locations);
     }
 
+    /**
+     * Process individual menu
+     *
+     * @param $menu
+     */
     private function processMenu(&$menu)
     {
         $objMenu = wp_get_nav_menu_object($menu->slug);
@@ -88,10 +117,14 @@ class ImportMenus
             $newTarget = 0;
             switch ($menuItemType) {
                 case 'post_type':
-                    $newTarget = $this->import->posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+                    $newTarget = $this->import->posts->findTargetPostId(
+                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0]
+                    );
                     break;
                 case 'taxonomy':
-                    $newTarget = $this->import->taxonomies->findTargetTermId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);
+                    $newTarget = $this->import->taxonomies->findTargetTermId(
+                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0]
+                    );
                     break;
             }
 
@@ -122,6 +155,12 @@ class ImportMenus
         }
     }
 
+    /**
+     * Finds a menu item based on it's original id. If found, returns the new (after import) id
+     *
+     * @param int $target
+     * @return int
+     */
     private function findMenuItem($target)
     {
         foreach ($this->menus as $menu) {
