@@ -2,8 +2,21 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Helpers
+ *
+ * @package Wpbootstrap
+ */
 class Helpers
 {
+    /**
+     * Returns a pretty printed JSON string with some additional formatting
+     *  - empty arrays are compressed to a one liner
+     *  - arrays with only one element are compressed to a one liner
+     *
+     * @param string $json
+     * @return string
+     */
     public function prettyPrint($json)
     {
         $result = '';
@@ -35,9 +48,9 @@ class Helpers
                         break;
 
                     case '{':
-                    /** @noinspection PhpMissingBreakStatementInspection */
                     case '[':
                         $level++;
+                        // no break
                     case ',':
                         $ends_line_level = $level;
                         break;
@@ -71,6 +84,11 @@ class Helpers
         return $result;
     }
 
+    /**
+     * Return an array of all file names in a folder
+     * @param string $folder
+     * @return array
+     */
     public function getFiles($folder)
     {
         $ret = array();
@@ -87,6 +105,12 @@ class Helpers
         return $ret;
     }
 
+    /**
+     * Is a string a URL or not?
+     *
+     * @param string $url
+     * @return bool
+     */
     public function isUrl($url)
     {
         if (filter_var($url, FILTER_VALIDATE_URL) === false) {
@@ -96,6 +120,11 @@ class Helpers
         }
     }
 
+    /**
+     * Removes all files and sub folder recursively from a folder
+     *
+     * @param string $directory
+     */
     public function recursiveRemoveDirectory($directory)
     {
         foreach (glob("{$directory}/*") as $file) {
@@ -110,6 +139,13 @@ class Helpers
         }
     }
 
+    /**
+     * Returns unique array of objects, based on the object property $key
+     *
+     * @param array $array
+     * @param string $key
+     * @return array
+     */
     public function uniqueObjectArray($array, $key)
     {
         $temp_array = array();
@@ -127,6 +163,14 @@ class Helpers
         return $temp_array;
     }
 
+    /**
+     * Search replace in a string, object or array
+     *
+     * @param mixed $fld_value
+     * @param string $search
+     * @param string $replace
+     * @return bool
+     */
     public function fieldSearchReplace(&$fld_value, $search, $replace)
     {
         $value = $fld_value;
@@ -142,6 +186,13 @@ class Helpers
         return $ret;
     }
 
+    /**
+     * Helper function. Recursive search and replace in a string, object or array
+     *
+     * @param mixed $obj
+     * @param string $search
+     * @param string $replace
+     */
     private function recurseSearchReplace(&$obj, $search, $replace)
     {
         if (is_object($obj) || is_array($obj)) {
@@ -185,6 +236,10 @@ class Helpers
         }
     }
 
+    /**
+     * @param mixed$data
+     * @return bool
+     */
     public function isSerialized($data)
     {
         if (!is_string($data)) {
@@ -195,6 +250,10 @@ class Helpers
         return ($test !== false || $test === 'b:0;') ? true : false;
     }
 
+    /**
+     * @param mixed $data
+     * @return bool
+     */
     private function isBase64($data)
     {
         if (!is_string($data)) {
