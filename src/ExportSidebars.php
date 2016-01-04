@@ -2,8 +2,15 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExportSidebars
+ * @package Wpbootstrap
+ */
 class ExportSidebars extends ExportBase
 {
+    /**
+     * ExportSidebars constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -12,6 +19,9 @@ class ExportSidebars extends ExportBase
         $this->exportMedia = $container->getExportMedia();
     }
 
+    /**
+     * Export sidebars
+     */
     public function export()
     {
         if (!isset($this->appSettings->content->sidebars)) {
