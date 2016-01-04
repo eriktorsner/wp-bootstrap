@@ -2,12 +2,25 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ImportTaxonomies
+ * @package Wpbootstrap
+ */
 class ImportTaxonomies
 {
+    /**
+     * @var array
+     */
     public $taxonomies = array();
 
+    /**
+     * @var Import
+     */
     private $import;
 
+    /**
+     * ImportTaxonomies constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -37,6 +50,9 @@ class ImportTaxonomies
         $this->process();
     }
 
+    /**
+     * The main import process
+     */
     private function process()
     {
         $currentTaxonomies = get_taxonomies();
@@ -48,6 +64,10 @@ class ImportTaxonomies
         }
     }
 
+    /**
+     * Searches through a imported posts to identify all taxonomy terms assignments
+     * for each post and assigns the post to the terms in the current WP install
+     */
     public function assignObjects()
     {
         // Posts
@@ -68,6 +88,11 @@ class ImportTaxonomies
         }
     }
 
+    /**
+     * Process individual taxonomy
+     *
+     * @param \stdClass $taxonomy
+     */
     private function processTaxonomy(&$taxonomy)
     {
         $currentTerms = get_terms($taxonomy->slug, array('hide_empty' => false));
@@ -111,6 +136,12 @@ class ImportTaxonomies
         }
     }
 
+    /**
+     * Handles name/slug adjustments for terms in a "postid" taxonomy
+     *
+     * @param \stdClass $term
+     * @param array $args
+     */
     private function adjustTypePostId(&$term, &$args)
     {
         // slug refers to a postid.
@@ -125,6 +156,14 @@ class ImportTaxonomies
         }
     }
 
+    /**
+     * Finds a term in the existing WP install based on what that terms
+     * was named in the old.
+     *
+     * @param \stdClass $taxonomy
+     * @param string $orgSlug
+     * @return string
+     */
     private function findNewTerm($taxonomy, $orgSlug)
     {
         foreach ($taxonomy->terms as $term) {
@@ -136,6 +175,13 @@ class ImportTaxonomies
         return $orgSlug;
     }
 
+    /**
+     * Finds a the current parent id for a term based on its old value
+     *
+     * @param int $foreignParentId
+     * @param \stdClass $taxonomy
+     * @return int
+     */
     private function parentId($foreignParentId, $taxonomy)
     {
         foreach ($taxonomy->terms as $term) {
@@ -147,6 +193,14 @@ class ImportTaxonomies
         return 0;
     }
 
+    /**
+     * Searches all current trems in a traxonomy and returns the id
+     * for the searched term slug
+     *
+     * @param string $term
+     * @param array $currentTerms
+     * @return int
+     */
     private function findExistingTerm($term, $currentTerms)
     {
         foreach ($currentTerms as $currentTerm) {
@@ -158,6 +212,12 @@ class ImportTaxonomies
         return 0;
     }
 
+    /**
+     * Parse the manifest file generated for the taxonomy
+     *
+     * @param \stdClass $taxonomy
+     * @param string $taxonomyName
+     */
     private function readManifest(&$taxonomy, $taxonomyName)
     {
         $taxonomy->type = 'standard';
@@ -174,6 +234,12 @@ class ImportTaxonomies
         }
     }
 
+    /**
+     * Searches all imported taxonomies for a specific term, returns the term id if fount
+     *
+     * @param $target
+     * @return int
+     */
     public function findTargetTermId($target)
     {
         foreach ($this->taxonomies as $taxonomy) {
