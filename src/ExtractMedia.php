@@ -114,7 +114,7 @@ class ExtractMedia extends ExportBase
     }
 
     /**
-     * Determines if a link is infact a link to an image
+     * Determines if a link is in fact a link to an image
      *
      * @param string $link
      * @return bool
