@@ -2,10 +2,20 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExportTaxonomies
+ * @package Wpbootstrap
+ */
 class ExportTaxonomies extends ExportBase
 {
+    /**
+     * @var \stdClass
+     */
     private $taxonomies;
 
+    /**
+     * ExportTaxonomies constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -40,6 +50,9 @@ class ExportTaxonomies extends ExportBase
         }
     }
 
+    /**
+     * Export taxonomies
+     */
     public function export()
     {
         $count = 1;
@@ -78,6 +91,12 @@ class ExportTaxonomies extends ExportBase
         }
     }
 
+    /**
+     * Add the term identified by taxonomyName/slug to the internal array
+     *
+     * @param string $taxonomyName
+     * @param string $slug
+     */
     public function addTerm($taxonomyName, $slug)
     {
         $this->log->addDebug("Adding term $slug to Taxonomy $taxonomyName");
