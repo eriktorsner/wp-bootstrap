@@ -53,6 +53,10 @@ switch($argv[1]) {
     case 'wp-init-composer':
         $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->initComposer();
+    case 'wp-snapshots':
+        $container->validateSettings();
+        $manageState = $container->getSnapshots();
+        $manageState->manage();
         break;        
     default:
         die("Command {$argv[1]} not recognized\n");       
