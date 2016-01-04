@@ -19,7 +19,8 @@
     },
     "require": {
         "php": ">=5.3.3",
-        "monolog/monolog": "^1.17"
+        "monolog/monolog": "^1.17",
+        "league/climate": "^3.2"
     },
     "autoload": {
         "psr-4": {
