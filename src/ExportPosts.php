@@ -145,7 +145,7 @@ class ExportPosts extends ExportBase
     }
 
     /**
-     * Add the post identified by posttype/slug to the internal array
+     * Add the post identified by post_type/slug to the internal array
      *
      * @param string $postType
      * @param string $slug
