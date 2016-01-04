@@ -11,7 +11,7 @@ class Bootstrap
     private $log = false;
     private $utils;
 
-    const NETURALURL = '@@__**--**NEUTRAL**--**__@@';
+    const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
     const VERSION = '0.3.1';
 
     public function __construct()
@@ -40,14 +40,14 @@ class Bootstrap
 
     public function bootstrap()
     {
-        $this->log->addDebug('Running Bootstap::bootstrap');
+        $this->log->addDebug('Running Bootstrap::bootstrap');
         $this->install();
         $this->setup();
     }
 
     public function install()
     {
-        $this->log->addDebug('Running Bootstap::install');
+        $this->log->addDebug('Running Bootstrap::install');
         $wpcmd = $this->utils->getWpCommand();
 
         $cmd = 'rm -rf ~/.wp-cli/cache/core/';
@@ -83,7 +83,7 @@ class Bootstrap
 
     public function setup()
     {
-        $this->log->addDebug('Running Bootstap::setup');
+        $this->log->addDebug('Running Bootstrap::setup');
 
         $this->log->addDebug('Installing plugins');
         $this->installPlugins();
@@ -152,7 +152,7 @@ class Bootstrap
 
         if (isset($this->appSettings->plugins->local)) {
             $local = $this->appSettings->plugins->local;
-            $this->log->addDebug('Plugins symlinked to wp-content', $local);
+            $this->log->addDebug('Plugins symlink-ed to wp-content', $local);
             foreach ($local as $plugin) {
                 $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
                 exec($cmd);

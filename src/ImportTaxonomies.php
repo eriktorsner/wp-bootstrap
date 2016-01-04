@@ -51,7 +51,7 @@ class ImportTaxonomies
     public function assignObjects()
     {
         // Posts
-        $this->log->addDebug('Assigning objets to taxonomies');
+        $this->log->addDebug('Assigning objects to taxonomies');
         $posts = $this->import->posts->posts;
         foreach ($this->taxonomies as &$taxonomy) {
             foreach ($posts as $post) {
@@ -62,7 +62,7 @@ class ImportTaxonomies
                         $newTerms[] = $termSlug;
                     }
                     $this->log->addDebug("adding terms to object {$post->id}", $newTerms);
-                    $ret = wp_set_object_terms($post->id, $newTerms, $taxonomy->slug, false);
+                    wp_set_object_terms($post->id, $newTerms, $taxonomy->slug, false);
                 }
             }
         }
@@ -88,12 +88,12 @@ class ImportTaxonomies
                         );
                         switch ($taxonomy->type) {
                             case 'postid':
-                                $this->adjustTypePostId($taxonomy, $term->term, $args);
+                                $this->adjustTypePostId($term->term, $args);
                                 break;
                         }
                         $existingTermId = $this->findExistingTerm($term, $currentTerms);
                         if ($existingTermId > 0) {
-                            $ret = wp_update_term($existingTermId, $taxonomy->slug, $args);
+                            wp_update_term($existingTermId, $taxonomy->slug, $args);
                             $term->id = $existingTermId;
                         } else {
                             $id = wp_insert_term($term->term->name, $taxonomy->slug, $args);
@@ -111,7 +111,7 @@ class ImportTaxonomies
         }
     }
 
-    private function adjustTypePostId($taxonomy, &$term, &$args)
+    private function adjustTypePostId(&$term, &$args)
     {
         // slug refers to a postid.
         $importPosts = $this->import->posts;

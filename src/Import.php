@@ -12,7 +12,6 @@ class Import
     public $baseUrl;
     public $uploadDir;
 
-    private $utils;
     private $log;
 
     private $postPostMetaReferenceNames = array(
@@ -72,7 +71,7 @@ class Import
 
             // deneutralize
             $settings = json_decode(file_get_contents($trg));
-            $helpers->fieldSearchReplace($settings, Bootstrap::NETURALURL, $this->baseUrl);
+            $helpers->fieldSearchReplace($settings, Bootstrap::NEUTRALURL, $this->baseUrl);
             file_put_contents($trg, $helpers->prettyPrint(json_encode($settings)));
 
             $utils->exec($cmd);

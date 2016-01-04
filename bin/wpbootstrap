@@ -53,6 +53,7 @@ switch($argv[1]) {
     case 'wp-init-composer':
         $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->initComposer();
+        break;
     case 'wp-snapshots':
         $container->validateSettings();
         $manageState = $container->getSnapshots();

@@ -37,9 +37,7 @@ class ImportSidebars
             $this->sidebars[] = $newSidebar;
         }
 
-        $baseUrl = get_option('siteurl');
-        $neutralUrl = Bootstrap::NETURALURL;
-        $this->helpers->fieldSearchReplace($this->sidebars, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->sidebars, Bootstrap::NEUTRALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -60,7 +58,7 @@ class ImportSidebars
                 $currentWidgetDef = get_option('widget_'.$widget->type, array());
                 $ord = $this->findFirstFree($currentWidgetDef);
 
-                $this->helpers->fieldSearchReplace($widget->meta, Bootstrap::NETURALURL, $this->import->baseUrl);
+                $this->helpers->fieldSearchReplace($widget->meta, Bootstrap::NEUTRALURL, $this->import->baseUrl);
                 $currentWidgetDef[$ord] = $widget->meta;
                 update_option('widget_'.$widget->type, $currentWidgetDef);
 

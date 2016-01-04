@@ -21,14 +21,14 @@ class ExportMenus extends ExportBase
         foreach ($this->appSettings->content->menus as $menu => $locations) {
             $menuItems = array();
             wp_set_current_user(1);
-            $loggedInmenuItems = wp_get_nav_menu_items($menu);
-            if (is_array($loggedInmenuItems)) {
-                $menuItems = array_merge($menuItems, $loggedInmenuItems);
+            $loggedInMenuItems = wp_get_nav_menu_items($menu);
+            if (is_array($loggedInMenuItems)) {
+                $menuItems = array_merge($menuItems, $loggedInMenuItems);
             }
             wp_set_current_user(0);
-            $notloggedInmenuItems = wp_get_nav_menu_items($menu);
-            if (is_array($notloggedInmenuItems)) {
-                $menuItems = @array_merge($menuItems, $notloggedInmenuItems);
+            $notLoggedInMenuItems = wp_get_nav_menu_items($menu);
+            if (is_array($notLoggedInMenuItems)) {
+                $menuItems = @array_merge($menuItems, $notLoggedInMenuItems);
             }
             $menuItems = $this->helpers->uniqueObjectArray($menuItems, 'ID');
 
@@ -56,7 +56,7 @@ class ExportMenus extends ExportBase
                         }
                         break;
                 }
-                $this->helpers->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NETURALURL);
+                $this->helpers->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NEUTRALURL);
 
                 $file = $dir.'/'.$menuItem->post_name;
                 file_put_contents($file, serialize($obj));

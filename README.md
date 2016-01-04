@@ -31,15 +31,15 @@ Then to run a command:
 
 ## Commands
 
-wp-bootstrap exposes a few command that can be called from various automation envrionments
+wp-bootstrap exposes a few command that can be called from various automation environments
 
-| Command | Arguments | Decription |
+| Command | Arguments | Description |
 |---------|------------|------------|
 | wp-init-composer || Add Wp-Bootstrap bindings to composer.json |
 | wp-install || Download and install WordPress core. Creates a default WordPress installation |
 | wp-setup  || Add themes and plugins and import content |
 | wp-bootstrap || Alias for wp-install followed by wp-setup|
-| wp-update |none, "themes" or "plugins"| Updates core, themes or plugins that are installed from the WordPress repos |
+| wp-update |none, "themes" or "plugins"| Updates core, themes or plugins that are installed from the WordPress repository |
 | wp-export || Exports content from the WordPress database into text and media files on disk|
 | wp-import || Imports content in text and media files on disk into the database. Updates existing pages / media if it already exists |
 | wp-snapshots || Utils for diffing WordPress options |
@@ -197,7 +197,7 @@ The various settings in localsettings.json are self explanatory. This file is no
 This section consists of two sub arrays "standard" and "local". Each array contains plugin names that should be installed and activated on the target WordPress site. 
 
  - **standard** Fetches plugins from the official WordPress repository. If a specific version is needed, specify the version using a colon and the version identifier i.e **if-menu:0.2.1**
- - **local** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. Local plugins are symlinked into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
+ - **local** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. Local plugins are symlink'ed into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
 
 ### Section: themes
 Similar to the plugins section but for themes. 
@@ -230,11 +230,11 @@ Used during the import process. This is a structure that describes option values
     - That setting is an array or object and the value tells wp-bootstrap how to access the array element or member variable of interest. The value follows PHP syntax, so an array element is accessed via "[]" notation and an object member variable is accessed via the "->" syntax.
   - **3.** As above, but instead of a simple string value, the value is an array of strings.
 
-Reference resolving will only look at the pages/posts/terms included in your import set.  The import set might include an option "mypage" in the config/wpbootstrap.json file that points to post ID=10. Also in the import set, there is that page with id=10. When this page is imported in the target WordPress installation, it might get anohter ID, 22 for instance. By telling wp-bootstrap that the setting "mypage" in the wp_options table refers to a page, wp-bootstrap will update that option to the new value 22 as part of the process.
+Reference resolving will only look at the pages/posts/terms included in your import set.  The import set might include an option "mypage" in the config/wpbootstrap.json file that points to post ID=10. Also in the import set, there is that page with id=10. When this page is imported in the target WordPress installation, it might get another ID, 22 for instance. By telling wp-bootstrap that the setting "mypage" in the wp_options table refers to a page, wp-bootstrap will update that option to the new value 22 as part of the process.
 
 ###Parent child references and automatic includes
 
-Wp-bootstrap tries it's hardest to preseve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data. 
+Wp-bootstrap tries it's hardest to preserve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data. 
 
 ###Import matching
 When importing into a WordPress installation, wp-bootstrap will use the **slug** to match pages, menus and taxonomy terms. So if the dataset to be imported contains a page with the **slug** 'foobar', that page will be (a) created if it didn't previously exist or (b) updated if it did. The same logic applies to posts (pages, attachments, posts etc), menu items and taxonomy terms.
@@ -254,7 +254,7 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 **0.3.1**
 
-  - Bugfixes for exporting and importing taxonomies of type "postid"
+  - Bug fixes for exporting and importing taxonomies of type "postid"
   - wp-init generates a wp-cli.yml file if localsettings/wppath has non default value
 
 **0.3.0**
@@ -270,7 +270,7 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 **0.2.9** 
 
   - Refactored and renamed classes
-  - Introduced class Container as a (sorf of) depencency injection container
+  - Introduced class Container as a (sort of) dependency injection container
   - Brought test coverage up to 85%
 
 **0.2.8** 

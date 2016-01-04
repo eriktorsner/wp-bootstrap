@@ -32,7 +32,7 @@ class ExportPosts extends ExportBase
             }
         }
 
-        $this->log->addDebug('Initiated ExportPosts. '.count($this->posts).' post(s)');
+        $this->log->addDebug('Initiated ExportPosts.');
     }
 
     public function export()
@@ -71,7 +71,7 @@ class ExportPosts extends ExportBase
                     // 2. from featured image:
                     if (has_post_thumbnail($postId)) {
                         $mediaId = get_post_thumbnail_id($postId);
-                        $this->exportMedia->addMedia($item->ID);
+                        $this->exportMedia->addMedia($mediaId);
                     }
 
                     // 3. Is this post actually an attachment?
@@ -112,7 +112,7 @@ class ExportPosts extends ExportBase
                     }
 
                     $objPost->post_meta = $meta;
-                    $this->helpers->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NETURALURL);
+                    $this->helpers->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NEUTRALURL);
 
                     $file = BASEPATH."/bootstrap/posts/{$objPost->post_type}/{$objPost->post_name}";
                     $this->log->addDebug("Storing $file");

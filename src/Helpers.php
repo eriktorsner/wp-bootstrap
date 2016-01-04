@@ -35,9 +35,9 @@ class Helpers
                         break;
 
                     case '{':
+                    /** @noinspection PhpMissingBreakStatementInspection */
                     case '[':
                         $level++;
-                        // intentonal
                     case ',':
                         $ends_line_level = $level;
                         break;

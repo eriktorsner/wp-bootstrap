@@ -67,7 +67,7 @@ class Initbootstrap
         }
         $composer = json_decode(file_get_contents(BASEPATH.'/composer.json'));
         if (!$composer) {
-            die("Error: composer.json does not contain vaild JSON\n");
+            die("Error: composer.json does not contain valid JSON\n");
         }
 
         if (!isset($composer->scripts)) {

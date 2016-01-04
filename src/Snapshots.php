@@ -12,7 +12,7 @@ class Snapshots
 
     const MAX_STRLEN = 40;
 
-    private $expludedOptions = array(
+    private $excludedOptions = array(
         'cron', 'rewrite_rules',
 
     );
@@ -34,7 +34,7 @@ class Snapshots
     public function manage()
     {
         if (count($this->bootstrap->argv) == 0) {
-            $this->climate->out('wp-snapshots expects at least one subcommand');
+            $this->climate->out('wp-snapshots expects at least one sub command');
         }
 
         switch ($this->bootstrap->argv[0]) {
@@ -226,8 +226,6 @@ class Snapshots
 
     private function valueToString($value)
     {
-        $ret = '';
-
         if (gettype($value) == 'object' || is_array($value)) {
             $ret = print_r($value, true);
         } else {
@@ -262,7 +260,7 @@ class Snapshots
         );
         $options = array();
         foreach ($allOptions as $optionName) {
-            if (!in_array($optionName, $this->expludedOptions)) {
+            if (!in_array($optionName, $this->excludedOptions)) {
                 $options[$optionName] = get_option($optionName);
             }
         }

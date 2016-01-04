@@ -123,8 +123,11 @@ class Container
             if ($die) {
                 die();
             }
-
-            return $good;
         }
+        if($foo='bar')
+        {
+            echo "test\n";
+        }
+        return $good;
     }
 }

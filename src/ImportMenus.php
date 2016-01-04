@@ -46,9 +46,8 @@ class ImportMenus
             });
             $this->menus[] = $newMenu;
         }
-        $baseUrl = get_option('siteurl');
-        $neutralUrl = Bootstrap::NETURALURL;
-        $this->helpers->fieldSearchReplace($this->menus, Bootstrap::NETURALURL, $this->import->baseUrl);
+
+        $this->helpers->fieldSearchReplace($this->menus, Bootstrap::NEUTRALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -68,24 +67,25 @@ class ImportMenus
     {
         $objMenu = wp_get_nav_menu_object($menu->slug);
         if (!$objMenu) {
-            $id = wp_create_nav_menu($menu->slug);
+            wp_create_nav_menu($menu->slug);
             $objMenu = wp_get_nav_menu_object($menu->slug);
         }
         $menuId = $objMenu->term_id;
         $menu->id = $menuId;
 
         wp_set_current_user(1);
-        $loggedInmenuItems = wp_get_nav_menu_items($menu->slug);
+        $loggedInMenuItems = wp_get_nav_menu_items($menu->slug);
         wp_set_current_user(0);
-        $notloggedInmenuItems = wp_get_nav_menu_items($menu->slug);
-        $existingMenuItems = array_merge($loggedInmenuItems, $notloggedInmenuItems);
+        $notLoggedInMenuItems = wp_get_nav_menu_items($menu->slug);
+        $existingMenuItems = array_merge($loggedInMenuItems, $notLoggedInMenuItems);
         $existingMenuItems = $this->helpers->uniqueObjectArray($existingMenuItems, 'ID');
         foreach ($existingMenuItems as $existingMenuItem) {
-            $ret = wp_delete_post($existingMenuItem->ID, true);
+            wp_delete_post($existingMenuItem->ID, true);
         }
 
         foreach ($menu->items as &$objMenuItem) {
             $menuItemType = $objMenuItem->menu->post_meta['_menu_item_type'][0];
+            $newTarget = 0;
             switch ($menuItemType) {
                 case 'post_type':
                     $newTarget = $this->import->posts->findTargetPostId($objMenuItem->menu->post_meta['_menu_item_object_id'][0]);

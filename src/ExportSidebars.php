@@ -39,7 +39,7 @@ class ExportSidebars extends ExportBase
                 $this->exportMedia->addMedia($ret);
 
                 $file = $dir.'/'.$widget;
-                $this->helpers->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NETURALURL);
+                $this->helpers->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NEUTRALURL);
                 file_put_contents($file, serialize($widgetSettings));
             }
 

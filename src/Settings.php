@@ -8,7 +8,6 @@ class Settings
 
     public function __construct($type = null)
     {
-        $file = '';
         switch ($type) {
             case 'local':
                 $file = '/localsettings.json';
@@ -64,7 +63,7 @@ class Settings
             return $this->obj->$name;
         }
 
-        return;
+        return false;
     }
 
     public function __set($name, $value)

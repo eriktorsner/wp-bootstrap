@@ -65,7 +65,7 @@ class Export extends ExportBase
             }
 
             // neutralize
-            $this->helpers->fieldSearchReplace($settings, $this->baseUrl, Bootstrap::NETURALURL);
+            $this->helpers->fieldSearchReplace($settings, $this->baseUrl, Bootstrap::NEUTRALURL);
 
             // save
             file_put_contents($trg, $this->helpers->prettyPrint(json_encode($settings)));

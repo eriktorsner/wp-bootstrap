@@ -31,7 +31,6 @@ class Utils
     public function includeWordPress()
     {
         if (!$this->wpIncluded) {
-            $ls = Container::getInstance()->getLocalSettings();
             $before = ob_get_level();
             $old = set_error_handler('\\Wpbootstrap\\Utils::noError');
             require_once $this->localSettings->wppath.'/wp-load.php';
@@ -43,7 +42,7 @@ class Utils
         }
     }
 
-    public static function noError($errno, $errstr, $errfile, $errline)
+    public static function noError($errNo, $errStr, $errFile, $errLine)
     {
     }
 }

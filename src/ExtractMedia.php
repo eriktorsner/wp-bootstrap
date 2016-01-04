@@ -11,7 +11,6 @@ class ExtractMedia extends ExportBase
 
     public function getReferencedMedia($obj)
     {
-        $ret = array();
         $links = $this->findMediaFromObj($obj);
 
         $ret = array();
@@ -85,10 +84,10 @@ class ExtractMedia extends ExportBase
     public function isImageUrl($link)
     {
         $ret = false;
-        $imgExts = array('gif', 'jpg', 'jpeg', 'png', 'tiff', 'tif');
+        $imgExtensions = array('gif', 'jpg', 'jpeg', 'png', 'tiff', 'tif');
         $urlParts = parse_url($link);
         $urlExt = strtolower(pathinfo($urlParts['path'], PATHINFO_EXTENSION));
-        if (in_array($urlExt, $imgExts)) {
+        if (in_array($urlExt, $imgExtensions)) {
             $ret = true;
         }
 

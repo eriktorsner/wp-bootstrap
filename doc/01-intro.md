@@ -7,7 +7,7 @@
 
 ## Installation
 
-wp-bootstap is available on Packagist ([eriktorsner/wp-bootstrap](https://packagist.org/packages/eriktorsner/wp-bootstrap))
+wp-bootstrap is available on Packagist ([eriktorsner/wp-bootstrap](https://packagist.org/packages/eriktorsner/wp-bootstrap))
 and as such installable via [Composer](http://getcomposer.org/).
 
 ```bash
@@ -16,7 +16,7 @@ composer require eriktorsner/wp-bootstrap
 
 ## Core Concepts
 
-Wp-bootsrap is a util for bootstrapping a WordPress installations. It's intended use is to automate installation, configuration and content bootstrapping in a safe and scriptable way.
+Wp-bootstrap is a util for bootstrapping a WordPress installations. It's intended use is to automate installation, configuration and content bootstrapping in a safe and scriptable way.
 
 First, wp-bootstrap enables you to script an entire WordPress installation with themes and plugins by writing two configuration files. (1) localsettings.json where you provide details about the server environment and (2) appsettings.json where you provide information about what plugins and themes to install. This makes it possible to quickly create identical installation in development, test, staging or other environments.
 
@@ -28,7 +28,7 @@ When data is imported to the target environment, wp-bootstrap imports related me
 
 In addition to normal content, wp-bootstrap also exports and imports settings from the wp_options table. Settings are also stored in a file. Wp-bootstrap also resolves references embedded in the wp_options table so that any individual option that points to a page or a post (like "page_on_front") will be adjusted after import, making sure that the correct database id is used.
 
-Wp-bootstrap depends on [wp-cli](http://wp-cli.org/) and a plugin named [WP-CFM](https://wordpress.org/plugins/wp-cfm/) to do a lot of the heavy lifting under the hood. The ideas and rationale that inspired this project was originally presented on [my blog](http://wpessentials.io/blog) and  in the book [WordPress DevOps](https://leanpub.com/wordpressdevops) available on [Leanpub](https://leanpub.com/wordpressdevops).  Wp-bootsrap also assumes that you are using Composer even if it's not strictly needed. Installation of WP-CFM is easiest to do via wp-bootstrap itself but installation of wp-cli needs to be done separately.
+Wp-bootstrap depends on [wp-cli](http://wp-cli.org/) and a plugin named [WP-CFM](https://wordpress.org/plugins/wp-cfm/) to do a lot of the heavy lifting under the hood. The ideas and rationale that inspired this project was originally presented on [my blog](http://wpessentials.io/blog) and  in the book [WordPress DevOps](https://leanpub.com/wordpressdevops) available on [Leanpub](https://leanpub.com/wordpressdevops).  Wp-bootstrap also assumes that you are using Composer even if it's not strictly needed. Installation of WP-CFM is easiest to do via wp-bootstrap itself but installation of wp-cli needs to be done separately.
 
 This project scratches a very specific WordPress itch: being able to develop locally, managing the WordPress site in Git and being able to push changes (releases) to a production environment without worrying about overwriting content or having to manually migrate any setting or content.
 
@@ -37,7 +37,7 @@ This project scratches a very specific WordPress itch: being able to develop loc
 #### On the development server (hint: use Vagrant):
 
  - Start a new project by requiring wp-bootstrap in composer.json
- - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+ - Run vendor/bin/wpbootstrap wp-init-composer to get easier access to the wp-bootstrap commands
  - Create a localsettings.json and appsettings.json
  - Make sure you exclude localsettings.json from source code control
  - Initiate the development installation with commands `composer wp-install` and `composer wp-setup`
@@ -52,7 +52,7 @@ This project scratches a very specific WordPress itch: being able to develop loc
   - Check out the project from Git
   - Create up your localsettings.json file with the relevant passwords and paths.
   - Run composer update
-  - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+  - Run vendor/bin/wpbootstrap wp-init-composer to get easier access to the wp-bootstrap commands
   - Run `composer wp-install`, `composer wp-setup` and `composer wp-import`
 
 Once the target environment has been setup, new changes from the development environment can be pushed by checking out the new changes using Git and rerunning `wp-setup` and `wp-import`.

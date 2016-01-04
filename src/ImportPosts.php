@@ -35,7 +35,7 @@ class ImportPosts
             }
         }
 
-        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NETURALURL, $this->import->baseUrl);
+        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NEUTRALURL, $this->import->baseUrl);
         $this->process();
     }
 
@@ -125,7 +125,7 @@ class ImportPosts
             // does this image have an imported post as it's parent?
             $parentId = $this->parentId($item->post_parent, $this->posts);
             if ($parentId != 0) {
-                $this->log->addDebug('Media is attached to post', array($item->ID), array($parentId));
+                $this->log->addDebug('Media is attached to post', array($item->ID, $parentId));
                 $include = true;
             }
 
@@ -153,7 +153,7 @@ class ImportPosts
             );
 
             $file = $item->post_meta['_wp_attached_file'][0];
-            $id = 0;
+
             $existing = new \WP_Query($args);
             if (!$existing->have_posts()) {
                 $args = array(
@@ -227,6 +227,8 @@ class ImportPosts
                 return true;
             }
         }
+
+        return false;
     }
 
     private function setAsThumbnail($oldId, $newId)
