@@ -45,7 +45,7 @@ class Import
     private $log;
 
     /**
-     * Keep track of postmeta fields that are post references
+     * Keep track of post_meta fields that are post references
      *
      * @var array
      */
@@ -54,7 +54,7 @@ class Import
     );
 
     /**
-     * Keep track of postmeta fields that are term references
+     * Keep track of post_meta fields that are term references
      *
      * @var array
      */
@@ -146,7 +146,7 @@ class Import
     }
 
     /**
-     * Runs after all import is done. Resolves postmeta fields that
+     * Runs after all import is done. Resolves post_meta fields that
      * are references to posts or terms
      */
     private function resolvePostMetaReferences()
