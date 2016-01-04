@@ -4,28 +4,28 @@
 define('BASEPATH', getcwd());
 require_once BASEPATH . '/vendor/autoload.php';
 
-if(count($argv) < 2) {
+if (count($argv) < 2) {
     die("At least one argument expected\n");
 }
 
 $container = Wpbootstrap\Container::getInstance();
 
-switch($argv[1]) {
+switch ($argv[1]) {
     case 'wp-bootstrap':
         $bootstrap = $container->getBootstrap();
         $container->validateSettings();
         $bootstrap->bootstrap();
         break;
     case 'wp-install':
-        $container->validateSettings();    
+        $container->validateSettings();
         $bootstrap = $container->getBootstrap();
         $bootstrap->install();
-        break;        
+        break;
     case 'wp-setup':
-        $container->validateSettings();    
+        $container->validateSettings();
         $bootstrap = $container->getBootstrap();
         $bootstrap->setup();
-        break;                
+        break;
     case 'wp-update':
         $container->validateSettings();
         $bootstrap = $container->getBootstrap();
@@ -37,7 +37,7 @@ switch($argv[1]) {
         $export->export();
         break;
     case 'wp-import':
-        $container->validateSettings();    
+        $container->validateSettings();
         $import = $container->getImport();
         $import->import();
         break;
@@ -45,11 +45,11 @@ switch($argv[1]) {
         $container->validateSettings();
         $bootstrap = $container->getBootstrap();
         $bootstrap->reset();
-        break;        
+        break;
     case 'wp-init':
         $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->init();
-        break;                
+        break;
     case 'wp-init-composer':
         $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->initComposer();
@@ -58,7 +58,7 @@ switch($argv[1]) {
         $container->validateSettings();
         $manageState = $container->getSnapshots();
         $manageState->manage();
-        break;        
+        break;
     default:
-        die("Command {$argv[1]} not recognized\n");       
+        die("Command {$argv[1]} not recognized\n");
 }
