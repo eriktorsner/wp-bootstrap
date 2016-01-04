@@ -3,6 +3,7 @@
 Utils for bootstrapping a WordPress installations. Automates installation, configuration and content bootstrapping of WordPress installation.
 
 [Core concepts and intended workflow](doc/01-intro.md)
+
 [Tutorial on wpessentials.io](http://www.wpessentials.io/2015/12/preparing-a-wordpress-site-for-git-using-wp-bootstrap/)
 
 ## Installation
