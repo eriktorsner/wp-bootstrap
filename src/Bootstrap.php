@@ -2,18 +2,47 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Bootstrap
+ * @package Wpbootstrap
+ *
+ * Main entry point for installations and setup tasks
+ */
 class Bootstrap
 {
+    /**
+     * @var Settings
+     */
     public $localSettings;
+
+    /**
+     * @var Settings
+     */
     public $appSettings;
+
+    /**
+     * Subset of global argv
+     *
+     * @var array
+     */
     public $argv = array();
 
-    private $log = false;
+    /**
+     * @var \Monolog\Logger
+     */
+    private $log;
+
+    /**
+     * @var \Wpbootstrap\Utils
+     */
     private $utils;
 
     const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
     const VERSION = '0.3.1';
 
+    /**
+     * Bootstrap constructor.
+     */
     public function __construct()
     {
         global $argv;
@@ -38,6 +67,9 @@ class Bootstrap
         $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
     }
 
+    /**
+     * Run install and setup in one command
+     */
     public function bootstrap()
     {
         $this->log->addDebug('Running Bootstrap::bootstrap');
@@ -45,6 +77,9 @@ class Bootstrap
         $this->setup();
     }
 
+    /**
+     * Install WordPress as specified in localsettings.json and appsettings.json
+     */
     public function install()
     {
         $this->log->addDebug('Running Bootstrap::install');
@@ -81,6 +116,9 @@ class Bootstrap
         $this->utils->exec($cmd);
     }
 
+    /**
+     * Install plugins and themes
+     */
     public function setup()
     {
         $this->log->addDebug('Running Bootstrap::setup');
@@ -93,6 +131,9 @@ class Bootstrap
         $this->applySettings();
     }
 
+    /**
+     * Completely remove the current WordPress installation
+     */
     public function reset()
     {
         $wpcmd = $this->utils->getWpCommand();
@@ -103,6 +144,14 @@ class Bootstrap
         $this->utils->exec($cmd);
     }
 
+    /**
+     * Run update via wp-cli, arguments are passed via $argv
+     *   no args      => update core, themes and plugins
+     *   plugin       => update all plugins
+     *   plugin NAME  => update named plugin
+     *   theme        => update all themes
+     *   theme NAME   => update named theme
+     */
     public function update()
     {
         $this->log->addDebug('Running Bootstrap::update');
@@ -133,6 +182,9 @@ class Bootstrap
         }
     }
 
+    /**
+     * Install plugins defined in appsettings.json
+     */
     private function installPlugins()
     {
         $wpcmd = $this->utils->getWpCommand();
@@ -193,6 +245,9 @@ class Bootstrap
         }
     }
 
+    /**
+     * Install themes defined in appsettings.json
+     */
     private function installThemes()
     {
         $wpcmd = $this->utils->getWpCommand();
@@ -252,6 +307,9 @@ class Bootstrap
         }
     }
 
+    /**
+     * Apply settings defined in appsettings.json
+     */
     private function applySettings()
     {
         $wpcmd = $this->utils->getWpCommand();
