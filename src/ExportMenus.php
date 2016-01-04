@@ -2,8 +2,15 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExportMenus
+ * @package Wpbootstrap
+ */
 class ExportMenus extends ExportBase
 {
+    /**
+     * ExportMenus constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -12,6 +19,10 @@ class ExportMenus extends ExportBase
         $this->exportTaxonomies = $container->getExportTaxonomies();
     }
 
+
+    /**
+     * Export Menus
+     */
     public function export()
     {
         if (!isset($this->appSettings->content->menus)) {
