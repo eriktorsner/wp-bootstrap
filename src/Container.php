@@ -6,6 +6,27 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use League\CLImate\CLImate;
 
+/**
+ * Class Container
+ * @package Wpbootstrap
+ *
+ * @method Bootstrap        getBootstrap
+ * @method Utils            getUtils
+ * @method Resolver         getResolver
+ * @method Helpers          getHelpers
+ * @method Initbootstrap    getInitbootstrap
+ * @method Import           getImport
+ * @method Export           getExport
+ * @method ExportMedia      getExportMedia
+ * @method ExportMenus      getExportMenus
+ * @method ExportPosts      getExportPosts
+ * @method ExportSidebars   getExportSidebars
+ * @method ExportTaxonomies getExportTaxonomies
+ * @method ExtractMedia     getExtractMedia
+ * @method Snapshots        getSnapshots
+
+ *
+ */
 class Container
 {
     public static $self = false;
@@ -26,12 +47,37 @@ class Container
         'ExtractMedia',
         'Snapshots',
     );
+
+    /**
+     * Keep handles to all singletons
+     *
+     * @var array
+     */
     private $singletonInstances = array();
+
+    /**
+     * @var \Monolog\Logger
+     */
     private $log;
+
+    /**
+     * @var \League\CLImate\CLImate
+     */
     private $climate;
+
+    /**
+     * @var \Wpbootstrap\Settings
+     */
     private $appSettings;
+
+    /**
+     * @var \Wpbootstrap\Settings
+     */
     private $localSettings;
 
+    /**
+     * Container constructor.
+     */
     public function __construct()
     {
         $this->localSettings = new Settings('local');
@@ -39,6 +85,13 @@ class Container
         $this->climate = new CLImate();
     }
 
+    /**
+     * Magic method to
+     *
+     * @param $name
+     * @param $args
+     * @return \Wpbootstrap\Settings
+     */
     public function __call($name, $args)
     {
         $class = substr($name, 3);
@@ -63,6 +116,11 @@ class Container
         die("Class $class not found\n");
     }
 
+    /**
+     * Get the global instance
+     *
+     * @return \Wpbootstrap\Container
+     */
     public static function getInstance()
     {
         if (!self::$self) {
@@ -72,16 +130,28 @@ class Container
         return self::$self;
     }
 
+    /**
+     * Destroy the global instance
+     */
     public static function destroy()
     {
         self::$self = false;
     }
 
+    /**
+     * Get an initialized CLimage object
+     *
+     * @return \League\CLImate\CLImate
+     */
     public function getCLImate()
     {
         return $this->climate;
     }
 
+    /**
+     * Get an initialized Monolog\Logger object
+     * @return \Monolog\Logger
+     */
     public function getLog()
     {
         if (!$this->log) {
@@ -105,6 +175,12 @@ class Container
         return $this->log;
     }
 
+    /**
+     * Validate localsettings and appsettings
+     *
+     * @param bool|true $die Should the PHP process die on invalid settings?
+     * @return bool
+     */
     public function validateSettings($die = true)
     {
         $good = true;
@@ -124,10 +200,7 @@ class Container
                 die();
             }
         }
-        if($foo='bar')
-        {
-            echo "test\n";
-        }
+
         return $good;
     }
 }
