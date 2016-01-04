@@ -2,13 +2,30 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ImportSidebars
+ * @package Wpbootstrap
+ */
 class ImportSidebars
 {
+    /**
+     * @var array
+     */
     private $sidebars = array();
 
+    /**
+     * @var Import
+     */
     private $import;
+
+    /**
+     * @var Helpers
+     */
     private $helpers;
 
+    /**
+     * ImportSidebars constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
@@ -41,6 +58,9 @@ class ImportSidebars
         $this->process();
     }
 
+    /**
+     * The main import process
+     */
     private function process()
     {
         $currentSidebars = get_option('sidebars_widgets', array());
@@ -71,6 +91,11 @@ class ImportSidebars
         }
     }
 
+    /**
+     * Unset the current widget settings in the options table
+     *
+     * @param string $widgetRef
+     */
     private function unsetWidget($widgetRef)
     {
         $parts = explode('-', $widgetRef);
@@ -82,6 +107,12 @@ class ImportSidebars
         update_option('widget_'.$type, $currentWidgetDef);
     }
 
+    /**
+     * Finds a free slot in a Widget option struct.
+     *
+     * @param array $arr
+     * @return int
+     */
     private function findFirstFree($arr)
     {
         ksort($arr);
