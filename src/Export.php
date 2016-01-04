@@ -2,14 +2,40 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Export
+ * @package Wpbootstrap
+ */
 class Export extends ExportBase
 {
+    /**
+     * @var ExportTaxonomies
+     */
     protected $exportTaxonomies;
+
+    /**
+     * @var ExportMedia
+     */
     protected $exportMedia;
+
+    /**
+     * @var ExtractMedia
+     */
     protected $extractMedia;
+
+    /**
+     * @var ExportPosts
+     */
     protected $exportPosts;
+
+    /**
+     * @var ExportSidebars
+     */
     protected $exportSidebars;
 
+    /**
+     * Export constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -24,6 +50,9 @@ class Export extends ExportBase
         $this->extractMedia = $container->getExtractMedia();
     }
 
+    /**
+     * The main entry point for exports. Exports config (via WP-CFM) and content using internal classes
+     */
     public function export()
     {
         $this->log->addInfo('Exporting settings');
@@ -33,6 +62,9 @@ class Export extends ExportBase
         $this->createManifest();
     }
 
+    /**
+     * Export content via WP-CFM
+     */
     private function exportSettings()
     {
         if (function_exists('WPCFM')) {
@@ -72,6 +104,10 @@ class Export extends ExportBase
         }
     }
 
+    /**
+     * Exports content
+     * (menus, posts, media, taxonomies, widgets)
+     */
     private function exportContent()
     {
         $base = BASEPATH.'/bootstrap';
@@ -90,6 +126,9 @@ class Export extends ExportBase
         $this->exportMedia->export();
     }
 
+    /**
+     * Checks if a wpbootstrap bundle exists in WP-CFM settings and creates one if needed
+     */
     private function ensureBundleExists()
     {
         $wpcfm = json_decode(get_option('wpcfm_settings', '{}'));
@@ -112,6 +151,9 @@ class Export extends ExportBase
         }
     }
 
+    /**
+     * Create and saves manifest file with details about the export
+     */
     private function createManifest()
     {
         $manifest = new \stdClass();
