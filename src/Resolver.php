@@ -2,16 +2,33 @@
 
 namespace Wpbootstrap;
 
+/**
+ *
+ */
 class Resolver
 {
+    /**
+     * @var Import
+     */
     private $import;
 
+    /**
+     * Resolver constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
         $this->import = $container->getImport();
     }
 
+    /**
+     * Iterates an array with references to options in the wp_options table.
+     * Each value is checked to see if it points to an imported post/term and if so,
+     * updates the option value to the new post or term id
+     *
+     * @param array $references
+     * @param string $type
+     */
     public function resolveOptionReferences($references, $type)
     {
         wp_cache_delete('alloptions', 'options');
@@ -51,6 +68,14 @@ class Resolver
         }
     }
 
+    /**
+     * Iterates an array with references to post_meta fields.
+     * Each value is checked to see if it points to an imported post/term and if so,
+     * updates the post_meta value to the new post or term id
+     *
+     * @param array $references
+     * @param string $type
+     */
     public function resolvePostMetaReferences($references, $type)
     {
         foreach ($references as $key => $value) {
@@ -69,6 +94,15 @@ class Resolver
         }
     }
 
+    /**
+     * Returns the new value for a replaced field based on it's current value.
+     * If the value is a string, a regex search is made to see the old value might
+     * refer to a post/term
+     *
+     * @param $currentValue
+     * @param $type
+     * @return bool|int|mixed
+     */
     private function calcNewValue($currentValue, $type)
     {
         if (is_integer($currentValue)) {
@@ -92,11 +126,26 @@ class Resolver
         return false;
     }
 
+    /**
+     * Use PHP eval to evaluate an expression that refers to a value
+     * inside an object or array and return that value
+     *
+     * @param mixed $obj
+     * @param string $path
+     * @return mixed
+     */
     private function getValue($obj, $path)
     {
         return eval('return $obj'.$path.';');
     }
 
+    /**
+     * Use PHP eval to update a member in a object or array with a new value
+     *
+     * @param mixed $obj
+     * @param string $path
+     * @param $value
+     */
     private function setValue(&$obj, $path, $value)
     {
         $evalStr = '$obj'.$path.'='.$value.'; return $obj;';
