@@ -2,10 +2,23 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Settings
+ * @package Wpbootstrap
+ */
 class Settings
 {
+    /**
+     * The internal representation of the parsed json file
+     *
+     * @var \stdClass
+     */
     private $obj;
 
+    /**
+     * Settings constructor.
+     * @param null $type
+     */
     public function __construct($type = null)
     {
         switch ($type) {
@@ -47,16 +60,32 @@ class Settings
         }
     }
 
+    /**
+     * Is the settings file valid or not
+     *
+     * @return bool
+     */
     public function isValid()
     {
         return ($this->obj != false);
     }
 
+    /**
+     * Returns a json string of the internal obj
+     *
+     * @return mixed|string|void
+     */
     public function toString()
     {
         return json_encode($this->obj);
     }
 
+    /**
+     * Magic function to return a member from the internal obj
+     *
+     * @param string $name
+     * @return mixed|bool
+     */
     public function __get($name)
     {
         if (isset($this->obj->$name)) {
@@ -66,11 +95,23 @@ class Settings
         return false;
     }
 
+    /**
+     * Magic method to set a memner in the internal obj
+     *
+     * @param string $name
+     * @param mixed $value
+     */
     public function __set($name, $value)
     {
         $this->obj->$name = $value;
     }
 
+    /**
+     * Magic function to check if a memner is set in the internal obj
+     *
+     * @param string $name
+     * @return bool
+     */
     public function __isset($name)
     {
         return isset($this->obj->$name);
