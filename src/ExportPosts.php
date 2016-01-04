@@ -2,11 +2,27 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class ExportPosts
+ * @package Wpbootstrap
+ */
 class ExportPosts extends ExportBase
 {
+    /**
+     * @var \stdClass
+     */
     private $posts;
+
+    /**
+     * Keep track of taxonomies to exclude
+     *
+     * @var array
+     */
     private $excludedTaxonomies = array('nav_menu', 'link_category', 'post_format');
 
+    /**
+     * ExportPosts constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -35,6 +51,9 @@ class ExportPosts extends ExportBase
         $this->log->addDebug('Initiated ExportPosts.');
     }
 
+    /**
+     * Export the posts
+     */
     public function export()
     {
         global $wpdb;
@@ -125,6 +144,12 @@ class ExportPosts extends ExportBase
         }
     }
 
+    /**
+     * Add the post identified by posttype/slug to the internal array
+     *
+     * @param string $postType
+     * @param string $slug
+     */
     public function addPost($postType, $slug)
     {
         if (!isset($this->posts->$postType)) {
