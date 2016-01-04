@@ -2,31 +2,83 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Import
+ * @package Wpbootstrap
+ */
 class Import
 {
+    /**
+     * @var \stdClass
+     */
     public $posts;
+
+    /**
+     * @var \stdClass
+     */
     public $taxonomies;
+
+    /**
+     * @var \stdClass
+     */
     public $menus;
+
+    /**
+     * @var \stdClass
+     */
     public $sidebars;
 
+
+    /**
+     * @var string
+     */
     public $baseUrl;
+
+    /**
+     * @var string
+     */
     public $uploadDir;
 
+    /**
+     * @var \Monolog\Logger
+     */
     private $log;
 
+    /**
+     * Keep track of postmeta fields that are post references
+     *
+     * @var array
+     */
     private $postPostMetaReferenceNames = array(
         '_thumbnail_id',
     );
-    private $termPostMetaReferenceNames = array(
-    );
 
+    /**
+     * Keep track of postmeta fields that are term references
+     *
+     * @var array
+     */
+    private $termPostMetaReferenceNames = array();
+
+    /**
+     * Keep track of options that are post references
+     *
+     * @var array
+     */
     private $optionPostReferenceNames = array(
         'page_on_front',
     );
 
-    private $optionTermReferenceNames = array(
-    );
+    /**
+     * Keep track of options that are term references
+     *
+     * @var array
+     */
+    private $optionTermReferenceNames = array();
 
+    /**
+     * Entry point for the import process
+     */
     public function import()
     {
         error_reporting(-1);
@@ -53,6 +105,9 @@ class Import
         $this->resolveOptionReferences();
     }
 
+    /**
+     * Import settings via WP-CFM
+     */
     private function importSettings()
     {
         $container = Container::getInstance();
@@ -78,6 +133,9 @@ class Import
         }
     }
 
+    /**
+     * Import content
+     */
     private function importContent()
     {
         $this->posts = new ImportPosts();
@@ -87,6 +145,10 @@ class Import
         $this->taxonomies->assignObjects();
     }
 
+    /**
+     * Runs after all import is done. Resolves postmeta fields that
+     * are references to posts or terms
+     */
     private function resolvePostMetaReferences()
     {
         $container = Container::getInstance();
@@ -126,6 +188,10 @@ class Import
         $resolver->resolvePostMetaReferences($this->termPostMetaReferenceNames, 'terms');
     }
 
+    /**
+     * Runs after all import is done. Resolves options fields that
+     * are references to posts or terms
+     */
     private function resolveOptionReferences()
     {
         $container = Container::getInstance();
@@ -166,6 +232,13 @@ class Import
         $resolver->resolveOptionReferences($this->optionTermReferenceNames, 'terms');
     }
 
+    /**
+     * Finds a post or term based on it's original id. If found, returns the new (after import) id
+     *
+     * @param int $target
+     * @param string $type
+     * @return int
+     */
     public function findTargetObjectId($target, $type)
     {
         switch ($type) {
