@@ -4,6 +4,7 @@ namespace Wpbootstrap;
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use League\CLImate\CLImate;
 
 class Container
 {
@@ -23,9 +24,11 @@ class Container
         'ExportSidebars',
         'ExportTaxonomies',
         'ExtractMedia',
+        'Snapshots',
     );
     private $singletonInstances = array();
     private $log;
+    private $climate;
     private $appSettings;
     private $localSettings;
 
@@ -33,6 +36,7 @@ class Container
     {
         $this->localSettings = new Settings('local');
         $this->appSettings = new Settings('app');
+        $this->climate = new CLImate();
     }
 
     public function __call($name, $args)
@@ -71,6 +75,11 @@ class Container
     public static function destroy()
     {
         self::$self = false;
+    }
+
+    public function getCLImate()
+    {
+        return $this->climate;
     }
 
     public function getLog()
