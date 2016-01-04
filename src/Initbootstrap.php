@@ -2,16 +2,31 @@
 
 namespace Wpbootstrap;
 
+/**
+ * Class Initbootstrap
+ * @package Wpbootstrap
+ */
 class Initbootstrap
 {
+    /**
+     * @var Helpers
+     */
     private $helpers;
 
+    /**
+     * Initbootstrap constructor.
+     */
     public function __construct()
     {
         $container = Container::getInstance();
         $this->helpers = $container->getHelpers();
     }
 
+    /**
+     * Array with composer commands to add and map to wpbootstrap command
+     *
+     * @var array
+     */
     private $scriptMaps = array(
         'wp-bootstrap' => 'vendor/bin/wpbootstrap wp-bootstrap',
         'wp-install' => 'vendor/bin/wpbootstrap wp-install',
@@ -24,6 +39,11 @@ class Initbootstrap
         'wp-init-composer' => 'vendor/bin/wpbootstrap wp-initComposer',
     );
 
+    /**
+     * Create skeleton appsettings and localsettings if they don't already exists
+     * If a localsettings file exists and contains a non-default value for wppath,
+     * a wp-cli.yml file is generated
+     */
     public function init()
     {
         if (!file_exists(BASEPATH.'/appsettings.json')) {
@@ -60,6 +80,9 @@ class Initbootstrap
         }
     }
 
+    /**
+     * If a composer.json file exists, add or update script mappings in it
+     */
     public function initComposer()
     {
         if (!file_exists(BASEPATH.'/composer.json')) {
