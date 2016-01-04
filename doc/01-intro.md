@@ -34,4 +34,26 @@ This project scratches a very specific WordPress itch: being able to develop loc
 
 #Intended workflow
 
-...to be 
+#### On the development server (hint: use Vagrant):
+
+ - Start a new project by requiring wp-bootstrap in composer.json
+ - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+ - Create a localsettings.json and appsettings.json
+ - Make sure you exclude localsettings.json from source code control
+ - Initiate the development installation with commands `composer wp-install` and `composer wp-setup`
+ - As settings are updated, use the WP-CFM interface in WordPress Admin to include the relevant settings into the application configuration
+ - As plugins and themes are needed, add them to appsettings.json and rerun the wp-setup command to get them installed into your local environment
+ - As posts and menus are added, include them in appsettings.json.
+ - When it's time to deploy to a staging or production environment, run `composer wp-export` command to get all content serialized to disk. Add them to your Git repo
+
+#### On the staging or production server:
+
+  - Create the local database
+  - Check out the project from Git
+  - Create up your localsettings.json file with the relevant passwords and paths.
+  - Run composer update
+  - Run vendor/bin/wpboostrap wp-init-composer to get easier access to the wp-bootstrap commands
+  - Run `composer wp-install`, `composer wp-setup` and `composer wp-import`
+
+Once the target environment has been setup, new changes from the development environment can be pushed by checking out the new changes using Git and rerunning `wp-setup` and `wp-import`.
+
