@@ -38,7 +38,7 @@ class Bootstrap
     private $utils;
 
     const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
-    const VERSION = '0.3.1';
+    const VERSION = '0.3.2';
 
     /**
      * Bootstrap constructor.
