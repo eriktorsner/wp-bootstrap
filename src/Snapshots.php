@@ -143,6 +143,7 @@ class Snapshots
                 'name' => $snapshot->name,
                 'created' => $snapshot->created,
                 'environment' => $snapshot->environment,
+                'host' => $snapshot->host,
                 'comment' => $snapshot->comment,
             );
         }
