@@ -37,6 +37,7 @@ class Initbootstrap
         'wp-pullsettings' => 'vendor/bin/wpbootstrap wp-updateAppSettings',
         'wp-init' => 'vendor/bin/wpbootstrap wp-init',
         'wp-init-composer' => 'vendor/bin/wpbootstrap wp-initComposer',
+        'wp-snapshots' => 'vendor/bin/wpbootstrap wp-snapshots',
     );
 
     /**
