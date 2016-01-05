@@ -95,7 +95,8 @@ class Bootstrap
         $this->utils->exec($cmd);
 
         $cmd = $wpcmd.sprintf(
-            'core config --dbname=%s --dbuser=%s --dbpass=%s --quiet',
+            'core config --dbhost=%s --dbname=%s --dbuser=%s --dbpass=%s --quiet',
+            $this->localSettings->dbhost,
             $this->localSettings->dbname,
             $this->localSettings->dbuser,
             $this->localSettings->dbpass
