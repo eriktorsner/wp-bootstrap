@@ -44,8 +44,7 @@ class Snapshots
      * @var array
      */
     private $excludedOptions = array(
-        'cron', 'rewrite_rules',
-
+        'cron', 'rewrite_rules', 'wp_user_roles',
     );
 
     /**
@@ -233,6 +232,9 @@ class Snapshots
         if (count($this->bootstrap->argv) == 2) {
             $options = array();
             foreach ($oldState->options as $name => $value) {
+                if (in_array($name, $this->excludedOptions)) {
+                    continue;
+                }
                 $options[] = array(
                     'name' => $name,
                     'value' => $this->valueToString($value),
@@ -262,6 +264,9 @@ class Snapshots
         $modified = array();
         $removed = array();
         foreach ($oldState->options as $name => $value) {
+            if (in_array($name, $this->excludedOptions)) {
+                continue;
+            }
             if (isset($newState->options[$name])) {
                 if (md5(serialize($value)) != md5(serialize($newState->options[$name]))) {
                     $modified[] = array(
@@ -281,6 +286,9 @@ class Snapshots
             }
         }
         foreach ($newState->options as $name => $value) {
+            if (in_array($name, $this->excludedOptions)) {
+                continue;
+            }
             if (!isset($oldState->options[$name])) {
                 $added[] = array(
                     'state' => 'NEW',
