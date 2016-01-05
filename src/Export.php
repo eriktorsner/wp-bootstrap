@@ -9,31 +9,6 @@ namespace Wpbootstrap;
 class Export extends ExportBase
 {
     /**
-     * @var ExportTaxonomies
-     */
-    protected $exportTaxonomies;
-
-    /**
-     * @var ExportMedia
-     */
-    protected $exportMedia;
-
-    /**
-     * @var ExtractMedia
-     */
-    protected $extractMedia;
-
-    /**
-     * @var ExportPosts
-     */
-    protected $exportPosts;
-
-    /**
-     * @var ExportSidebars
-     */
-    protected $exportSidebars;
-
-    /**
      * Export constructor.
      */
     public function __construct()
