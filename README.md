@@ -243,7 +243,46 @@ When importing into a WordPress installation, wp-bootstrap will use the **slug**
 
 ## Snapshots
 
-The wp-snapshot command saves a snapshot of (almost) all settings in the WordPress options table. The file is saved in bootstrap/config/snapshots. The idea is that a snapshot can be later be compared with either the current state o
+The wp-snapshot command saves a snapshot of (almost) all settings in the WordPress options table. The file is saved in bootstrap/config/snapshots. The idea is that a snapshot can be later be compared, with the current values in the options table or between two snapshots. This can be used as a tool to quickly identify which options that are modified and need to go into the WP-CFM configuration.
+
+Besides an actual snapshot of the options table, a snapshot also contains an optional comment, creation date, environment as stated in localsettings and the host name of the computer that the snapshot was created on.
+
+### Subcommands
+**snapshot**
+Create a snapshot with the current unix timestamp as name
+    $ composer wp-snapshots snapshot
+
+Create a snapshot named foobar
+
+    $ composer wp-snapshots snapshot foobar
+
+Create a snapshot named foobar2 with a comment
+
+    $ composer wp-snapshots snapshot foobar2 "after installing plugin fuubar"
+
+**diff**
+Show the diff between an existing snapshot and the current state of WordPress
+
+    $ composer wp-snapshots diff foobar
+
+Show the diff between two existing snapshots
+
+    $ composer wp-snapshots diff foobar foobar2
+
+**list**
+List all current snapshots
+
+    $ composer wp-snapshots list
+
+**show**
+Show all options in the snapshot foobar:
+
+    $ composer wp-snapshots show foobar
+
+When showing all options in a snapshot, structs and arrays are converted to a string using print_r. All values are truncated at 40 character. So the content of long strings and complex structs/arrays will typically be truncated. To show an the option widget_archives individual option in it's entirety:
+
+    $ composer wp-snapshots show foobar widget_archives
+
   
 ## Testing
 
@@ -254,6 +293,11 @@ Since wp-bootstrap relies a lot on WordPress, there's a separate Github reposito
 Contributions are welcome. Apart from code, the project is in need of better documentation, more test cases, testing with popular themes and plugins and so on. Any type of help is appreciated.
 
 ## Version history
+
+**0.3.2**
+
+  - new feature: wp-snapshots command to manage options
+  - Code cleanup, more PSR2 strict
 
 **0.3.1**
 
