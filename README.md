@@ -241,7 +241,10 @@ When importing into a WordPress installation, wp-bootstrap will use the **slug**
 
 **Note:** Taxonomies are defined in code rather than in the database. So the exact taxonomies that exist in a WordPress installation are defined at load time. The built in taxonomies are always there, but some taxonomies are defined in a theme or plugin. In order for your taxonomy terms to be imported during the wp-import process, the theme or plugin that defined the taxonomy needs to exist.
 
+## Snapshots
 
+The wp-snapshot command saves a snapshot of (almost) all settings in the WordPress options table. The file is saved in bootstrap/config/snapshots. The idea is that a snapshot can be later be compared with either the current state o
+  
 ## Testing
 
 Since wp-bootstrap relies a lot on WordPress, there's a separate Github repository for testing using Vagrant. The test repo is available at [https://github.com/eriktorsner/wp-bootstrap-test](https://github.com/eriktorsner/wp-bootstrap-test).
