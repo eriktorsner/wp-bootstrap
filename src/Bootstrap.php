@@ -129,6 +129,8 @@ class Bootstrap
     {
         $this->log->addDebug('Running Bootstrap::setup');
 
+        $this->log->addDebug('Creating symlinks in Wp-content');
+        $this->wpContentSymlinks();
         $this->log->addDebug('Installing plugins');
         $this->installPlugins();
         $this->log->addDebug('Installing themes');
@@ -233,7 +235,7 @@ class Bootstrap
             $local = $this->appSettings->plugins->localcopy;
             $this->log->addDebug('Plugins copied to wp-content', $local);
             foreach ($local as $plugin) {
-                $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
+                $cmd = sprintf('rm -rf %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
                 $this->utils->exec($cmd);
 
                 $cmd = sprintf(
@@ -293,7 +295,7 @@ class Bootstrap
             $local = $this->appSettings->themes->localcopy;
             $this->log->addDebug('Themes copied to wp-content', $local);
             foreach ($local as $theme) {
-                $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
+                $cmd = sprintf('rm -rf %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
                 $this->utils->exec($cmd);
 
                 $cmd = sprintf(
@@ -327,4 +329,31 @@ class Bootstrap
             }
         }
     }
+
+    private function wpContentSymlinks()
+    {
+
+        if (isset($this->appSettings->symlinks)) {
+            foreach ($this->appSettings->symlinks as $symlink) {
+                if (!file_exists(BASEPATH . '/wp-content/' . $symlink)) {
+                    continue;
+                }
+                $cmd = sprintf('rm -f %s/wp-content/%s',
+                    $this->localSettings->wppath,
+                    $symlink
+                );
+                $this->utils->exec($cmd);
+
+                $cmd = sprintf(
+                    'ln -s %s/wp-content/%s %s/wp-content/%s',
+                    BASEPATH,
+                    $symlink,
+                    $this->localSettings->wppath,
+                    $symlink
+                );
+                $this->utils->exec($cmd);
+            }
+        }
+    }
+
 }
