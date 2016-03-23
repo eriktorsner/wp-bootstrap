@@ -52,6 +52,7 @@ class ImportPosts
                 $newPost->id = 0;
                 $newPost->parentId = 0;
                 $newPost->slug = $slug;
+                $newPost->tries = 0;
 
                 $file = BASEPATH."/bootstrap/posts/$postType/$slug";
                 $newPost->post = unserialize(file_get_contents($file));
@@ -75,13 +76,14 @@ class ImportPosts
         while (!$done) {
             $deferred = 0;
             foreach ($this->posts as &$post) {
+                $post->tries++;
                 if (!$post->done) {
                     $parentId = $this->parentId($post->post->post_parent, $this->posts);
-                    if ($parentId || $post->post->post_parent == 0) {
+                    if ($parentId || $post->post->post_parent == 0 || $post->tries > 9) {
                         $this->updatePost($post, $parentId);
                         $post->done = true;
                     } else {
-                        ++$deferred;
+                        $deferred++;
                     }
                 }
             }
