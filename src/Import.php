@@ -101,6 +101,7 @@ class Import
         $this->importContent();
 
         // references
+        $this->log->addDebug('Resolving references');
         $this->resolvePostMetaReferences();
         $this->resolveOptionReferences();
     }
@@ -138,9 +139,13 @@ class Import
      */
     private function importContent()
     {
+        $this->log->addDebug('Importing posts');
         $this->posts = new ImportPosts();
+        $this->log->addDebug('Importing taxonomies');
         $this->taxonomies = new ImportTaxonomies();
+        $this->log->addDebug('Importing menus');
         $this->menus = new ImportMenus();
+        $this->log->addDebug('Importing sidebars');
         $this->sidebars = new ImportSidebars();
         $this->taxonomies->assignObjects();
     }
