@@ -294,6 +294,15 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.4 **
+
+  - Bugfix: exporting now also includes posts with status = inherit
+  - Bugfix: importing a post where the parent post is missing doesnt create infinite loop
+
+**0.3.3 **
+
+  - new feature: adding configured symlinks during wp-init
+
 **0.3.2**
 
   - new feature: wp-snapshots command to manage options
