@@ -35,7 +35,11 @@ class ExportPosts extends ExportBase
         if (isset($this->appSettings->content->posts)) {
             foreach ($this->appSettings->content->posts as $postType => $posts) {
                 if ($posts == '*') {
-                    $args = array('post_type' => $postType, 'posts_per_page' => -1, 'post_status' => 'publish');
+                    $args = array(
+                        'post_type' => $postType,
+                        'posts_per_page' => -1,
+                        'post_status' => array('publish', 'inherit')
+                    );
                     $allPosts = get_posts($args);
                     foreach ($allPosts as $post) {
                         $this->addPost($postType, $post->post_name);
