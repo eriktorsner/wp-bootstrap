@@ -294,6 +294,10 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.5 **
+
+  - Bugfix: (major) Fixed issue when importing two posts with same slug but different post types 
+
 **0.3.4 **
 
   - Bugfix: exporting now also includes posts with status = inherit
