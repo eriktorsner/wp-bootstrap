@@ -52,6 +52,7 @@ class ImportPosts
                 $newPost->id = 0;
                 $newPost->parentId = 0;
                 $newPost->slug = $slug;
+                $newPost->type = $postType;
                 $newPost->tries = 0;
 
                 $file = BASEPATH."/bootstrap/posts/$postType/$slug";
@@ -105,7 +106,13 @@ class ImportPosts
     {
         global $wpdb;
 
-        $postId = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_name = %s", $post->slug));
+        $postId = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type = %s",
+                $post->slug,
+                $post->type
+            )
+        );
         $args = array(
           'post_type' => $post->post->post_type,
           'post_mime_type' => $post->post->post_mime_type,
