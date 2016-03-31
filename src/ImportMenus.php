@@ -155,13 +155,15 @@ class ImportMenus
         }
     }
 
+
+
     /**
      * Finds a menu item based on it's original id. If found, returns the new (after import) id
      *
      * @param int $target
      * @return int
      */
-    private function findMenuItem($target)
+    public function findMenuItem($target)
     {
         foreach ($this->menus as $menu) {
             foreach ($menu->items as $item) {
