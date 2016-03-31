@@ -166,32 +166,32 @@ class ImportPosts
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = unserialize(file_get_contents("$dir/meta"));
-            $include = false;
+            //$include = false;
 
             // does this image have an imported post as it's parent?
             $parentId = $this->parentId($item->post_parent, $this->posts);
             if ($parentId != 0) {
                 $this->log->addDebug('Media is attached to post', array($item->ID, $parentId));
-                $include = true;
+                //$include = true;
             }
 
             // does an imported post have this image as thumbnail?
             $isAThumbnail = $this->isAThumbnail($item->ID);
             if ($isAThumbnail) {
                 $this->log->addDebug('Media is thumbnail to (at least) one post', array($item->id));
-                $include = true;
+                //$include = true;
             }
 
             // is this the payload for an imported attachment?
-            $isAttachment = $this->isAnAttachment($item->ID);
+            /*$isAttachment = $this->isAnAttachment($item->ID);
             if ($isAttachment) {
                 $this->log->addDebug('Media is payload for an included attachment', array($item->id));
-                $include = true;
-            }
+                //$include = true;
+            }*/
 
-            if (!$include) {
+            /*if (!$include) {
                 continue;
-            }
+            }*/
 
             $args = array(
                 'name' => $item->post_name,
@@ -221,23 +221,34 @@ class ImportPosts
             $src = $dir.'/'.basename($file);
             $trg = $this->import->uploadDir['basedir'].'/'.$file;
             @mkdir($this->import->uploadDir['basedir'].'/'.dirname($file), 0777, true);
-            if (file_exists($src)) {
-                copy($src, $trg);
+
+            // Add it to collection
+            $mediaItem = new \stdClass();
+            $mediaItem->meta = $item;
+            $mediaItem->id = $id;
+            $this->media[] = $mediaItem;
+
+            if (file_exists($src) && file_exists($trg)) {
+                if (filesize($src) == filesize($trg)) {
+                    // set this image as a thumbnail and then exit
+                    if ($isAThumbnail) {
+                        $this->setAsThumbnail($item->ID, $id);
+                    }
+                    continue;
+                }
             }
 
-            // create metadata and other sizes
-            $attachData = wp_generate_attachment_metadata($id, $trg);
-            wp_update_attachment_metadata($id, $attachData);
+            if (file_exists($src)) {
+                copy($src, $trg);
+                // create metadata and other sizes
+                $attachData = wp_generate_attachment_metadata($id, $trg);
+                wp_update_attachment_metadata($id, $attachData);
+            }
 
             // set this image as a thumbnail if needed
             if ($isAThumbnail) {
                 $this->setAsThumbnail($item->ID, $id);
             }
-
-            $mediaItem = new \stdClass();
-            $mediaItem->meta = $item;
-            $mediaItem->id = $id;
-            $this->media[] = $mediaItem;
         }
     }
 
