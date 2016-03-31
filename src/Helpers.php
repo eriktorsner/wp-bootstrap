@@ -254,7 +254,7 @@ class Helpers
      * @param mixed $data
      * @return bool
      */
-    private function isBase64($data)
+    public function isBase64($data)
     {
         if (!is_string($data)) {
             return false;
