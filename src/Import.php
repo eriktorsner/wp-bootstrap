@@ -84,10 +84,11 @@ class Import
         error_reporting(-1);
 
         $container = Container::getInstance();
-
         $localSettings = Container::getInstance()->getLocalSettings();
+        $container->getUtils()->includeWordPress();
+        $extensions = $container->getExtensions();
+        $extensions->init();
 
-        Container::getInstance()->getUtils()->includeWordPress();
         require_once $localSettings->wppath.'/wp-admin/includes/image.php';
 
         $this->baseUrl = get_option('siteurl');
@@ -95,15 +96,23 @@ class Import
         $this->log = $container->getLog();
 
         // Run the import
-        $this->log->addDebug('Importing settings');
+        do_action('wp-bootstrap_before_import');
+
+        $this->log->addInfo('Importing settings');
         $this->importSettings();
-        $this->log->addDebug('Importing content');
+        do_action('wp-bootstrap_after_import_settings');
+
+        $this->log->addInfo('Importing content');
         $this->importContent();
+        do_action('wp-bootstrap_after_import_content');
 
         // references
-        $this->log->addDebug('Resolving references');
+        $this->log->addInfo('Resolving references');
         $this->resolvePostMetaReferences();
         $this->resolveOptionReferences();
+
+        do_action('wp-bootstrap_after_import');
+
     }
 
     /**
@@ -139,14 +148,19 @@ class Import
      */
     private function importContent()
     {
+        $container = Container::getInstance();
+
         $this->log->addDebug('Importing posts');
-        $this->posts = new ImportPosts();
+        $this->posts = $container->getImportPosts();
+
         $this->log->addDebug('Importing taxonomies');
-        $this->taxonomies = new ImportTaxonomies();
+        $this->taxonomies = $container->getImportTaxonomies();
+
         $this->log->addDebug('Importing menus');
-        $this->menus = new ImportMenus();
+        $this->menus = $container->getImportMenus();
+
         $this->log->addDebug('Importing sidebars');
-        $this->sidebars = new ImportSidebars();
+        $this->sidebars = $container->getImportSidebars();
         $this->taxonomies->assignObjects();
     }
 
@@ -203,34 +217,39 @@ class Import
         $appSettings = $container->getAppSettings();
         $resolver = $container->getResolver();
 
+        $options = [];
         if (isset($appSettings->references->posts->options)) {
             $options = $appSettings->references->posts->options;
-            if (is_array($options)) {
-                foreach ($options as $value) {
-                    if (is_string($value)) {
-                        $this->optionPostReferenceNames[] = $value;
-                    } elseif (is_object($value)) {
-                        $arr = (array) $value;
-                        $key = key($arr);
-                        $this->optionPostReferenceNames[$key] = $arr[$key];
-                    }
+        }
+        $options = apply_filters('wp-bootstrap_option_post_references', $options);
+
+        if (is_array($options)) {
+            foreach ($options as $value) {
+                if (is_string($value)) {
+                    $this->optionPostReferenceNames[] = $value;
+                } elseif (is_object($value)) {
+                    $arr = (array) $value;
+                    $key = key($arr);
+                    $this->optionPostReferenceNames[$key] = $arr[$key];
                 }
             }
         }
-
         $resolver->resolveOptionReferences($this->optionPostReferenceNames, 'posts');
 
+        $options = [];
         if (isset($appSettings->references->terms->options)) {
-            $options = $appSettings->references->terms->options;
-            if (is_array($options)) {
-                foreach ($options as $value) {
-                    if (is_string($value)) {
-                        $this->optionTermReferenceNames[] = $value;
-                    } elseif (is_object($value)) {
-                        $arr = (array) $value;
-                        $key = key($arr);
-                        $this->optionTermReferenceNames[$key] = $arr[$key];
-                    }
+            $options = $appSettings->references->posts->options;
+        }
+        $options = apply_filters('wp-bootstrap_option_term_references', $options);
+
+        if (is_array($options)) {
+            foreach ($options as $value) {
+                if (is_string($value)) {
+                    $this->optionTermReferenceNames[] = $value;
+                } elseif (is_object($value)) {
+                    $arr = (array) $value;
+                    $key = key($arr);
+                    $this->optionTermReferenceNames[$key] = $arr[$key];
                 }
             }
         }
