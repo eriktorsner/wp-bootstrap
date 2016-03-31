@@ -30,10 +30,17 @@ class Export extends ExportBase
      */
     public function export()
     {
+        $container = Container::getInstance();
+        $extensions = $container->getExtensions();
+        $extensions->init();
+
+        do_action('wp-bootstrap_before_export');
         $this->log->addInfo('Exporting settings');
         $this->exportSettings();
         $this->log->addInfo('Exporting content');
         $this->exportContent();
+        do_action('wp-bootstrap_after_export');
+
         $this->createManifest();
     }
 
@@ -69,6 +76,15 @@ class Export extends ExportBase
             $label = '.label';
             if (is_null($settings->$label)) {
                 $settings->$label = 'wpbootstrap';
+            }
+
+            // look for media refrences in the included settings
+            foreach ($settings as $name => $value) {
+                if ($name != 'theme_mods_eteritique') continue;
+                $ret = $this->extractMedia->getReferencedMedia($value);
+                if (count($ret) > 0) {
+                    $this->exportMedia->addMedia($ret);
+                }
             }
 
             // neutralize
