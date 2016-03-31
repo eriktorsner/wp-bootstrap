@@ -14,6 +14,7 @@ class ExtractMedia extends ExportBase
     public function __construct()
     {
         parent::__construct();
+        $this->uploadDir = wp_upload_dir();
     }
 
     /**
@@ -42,7 +43,6 @@ class ExtractMedia extends ExportBase
                 $ret[] = $id;
             }
         }
-
         return $ret;
     }
 
@@ -56,14 +56,23 @@ class ExtractMedia extends ExportBase
     {
         $ret = array();
 
+        $b64 = $this->helpers->isBase64($obj);
+        if ($b64) {
+            $obj = base64_decode($obj);
+        }
+        $ser = $this->helpers->isSerialized($obj);
+        if ($ser) {
+            $obj = unserialize($obj);
+        }
+
         if (is_object($obj) || is_array($obj)) {
-            foreach ($obj as &$member) {
+            foreach ($obj as $key => &$member) {
                 $arr = $this->findMediaFromObj($member);
                 $ret = array_merge($ret, $arr);
             }
         } else {
             if (is_string($obj)) {
-                $base = $this->uploadDir['baseurl'];
+                $base = rtrim($this->uploadDir['baseurl'], '/') . '/';
                 $pattern = '~('.preg_quote($base, '~').'[^.]+.\w\w\w\w?)~i';
                 preg_match_all($pattern, $obj, $matches);
                 if (isset($matches[0]) && is_array($matches[0])) {
@@ -110,7 +119,18 @@ class ExtractMedia extends ExportBase
             )
         );
 
+        if ($attachment[0]) {
+            return $attachment[0];
+        }
+
+        $attachment = $wpdb->get_col($wpdb->prepare(
+            "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_wp_attached_file' AND meta_value='%s';",
+            str_replace($this->uploadDir['baseurl'] . '/', '', $link)
+            )
+        );
+
         return $attachment[0];
+
     }
 
     /**
