@@ -78,5 +78,6 @@ class ExportBase
 
         $this->utils->includeWordPress();
         $this->baseUrl = get_option('siteurl');
+
     }
 }
