@@ -15,7 +15,6 @@ use League\CLImate\CLImate;
  * @method Resolver         getResolver
  * @method Helpers          getHelpers
  * @method Initbootstrap    getInitbootstrap
- * @method Import           getImport
  * @method Export           getExport
  * @method ExportMedia      getExportMedia
  * @method ExportMenus      getExportMenus
@@ -26,7 +25,11 @@ use League\CLImate\CLImate;
  * @method Snapshots        getSnapshots
  * @method Settings         getLocalSettings
  * @method Settings         getAppSettings
-
+ * @method Import           getImport*
+ * @method ImportMenus      getImportMenus
+ * @method ImportPosts      getImportPosts
+ * @method ImportTaxonomies getImportTaxonomies
+ * @method ImportSidebars   getImportSidebars
  *
  */
 class Container
@@ -48,6 +51,10 @@ class Container
         'ExportTaxonomies',
         'ExtractMedia',
         'Snapshots',
+        'ImportMenus',
+        'ImportPosts',
+        'ImportTaxonomies',
+        'ImportSidebars',
     );
 
     /**
@@ -78,6 +85,11 @@ class Container
     private $localSettings;
 
     /**
+     * @var \Wpbootstrap\Extensions
+     */
+    private $extensions;
+
+    /**
      * Container constructor.
      */
     public function __construct()
@@ -85,6 +97,7 @@ class Container
         $this->localSettings = new Settings('local');
         $this->appSettings = new Settings('app');
         $this->climate = new CLImate();
+        $this->extensions = new Extensions();
     }
 
     /**
@@ -204,5 +217,10 @@ class Container
         }
 
         return $good;
+    }
+
+    public function getExtensions()
+    {
+        return $this->extensions;
     }
 }
