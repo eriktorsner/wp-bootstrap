@@ -16,39 +16,39 @@ To add this package as a local, per-project dependency to your project, simply a
         }
     }
 
-**Note!:** wp-bootstrap assumes that wp-cli is globally available on the machine using the alias "wp". 
+**Note!:** wp-bootstrap assumes that wp-cli is globally available on the machine using the alias "wp".
 
 ### Quick start
 
 Wp-bootstrap can be called directly from it's binary, located in vendor/bin. To reduce typing, you can add the bootstrap commands to your composer file:
 
     $ vendor/bin/wpbootstrap wp-init-composer
-    
+
 Then to run a command:
 
     $ composer wp-export
-    
+
 
 ## Commands
 
 wp-bootstrap exposes a few command that can be called from various automation environments
 
-| Command | Arguments | Description |
-|---------|------------|------------|
-| wp-init-composer || Add Wp-Bootstrap bindings to composer.json |
-| wp-install || Download and install WordPress core. Creates a default WordPress installation |
-| wp-setup  || Add themes and plugins and import content |
-| wp-bootstrap || Alias for wp-install followed by wp-setup|
-| wp-update |none, "themes" or "plugins"| Updates core, themes or plugins that are installed from the WordPress repository |
-| wp-export || Exports content from the WordPress database into text and media files on disk|
-| wp-import || Imports content in text and media files on disk into the database. Updates existing pages / media if it already exists |
-| wp-snapshots || Utils for diffing WordPress options |
-|    -"- |list | Shows all currently available snapshots  |
-|    -"- |snapshot $name $comment | Create a new snapshot with $name (optional) and $comment (optional)  |
-|    -"- |diff $name  | Compare snapshot $name with current WordPress options  |
-|    -"- |diff $name $name2  | Compare 2 snapshots  |
-|    -"- |show $name  | List all option with values in snapshot $name  |
-|    -"- |show $name $option  | Display a single option from snapshot $name  |
+| Command          | Arguments                   | Description                                                                                                            |
+|:-----------------|:----------------------------|:-----------------------------------------------------------------------------------------------------------------------|
+| wp-init-composer |                             | Add Wp-Bootstrap bindings to composer.json                                                                             |
+| wp-install       |                             | Download and install WordPress core. Creates a default WordPress installation                                          |
+| wp-setup         |                             | Add themes and plugins and import content                                                                              |
+| wp-bootstrap     |                             | Alias for wp-install followed by wp-setup                                                                              |
+| wp-update        | none, "themes" or "plugins" | Updates core, themes or plugins that are installed from the WordPress repository                                       |
+| wp-export        |                             | Exports content from the WordPress database into text and media files on disk                                          |
+| wp-import        |                             | Imports content in text and media files on disk into the database. Updates existing pages / media if it already exists |
+| wp-snapshots     |                             | Utils for diffing WordPress options                                                                                    |
+| -"-              | list                        | Shows all currently available snapshots                                                                                |
+| -"-              | snapshot $name $comment     | Create a new snapshot with $name (optional) and $comment (optional)                                                    |
+| -"-              | diff $name                  | Compare snapshot $name with current WordPress options                                                                  |
+| -"-              | diff $name $name2           | Compare 2 snapshots                                                                                                    |
+| -"-              | show $name                  | List all option with values in snapshot $name                                                                          |
+| -"-              | show $name $option          | Display a single option from snapshot $name                                                                            |
 
 ## Usage
 
@@ -72,7 +72,7 @@ Sample Grunt setup (just showing two methods):
         cmd = "vendor/bin/wpbootstrap wp-update";
         if (typeof grunt.option('what') != 'undefined') cmd += ' ' + grunt.option('what');
         shell.exec(cmd);
-    }); 
+    });
 
 Then run your grunt task like this:
 
@@ -108,7 +108,7 @@ Then run a method from the cli like this:
 
 
 
-## Settings 
+## Settings
 
 wp-bootstrap relies on 2 config files in your project root
 
@@ -124,10 +124,10 @@ wp-bootstrap relies on 2 config files in your project root
         "wpuser": "admin",
         "wppass": "admin",
         "wppath": "/vagrant/www/wordpress-default"
-    
+
     }
 
-The various settings in localsettings.json are self explanatory. This file is not supposed to be managed in source code control but rather be unique for each server where your WordPress site is installed (development, staging etc). 
+The various settings in localsettings.json are self explanatory. This file is not supposed to be managed in source code control but rather be unique for each server where your WordPress site is installed (development, staging etc).
 
 **appsettings.json:**
 
@@ -191,16 +191,19 @@ The various settings in localsettings.json are self explanatory. This file is no
                 ]
             }
         }
+        "extensions": [
+            "MyNamespace\\MyClass"
+        ]
     }
 
 ### Section: plugins:
-This section consists of two sub arrays "standard" and "local". Each array contains plugin names that should be installed and activated on the target WordPress site. 
+This section consists of two sub arrays "standard" and "local". Each array contains plugin names that should be installed and activated on the target WordPress site.
 
  - **standard** Fetches plugins from the official WordPress repository. If a specific version is needed, specify the version using a colon and the version identifier i.e **if-menu:0.2.1**
  - **local** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. Local plugins are symlink'ed into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
 
 ### Section: themes
-Similar to the plugins section but for themes. 
+Similar to the plugins section but for themes.
 
  - **standard** Fetches themes from the official WordPress repository. If a specific version is needed, specify the version using a colon and the version identifier i.e **footheme:1.1**
  - **local** A list of themes in your local project folder. The themes are expected to be located in folder projectroot/wp-content/themes/. Local themes are symlinked into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
@@ -211,9 +214,9 @@ Similar to the plugins section but for themes.
 
 A list of settings that will be applied to the WordPress installation using the wp-cli command "option update %s". Currently only supports simple scalar values (strings and integers)
 
-###Section: content
+### Section: content
 
-This sections defines how to handle content during export and import of data using the wp-export or wp-import command. 
+This sections defines how to handle content during export and import of data using the wp-export or wp-import command.
 
 **posts** Used during the export process. Contains zero or more keys with an associated array. The key specifies a post_type (page, post etc) and the array contains **post_name** for each post to include. The export process also includes any media (images) that are attached to the specific post.
 
@@ -232,11 +235,30 @@ Used during the import process. This is a structure that describes option values
 
 Reference resolving will only look at the pages/posts/terms included in your import set.  The import set might include an option "mypage" in the config/wpbootstrap.json file that points to post ID=10. Also in the import set, there is that page with id=10. When this page is imported in the target WordPress installation, it might get another ID, 22 for instance. By telling wp-bootstrap that the setting "mypage" in the wp_options table refers to a page, wp-bootstrap will update that option to the new value 22 as part of the process.
 
-###Parent child references and automatic includes
+### Section: extensions
 
-Wp-bootstrap tries it's hardest to preserve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data. 
+If the basic functionality in Wp-Bootstrap can't handle content in a certain situation, it's often possible to handle it via an extension. An extension is a PHP class that implements filters and actions to respond to certain events. For instance, if a plugin uses a custom table, an extension can hook into the 'wp-bootstrap_after_export' action to serialize that table to a file when the site is being exported. During import, the extension would hook into the 'wp-bootstrap_after_import' action to read the serialized file back into the database.
 
-###Import matching
+Exensions can be made specifically for a certain plugin or for a specific site project.
+
+
+| Name                                   | Type   | Description                                                            |
+|:---------------------------------------|:-------|:-----------------------------------------------------------------------|
+| wp-bootstrap_before_import             | Action | Called before all import activites                                     |
+| wp-bootstrap_after_import_settings     | Action | Called after settings have been imported with WP-CFM                   |
+| wp-bootstrap_after_import_content      | Action | Called after content (posts, menus etc) have been imported             |
+| wp-bootstrap_after_import              | Action | Called after all import activities are done                            |
+| wp-bootstrap_before_export             | Action | Called before any export activities starts                             |
+| wp-bootstrap_after_export              | Action | Called after all exports activities are done                           |
+| wp-bootstrap_option_post_references    | Filter | Lets the extension add names of option values that refer to a post id. |
+| wp-wp-bootstrap_option_term_references | Filter | Lets the extension add names of option values that refer to a term id  |
+
+
+### Parent child references and automatic includes
+
+Wp-bootstrap tries it's hardest to preserve references between exported WordPress objects. If you export a page that is the child of another page, the parent page will be included in the exported data regardless if that page was included in the settings. Similar, if you export a menu that points to a page or taxonomy term was not specified, that page and taxonomy term will also be included in the exported data.
+
+### Import matching
 When importing into a WordPress installation, wp-bootstrap will use the **slug** to match pages, menus and taxonomy terms. So if the dataset to be imported contains a page with the **slug** 'foobar', that page will be (a) created if it didn't previously exist or (b) updated if it did. The same logic applies to posts (pages, attachments, posts etc), menu items and taxonomy terms.
 
 **Note:** Taxonomies are defined in code rather than in the database. So the exact taxonomies that exist in a WordPress installation are defined at load time. The built in taxonomies are always there, but some taxonomies are defined in a theme or plugin. In order for your taxonomy terms to be imported during the wp-import process, the theme or plugin that defined the taxonomy needs to exist.
@@ -283,7 +305,7 @@ When showing all options in a snapshot, structs and arrays are converted to a st
 
     $ composer wp-snapshots show foobar widget_archives
 
-  
+
 ## Testing
 
 Since wp-bootstrap relies a lot on WordPress, there's a separate Github repository for testing using Vagrant. The test repo is available at [https://github.com/eriktorsner/wp-bootstrap-test](https://github.com/eriktorsner/wp-bootstrap-test).
@@ -294,9 +316,14 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.6 **
+  - new feature: Support for extensions
+  - Better media extraction from content, now finding images in serialized/base64 encoded content
+  - Improved performance on imports
+
 **0.3.5 **
 
-  - Bugfix: (major) Fixed issue when importing two posts with same slug but different post types 
+  - Bugfix: (major) Fixed issue when importing two posts with same slug but different post types
 
 **0.3.4 **
 
@@ -327,53 +354,52 @@ Contributions are welcome. Apart from code, the project is in need of better doc
   - Additional refactoring
   - Logging all system calls done via PHP exec()
 
-**0.2.9** 
+**0.2.9**
 
   - Refactored and renamed classes
   - Introduced class Container as a (sort of) dependency injection container
   - Brought test coverage up to 85%
 
-**0.2.8** 
+**0.2.8**
 
   - Renamed section "wpbootstrap" to "content" in appsettings.json
   - Lots of logging added to the debug level.
   - Fixed bugs found from unit testing.
   - Brought test coverage back up to 80%
 
-**0.2.7** 
+**0.2.7**
 
   - When exporting, all taxonomy terms that are referenced by a post will be included. Better taxonomy handling (assignment) when importing the terms
   - Improved import of Posts
   - Added Monolog as a dependency
   - Logging to console and file can be configured via localsettings
 
-**0.2.6** 
+**0.2.6**
 
   - Improves handling for media that are not images (zip files etc).
 
 
-**0.2.5** 
+**0.2.5**
 
   - Simplified BASEPATH heuristics
   - When exporting, missing media files does not generate an error message
 
-**0.2.4** 
+**0.2.4**
 
   - Added VERSION constant.
   - Improvements for being called from within a WordPress plugin (such as Wp-bootstrap-ui)
 
-**0.2.3** 
+**0.2.3**
 
   - Referenced media handled better, so media that is referenced (used) in posts and widgets are included even if they are not properly attached
   - Code style cleanup using php-cs-fixer.
 
-**0.2.2** 
+**0.2.2**
 
-  - Support for ***references***. Possible to add names of options that are references to other posts or taxonomy terms. 
-  - Fixed issues found when  Test coverage up to over 80%. 
-  
+  - Support for ***references***. Possible to add names of options that are references to other posts or taxonomy terms.
+  - Fixed issues found when  Test coverage up to over 80%.
+
 
 **0.2.1**  
 
  - Support for taxonomy terms
-
