@@ -238,7 +238,7 @@ class Import
 
         $options = [];
         if (isset($appSettings->references->terms->options)) {
-            $options = $appSettings->references->posts->options;
+            $options = $appSettings->references->terms->options;
         }
         $options = apply_filters('wp-bootstrap_option_term_references', $options);
 
