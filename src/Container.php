@@ -11,6 +11,7 @@ use League\CLImate\CLImate;
  * @package Wpbootstrap
  *
  * @method Bootstrap        getBootstrap
+ * @method Setup            getSetup
  * @method Utils            getUtils
  * @method Resolver         getResolver
  * @method Helpers          getHelpers
@@ -37,6 +38,7 @@ class Container
     public static $self = false;
     private $singeltons = array(
         'Bootstrap',
+        'Setup',
         'Log',
         'Utils',
         'Resolver',
