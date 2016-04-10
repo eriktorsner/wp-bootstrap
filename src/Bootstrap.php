@@ -115,6 +115,7 @@ class Bootstrap
         if (!isset($this->localSettings->wpemail)) {
             $this->localSettings->wpemail = 'admin@local.dev';
         }
+
         $cmd = $wpcmd.sprintf(
             'core install --url=%s --title="%s" --admin_name=%s --admin_email="%s" --admin_password="%s"',
             $this->localSettings->url,
@@ -126,15 +127,17 @@ class Bootstrap
         $this->utils->exec($cmd);
 
         // a brand new wordpress install has content, we don't want that
-        $cmd = $wpcmd.sprintf(
-            'db query "%s %s %s %s"',
-            'delete from wp_posts;',
-            'delete from wp_postmeta;',
-            'delete from wp_comments;',
-            'delete from wp_commentmeta;'
-        );
-        $this->utils->exec($cmd);
-
+        // unless the appSettings explicitly tells us to keep it
+        if (!isset($this->appSettings->keepDefaultContent) || $this->appSettings->keepDefaultContent == false) {
+            $cmd = $wpcmd.sprintf(
+                'db query "%s %s %s %s"',
+                'delete from wp_posts;',
+                'delete from wp_postmeta;',
+                'delete from wp_comments;',
+                'delete from wp_commentmeta;'
+            );
+            $this->utils->exec($cmd);
+        }
     }
 
     /**
