@@ -133,6 +133,8 @@ The various settings in localsettings.json are self explanatory. This file is no
 
     {
         "title": "Your WordPress site title",
+        "keepDefaultContent": false,
+        "version": "4.4.1"
         "plugins": {
             "standard": [
                 "google-analyticator",
@@ -202,6 +204,12 @@ The various settings in localsettings.json are self explanatory. This file is no
             "MyNamespace\\MyClass"
         ]
     }
+
+### Parameters:
+
+ - **title** (mandatory). Specifies the title/blogname for the new WordPress installation.
+ - **version** (optional). Specifies the WordPress core version to install. If not specified (recommended) the latest version is installed
+ - **keepDefaultContent** (optional). If set to true, the default "Hello World" and "Sample page" sample content is preserved. The default is to remove them.
 
 ### Section: plugins
 
