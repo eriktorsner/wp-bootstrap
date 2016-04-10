@@ -44,7 +44,13 @@ class Utils
     public function exec($cmd)
     {
         $this->log->addDebug("Executing: $cmd");
-        exec($cmd);
+        $output = [];
+        exec($cmd, $output);
+        if (count($output) > 0) {
+            foreach ($output as $row) {
+                $this->log->addDebug("Output: $row");
+            }
+        }
     }
 
     /**
@@ -54,7 +60,8 @@ class Utils
      */
     public function getWpCommand()
     {
-        $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root --quiet ';
+
+        $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
 
         return $wpcmd;
     }
