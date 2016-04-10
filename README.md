@@ -205,11 +205,11 @@ The various settings in localsettings.json are self explanatory. This file is no
 
 ### Section: plugins
 
-This section consists of two sub arrays "standard" and "local". The elements in each array is either a plugin slug (string) or an more verbose object that describes a plugin.
+This section consists of up to three sub arrays named "standard", "local" and "localcopy". The elements in each array is either a plugin slug (string) or an more verbose object that describes a plugin.
 
 The object can have the following properties:
 
- - **slug** The name/slug of the plugin.
+ - **slug** The name/slug of the plugin
  - **version** specifying a specific version when installing a plugin from the official WordPress repository,
  - **requires** An object describing what other themes or plugins that needs to be installed before this one. Some plugins/themes will check if another plugin or theme is already installed, but this is rather uncommon. In most cases installation order doesn't matter.
    - **plugins** An array of slugs (string) that defines required plugins
@@ -241,7 +241,7 @@ Under "plugins", three different arrays can be defined:
 
  - **standard** Fetches plugins from the official WordPress repository.
  - **local** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. Local plugins are symlink'ed into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
- - **localcopy** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. localcopy plugins are copied into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json. Some poorly written themes and plugins requires to be located in the correct WordPress folder, but consider it as a last option
+ - **localcopy** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. localcopy plugins are copied into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json. Some poorly written themes and plugins requires to be located in the correct WordPress folder, but consider it as a last option, use "local" whenever possible.
 
 ### Section: themes
 Similar to the plugins section but for themes.
@@ -341,7 +341,7 @@ When importing into a WordPress installation, wp-bootstrap will use the **slug**
 
 ## Snapshots
 
-The wp-snapshot command saves a snapshot of (almost) all settings in the WordPress options table. The file is saved in bootstrap/config/snapshots. The idea is that a snapshot can be later be compared, with the current values in the options table or between two snapshots. This can be used as a tool to quickly identify which options that are modified and need to go into the WP-CFM configuration.
+The wp-snapshots command is a utility to help developers determine which options to include in a project. wp-snapshots core function is to save a snapshot of (almost) all settings in the WordPress options table. The file is saved in folder bootstrap/config/snapshots. The idea is that a snapshot can be later be compared, with the current values in the options table or between two snapshots. This can be used as a tool to quickly identify which options that are modified and need to go into the WP-CFM configuration.
 
 Besides an actual snapshot of the options table, a snapshot also contains an optional comment, creation date, environment as stated in localsettings and the host name of the computer that the snapshot was created on.
 
@@ -392,32 +392,32 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
-**0.3.7 **
+**0.3.7**
   - new feature: Support for dependencies between themes/plugins to determine installation order
   - Bug fix: During import, importing a menu and theme_mods would reset theme modifications.
   - Enhancement: Logging (DEBUG level) output from external commands (wp-cli, rm, cp, ln etc).
 
 
-**0.3.6 **
+**0.3.6**
   - new feature: Support for extensions
   - Better media extraction from content, now finding images in serialized/base64 encoded content
   - Improved performance on imports
 
-**0.3.6 **
+**0.3.6**
   - new feature: Support for extensions
   - Better media extraction from content, now finding images in serialized/base64 encoded content
   - Improved performance on imports
 
-**0.3.5 **
+**0.3.5**
 
   - Bug fix: (major) Fixed issue when importing two posts with same slug but different post types
 
-**0.3.4 **
+**0.3.4**
 
   - Bug fix: exporting now also includes posts with status = inherit
   - Bug fix: importing a post where the parent post is missing doesnt create infinite loop
 
-**0.3.3 **
+**0.3.3**
 
   - new feature: adding configured symlinks during wp-init
 
