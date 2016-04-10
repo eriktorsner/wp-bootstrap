@@ -77,6 +77,13 @@ class Bootstrap
         $this->setup();
     }
 
+    public function setup()
+    {
+        $container = Container::getInstance();
+        $setup = $container->getSetup();
+        $setup->setup();
+    }
+
     /**
      * Install WordPress as specified in localsettings.json and appsettings.json
      */
@@ -89,9 +96,6 @@ class Bootstrap
             $this->log->addInfo('WordPress already installed');
             return;
         }
-
-        $cmd = 'rm -rf ~/.wp-cli/cache/core/';
-        $this->utils->exec($cmd);
 
         $cmd = $wpcmd.'core download --force';
         if (isset($this->appSettings->version)) {
@@ -120,23 +124,17 @@ class Bootstrap
             $this->localSettings->wppass
         );
         $this->utils->exec($cmd);
-    }
 
-    /**
-     * Install plugins and themes
-     */
-    public function setup()
-    {
-        $this->log->addDebug('Running Bootstrap::setup');
+        // a brand new wordpress install has content, we don't want that
+        $cmd = $wpcmd.sprintf(
+            'db query "%s %s %s %s"',
+            'delete from wp_posts;',
+            'delete from wp_postmeta;',
+            'delete from wp_comments;',
+            'delete from wp_commentmeta;'
+        );
+        $this->utils->exec($cmd);
 
-        $this->log->addDebug('Creating symlinks in Wp-content');
-        $this->wpContentSymlinks();
-        $this->log->addDebug('Installing plugins');
-        $this->installPlugins();
-        $this->log->addDebug('Installing themes');
-        $this->installThemes();
-        $this->log->addDebug('Applying settings from appsettings.json');
-        $this->applySettings();
     }
 
     /**
@@ -190,170 +188,9 @@ class Bootstrap
         }
     }
 
-    /**
-     * Install plugins defined in appsettings.json
-     */
-    private function installPlugins()
-    {
-        $wpcmd = $this->utils->getWpCommand();
-        if (isset($this->appSettings->plugins->standard)) {
-            $standard = $this->appSettings->plugins->standard;
-            $this->log->addDebug('Plugins installed from repo or URL', $standard);
-            foreach ($standard as $plugin) {
-                $parts = explode(':', $plugin);
-                if (count($parts) == 1 || $this->helpers->isUrl($plugin)) {
-                    $cmd = $wpcmd.'plugin install --activate '.$plugin;
-                } else {
-                    $cmd = $wpcmd.'plugin install --activate --version='.$parts[1].' '.$parts[0];
-                }
-                $this->utils->exec($cmd);
-            }
-        }
 
-        if (isset($this->appSettings->plugins->local)) {
-            $local = $this->appSettings->plugins->local;
-            $this->log->addDebug('Plugins symlink-ed to wp-content', $local);
-            foreach ($local as $plugin) {
-                $cmd = sprintf('rm -f %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
-                exec($cmd);
 
-                $cmd = sprintf(
-                    'ln -s %s/wp-content/plugins/%s %s/wp-content/plugins/%s',
-                    BASEPATH,
-                    $plugin,
-                    $this->localSettings->wppath,
-                    $plugin
-                );
-                $this->utils->exec($cmd);
 
-                $cmd = $wpcmd.'plugin activate '.$plugin;
-                $this->utils->exec($cmd);
-            }
-        }
 
-        if (isset($this->appSettings->plugins->localcopy)) {
-            $local = $this->appSettings->plugins->localcopy;
-            $this->log->addDebug('Plugins copied to wp-content', $local);
-            foreach ($local as $plugin) {
-                $cmd = sprintf('rm -rf %s/wp-content/plugins/%s', $this->localSettings->wppath, $plugin);
-                $this->utils->exec($cmd);
-
-                $cmd = sprintf(
-                    'cp -a %s/wp-content/plugins/%s %s/wp-content/plugins/%s',
-                    BASEPATH,
-                    $plugin,
-                    $this->localSettings->wppath,
-                    $plugin
-                );
-                $this->utils->exec($cmd);
-
-                $cmd = $wpcmd.'plugin activate '.$plugin;
-                $this->utils->exec($cmd);
-            }
-        }
-    }
-
-    /**
-     * Install themes defined in appsettings.json
-     */
-    private function installThemes()
-    {
-        $wpcmd = $this->utils->getWpCommand();
-        if (isset($this->appSettings->themes->standard)) {
-            $standard = $this->appSettings->themes->standard;
-            $this->log->addDebug('Themes installed from repo or URL', $standard);
-            foreach ($standard as $theme) {
-                $parts = explode(':', $theme);
-                if (count($parts) == 1 || $this->helpers->isUrl($theme)) {
-                    $cmd = $wpcmd.'theme install '.$theme;
-                } else {
-                    $cmd = $wpcmd.'theme install --version='.$parts[1].' '.$parts[0];
-                }
-                $this->utils->exec($cmd);
-            }
-        }
-
-        if (isset($this->appSettings->themes->local)) {
-            $local = $this->appSettings->themes->local;
-            $this->log->addDebug('Themes symlinked to wp-content', $local);
-            foreach ($local as $theme) {
-                $cmd = sprintf('rm -f %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
-                $this->utils->exec($cmd);
-
-                $cmd = sprintf(
-                    'ln -s %s/wp-content/themes/%s %s/wp-content/themes/%s',
-                    BASEPATH,
-                    $theme,
-                    $this->localSettings->wppath,
-                    $theme
-                );
-                $this->utils->exec($cmd);
-            }
-        }
-
-        if (isset($this->appSettings->themes->localcopy)) {
-            $local = $this->appSettings->themes->localcopy;
-            $this->log->addDebug('Themes copied to wp-content', $local);
-            foreach ($local as $theme) {
-                $cmd = sprintf('rm -rf %s/wp-content/themes/%s', $this->localSettings->wppath, $theme);
-                $this->utils->exec($cmd);
-
-                $cmd = sprintf(
-                    'cp -a %s/wp-content/themes/%s %s/wp-content/themes/%s',
-                    BASEPATH,
-                    $theme,
-                    $this->localSettings->wppath,
-                    $theme
-                );
-                $this->utils->exec($cmd);
-            }
-        }
-
-        if (isset($this->appSettings->themes->active)) {
-            $cmd = $wpcmd.'theme activate '.$this->appSettings->themes->active;
-            $this->utils->exec($cmd);
-        }
-    }
-
-    /**
-     * Apply settings defined in appsettings.json
-     */
-    private function applySettings()
-    {
-        $wpcmd = $this->utils->getWpCommand();
-        if (isset($this->appSettings->settings)) {
-            foreach ($this->appSettings->settings as $key => $value) {
-                $cmd = $wpcmd."option update $key ";
-                $cmd .= '"'.$value.'"';
-                $this->utils->exec($cmd);
-            }
-        }
-    }
-
-    private function wpContentSymlinks()
-    {
-
-        if (isset($this->appSettings->symlinks)) {
-            foreach ($this->appSettings->symlinks as $symlink) {
-                if (!file_exists(BASEPATH . '/wp-content/' . $symlink)) {
-                    continue;
-                }
-                $cmd = sprintf('rm -f %s/wp-content/%s',
-                    $this->localSettings->wppath,
-                    $symlink
-                );
-                $this->utils->exec($cmd);
-
-                $cmd = sprintf(
-                    'ln -s %s/wp-content/%s %s/wp-content/%s',
-                    BASEPATH,
-                    $symlink,
-                    $this->localSettings->wppath,
-                    $symlink
-                );
-                $this->utils->exec($cmd);
-            }
-        }
-    }
 
 }
