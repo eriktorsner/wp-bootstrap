@@ -31,7 +31,7 @@ class Resolver
      */
     public function resolveOptionReferences($references, $type)
     {
-        wp_cache_delete('alloptions', 'options');
+        wp_cache_flush();
 
         foreach ($references as $key => $value) {
             if (is_integer($key)) {

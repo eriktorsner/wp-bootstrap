@@ -28,7 +28,6 @@ class Import
      */
     public $sidebars;
 
-
     /**
      * @var string
      */
@@ -132,14 +131,18 @@ class Import
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
             copy($src, $trg);
-            $cmd = $wpcmd.'config pull wpbootstrap';
 
             // deneutralize
             $settings = json_decode(file_get_contents($trg));
             $helpers->fieldSearchReplace($settings, Bootstrap::NEUTRALURL, $this->baseUrl);
             file_put_contents($trg, $helpers->prettyPrint(json_encode($settings)));
 
+            $cmd = $wpcmd.'config pull wpbootstrap';
             $utils->exec($cmd);
+
+            // Flush options to make sure no other code overwrites based
+            // on old settings stored in cache
+            wp_cache_flush();
         }
     }
 
@@ -161,6 +164,7 @@ class Import
 
         $this->log->addDebug('Importing sidebars');
         $this->sidebars = $container->getImportSidebars();
+
         $this->taxonomies->assignObjects();
     }
 
