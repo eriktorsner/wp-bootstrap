@@ -8,6 +8,7 @@ if (count($argv) < 2) {
     die("At least one argument expected\n");
 }
 $container = Wpbootstrap\Container::getInstance();
+$container->getExtensions()->init();
 
 switch ($argv[1]) {
     case 'wp-bootstrap':
