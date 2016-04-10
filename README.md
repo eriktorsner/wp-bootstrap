@@ -136,7 +136,14 @@ The various settings in localsettings.json are self explanatory. This file is no
         "plugins": {
             "standard": [
                 "google-analyticator",
-                "if-menu:0.2.1"
+                "if-menu:0.2.1",
+                {
+                   "slug": "someplugin",
+                   "requires": {
+                     "themes": ["mychildtheme"],
+                     "plugins": ["if-menu"],
+                  }
+                }
             ],
             "local": [
                 "myplugin"
@@ -196,17 +203,52 @@ The various settings in localsettings.json are self explanatory. This file is no
         ]
     }
 
-### Section: plugins:
-This section consists of two sub arrays "standard" and "local". Each array contains plugin names that should be installed and activated on the target WordPress site.
+### Section: plugins
 
- - **standard** Fetches plugins from the official WordPress repository. If a specific version is needed, specify the version using a colon and the version identifier i.e **if-menu:0.2.1**
+This section consists of two sub arrays "standard" and "local". The elements in each array is either a plugin slug (string) or an more verbose object that describes a plugin.
+
+The object can have the following properties:
+
+ - **slug** The name/slug of the plugin.
+ - **version** specifying a specific version when installing a plugin from the official WordPress repository,
+ - **requires** An object describing what other themes or plugins that needs to be installed before this one. Some plugins/themes will check if another plugin or theme is already installed, but this is rather uncommon. In most cases installation order doesn't matter.
+   - **plugins** An array of slugs (string) that defines required plugins
+   - **themes** An array of slugs (string) that defines required themes
+
+If the array element is a string, it will be interpreted as just the slug. If the string contains a colon, anything to the right of the colon will be interpreted as the version. The following two arrays will define the same plugins:
+
+    {
+      "plugins": {
+        "standard": ["foo", "bar:1.2"]
+      }
+    }
+
+    {
+      "plugins": {
+        "standard": [
+          {
+            "slug": "foo"
+          },
+          {
+            "slug": "bar",
+            "version": "1.2"
+          }
+        ]
+      }
+    }
+
+Under "plugins", three different arrays can be defined:
+
+ - **standard** Fetches plugins from the official WordPress repository.
  - **local** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. Local plugins are symlink'ed into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
+ - **localcopy** A list of plugins in your local project folder. Plugins are expected to be located in folder projectroot/wp-content/plugins/. localcopy plugins are copied into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json. Some poorly written themes and plugins requires to be located in the correct WordPress folder, but consider it as a last option
 
 ### Section: themes
 Similar to the plugins section but for themes.
 
  - **standard** Fetches themes from the official WordPress repository. If a specific version is needed, specify the version using a colon and the version identifier i.e **footheme:1.1**
  - **local** A list of themes in your local project folder. The themes are expected to be located in folder projectroot/wp-content/themes/. Local themes are symlinked into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json
+ - **localcopy** A list of themes in your local project folder. The themes are expected to be located in folder projectroot/wp-content/themes/. Local themes are copied into place in the wp-content folder of the WordPress installation specified by wppath in localsettings.json. Some poorly written themes and plugins requires to be located in the correct WordPress folder, but consider it as a last option
  - **active** A string specifying what theme to activate.
 
 
@@ -224,7 +266,7 @@ This sections defines how to handle content during export and import of data usi
 
 **taxonomies** Used during the export process. Contains zero or more keys with either a string or array as the value. Use asterisk (*) if you want to include all terms in the taxonomy. Use an array of term slugs if you want to only include specific terms from that taxonomy.
 
-###Section: references
+### Section: references
 Used during the import process. This is a structure that describes option values (in the wp_option table) that contains references to a page or a taxonomy term. The reference item can contain a "posts" and a "terms" object describing settings that points to either posts or taxonomy terms. Each of these objects contains one single member "options" referring to the wp_options table (support for other references will be added later). The "options" member contains an array with names of options in the wp_option table. There are three ways to refer to an option:
 
   - **1.** A simple string, for instance "page_on_front". Meaning that there is an option in the wp_options table named "page_on_front" and that option is a reference to a post ID.
@@ -237,9 +279,9 @@ Reference resolving will only look at the pages/posts/terms included in your imp
 
 ### Section: extensions
 
-If the basic functionality in Wp-Bootstrap can't handle content in a certain situation, it's often possible to handle it via an extension. An extension is a PHP class that implements filters and actions to respond to certain events. For instance, if a plugin uses a custom table, an extension can hook into the 'wp-bootstrap_after_export' action to serialize that table to a file when the site is being exported. During import, the extension would hook into the 'wp-bootstrap_after_import' action to read the serialized file back into the database.
+If the basic functionality in Wp-Bootstrap can't handle content in a certain situation, it's often possible to handle it via an extension. An extension is a PHP class that implements WordPress filters and actions to respond to certain events. For instance, if a plugin uses a custom table, an extension can hook into the 'wp-bootstrap_after_export' action to serialize that table to a file when the site is being exported. During import, the extension would hook into the 'wp-bootstrap_after_import' action to read the serialized file back into the database.
 
-Exensions can be made specifically for a certain plugin or for a specific site project.
+Extensions can be made specifically for a certain plugin or for a specific site project.
 
 
 | Name                                   | Type   | Description                                                            |
@@ -253,6 +295,40 @@ Exensions can be made specifically for a certain plugin or for a specific site p
 | wp-bootstrap_option_post_references    | Filter | Lets the extension add names of option values that refer to a post id. |
 | wp-wp-bootstrap_option_term_references | Filter | Lets the extension add names of option values that refer to a term id  |
 
+To use an extension, WP Bootstrap must be able to autoload the class. The easiest way to acheive this is to add a PSR4 namespace to the composer.json file of your project:
+
+    {
+        "require": {
+            "eriktorsner/wp-bootstrap": "0.3.*"
+        },
+        "autoload": {
+            "psr-4": {
+                "MyNamespace\\": "src"
+        }
+    }
+
+Then place your exension in the subfolder "src" (relative to the project root). Any extension classes will be instantiated at the beginning of the process and a method "init" will be called. In this method the extension can add filters and actions that will be executed in various stages in the installation/import process:
+
+    <?php
+    namespace MyNamespace;
+
+    use Wpbootstrap\Container;
+
+    class MyClass
+    {
+        public function init()
+        {
+            add_action('wp-bootstrap_after_import', [$this, 'AfterImport']);
+        }
+
+        public function AfterImport()
+        {
+          // do something useful...note that WordPress is loaded in most
+          // filters and actions. Go experiment
+          $options = get_option('FOOBAR', false);
+          ...
+        }
+      }
 
 ### Parent child references and automatic includes
 
@@ -316,6 +392,17 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.7 **
+  - new feature: Support for dependencies between themes/plugins to determine installation order
+  - Bug fix: During import, importing a menu and theme_mods would reset theme modifications.
+  - Enhancement: Logging (DEBUG level) output from external commands (wp-cli, rm, cp, ln etc).
+
+
+**0.3.6 **
+  - new feature: Support for extensions
+  - Better media extraction from content, now finding images in serialized/base64 encoded content
+  - Improved performance on imports
+
 **0.3.6 **
   - new feature: Support for extensions
   - Better media extraction from content, now finding images in serialized/base64 encoded content
@@ -323,12 +410,12 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 **0.3.5 **
 
-  - Bugfix: (major) Fixed issue when importing two posts with same slug but different post types
+  - Bug fix: (major) Fixed issue when importing two posts with same slug but different post types
 
 **0.3.4 **
 
-  - Bugfix: exporting now also includes posts with status = inherit
-  - Bugfix: importing a post where the parent post is missing doesnt create infinite loop
+  - Bug fix: exporting now also includes posts with status = inherit
+  - Bug fix: importing a post where the parent post is missing doesnt create infinite loop
 
 **0.3.3 **
 
