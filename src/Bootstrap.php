@@ -92,7 +92,7 @@ class Bootstrap
         $this->log->addDebug('Running Bootstrap::install');
         $wpcmd = $this->utils->getWpCommand();
 
-        if (file_exists($this->localSettings->dbhost . '/wp-config.php')) {
+        if (file_exists($this->localSettings->wpath . '/wp-config.php')) {
             $this->log->addInfo('WordPress already installed');
             return;
         }
