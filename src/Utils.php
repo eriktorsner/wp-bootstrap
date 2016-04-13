@@ -60,7 +60,6 @@ class Utils
      */
     public function getWpCommand()
     {
-
         $wpcmd = 'wp --path='.$this->localSettings->wppath.' --allow-root ';
 
         return $wpcmd;
