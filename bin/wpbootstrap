@@ -2,6 +2,8 @@
 <?php
 
 define('BASEPATH', getcwd());
+define('WPBOOT_LAUNCHER', 'wpbootsrap');
+
 require_once BASEPATH . '/vendor/autoload.php';
 
 if (count($argv) < 2) {
