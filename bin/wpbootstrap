@@ -56,6 +56,10 @@ switch ($argv[1]) {
         $initBootstrap = $container->getInitbootstrap();
         $initBootstrap->initComposer();
         break;
+    case 'wp-init-wpcli':
+        $initBootstrap = $container->getInitbootstrap();
+        $initBootstrap->initWpCli(true);
+        break;
     case 'wp-snapshots':
         $container->validateSettings();
         $manageState = $container->getSnapshots();
