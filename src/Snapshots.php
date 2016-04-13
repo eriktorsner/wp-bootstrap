@@ -263,6 +263,8 @@ class Snapshots
         $added = array();
         $modified = array();
         $removed = array();
+        $oldName = $oldState->name;
+        $newName = $newState->name;
         foreach ($oldState->options as $name => $value) {
             if (in_array($name, $this->excludedOptions)) {
                 continue;
@@ -272,16 +274,16 @@ class Snapshots
                     $modified[] = array(
                         'state' => 'MOD',
                         'name' => $name,
-                        'old' => $this->valueToString($value),
-                        'new' => $this->valueToString($newState->options[$name]),
+                        $oldName => $this->valueToString($value),
+                        $newName => $this->valueToString($newState->options[$name]),
                     );
                 }
             } else {
                 $removed[] = array(
                     'state' => 'DEL',
                     'name' => $name,
-                    'old' => $this->valueToString($value),
-                    'new' => null,
+                    $oldName => $this->valueToString($value),
+                    $newName => null,
                 );
             }
         }
@@ -293,8 +295,8 @@ class Snapshots
                 $added[] = array(
                     'state' => 'NEW',
                     'name' => $name,
-                    'old' => null,
-                    'new' => $this->valueToString($value),
+                    $oldName => null,
+                    $newName => $this->valueToString($value),
                 );
             }
         }
