@@ -24,6 +24,11 @@ class Snapshots
     private $helpers;
 
     /**
+     * @var Utils
+     */
+    private $utils;
+
+    /**
      * @var \Monolog\Logger
      */
     private $log;
@@ -44,7 +49,7 @@ class Snapshots
      * @var array
      */
     private $excludedOptions = array(
-        'cron', 'rewrite_rules', 'wp_user_roles',
+        'cron', 'rewrite_rules', 'wp_user_roles', 'can_compress_scripts',
     );
 
     /**
@@ -56,6 +61,7 @@ class Snapshots
         $this->bootstrap = $container->getBootstrap();
         $this->log = $container->getLog();
         $this->helpers = $container->getHelpers();
+        $this->utils = $container->getUtils();
         $this->localSettings = $container->getLocalSettings();
         $utils = $container->getUtils();
         $this->climate = $container->getCLImate();
@@ -229,6 +235,8 @@ class Snapshots
             return;
         }
 
+        $wpCfmSettings = $this->utils->getWPCFMSettings();
+
         if (count($this->bootstrap->argv) == 2) {
             $options = array();
             foreach ($oldState->options as $name => $value) {
@@ -238,6 +246,7 @@ class Snapshots
                 $options[] = array(
                     'name' => $name,
                     'value' => $this->valueToString($value),
+                    'managed' => isset($wpCfmSettings->$name) ? 'Yes' : 'No',
                 );
             }
             if (count($options) > 0) {
@@ -265,6 +274,9 @@ class Snapshots
         $removed = array();
         $oldName = $oldState->name;
         $newName = $newState->name;
+
+        $wpCfmSettings = $this->utils->getWPCFMSettings();
+
         foreach ($oldState->options as $name => $value) {
             if (in_array($name, $this->excludedOptions)) {
                 continue;
@@ -276,6 +288,7 @@ class Snapshots
                         'name' => $name,
                         $oldName => $this->valueToString($value),
                         $newName => $this->valueToString($newState->options[$name]),
+                        'managed' => isset($wpCfmSettings->$name) ? 'Yes' : 'No',
                     );
                 }
             } else {
@@ -284,6 +297,7 @@ class Snapshots
                     'name' => $name,
                     $oldName => $this->valueToString($value),
                     $newName => null,
+                    'managed' => isset($wpCfmSettings->$name) ? 'Yes' : 'No',
                 );
             }
         }
@@ -297,6 +311,7 @@ class Snapshots
                     'name' => $name,
                     $oldName => null,
                     $newName => $this->valueToString($value),
+                    'managed' => isset($wpCfmSettings->$name) ? 'Yes' : 'No',
                 );
             }
         }
