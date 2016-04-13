@@ -93,4 +93,17 @@ class Utils
     public static function noError($errNo, $errStr, $errFile, $errLine)
     {
     }
+
+    public function getWPCFMSettings()
+    {
+        $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
+        if (file_exists($src)) {
+            $config = json_decode(file_get_contents($src));
+            if ($config) {
+                return $config;
+            }
+        }
+
+        return [];
+    }
 }
