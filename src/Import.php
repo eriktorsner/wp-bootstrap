@@ -85,6 +85,7 @@ class Import
         $container = Container::getInstance();
         $localSettings = Container::getInstance()->getLocalSettings();
         $container->getUtils()->includeWordPress();
+
         $extensions = $container->getExtensions();
         $extensions->init();
 
