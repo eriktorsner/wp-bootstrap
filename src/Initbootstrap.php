@@ -70,15 +70,8 @@ class Initbootstrap
             $localSettings->wppath = '[wppath]';
             file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
         }
-        if (!file_exists(BASEPATH.'/wp-cli.yml')) {
-            $ls = json_decode(file_get_contents(BASEPATH.'/localsettings.json'));
-            if (isset($ls->wppath)) {
-                if ($ls->wppath != '[wppath]') {
-                    $wpcli = "path: {$ls->wppath}\n";
-                    file_put_contents(BASEPATH.'/wp-cli.yml', $wpcli);
-                }
-            }
-        }
+	
+	$this->initWpCli();
     }
 
     /**
@@ -103,5 +96,28 @@ class Initbootstrap
         }
 
         file_put_contents(BASEPATH.'/composer.json', $this->helpers->prettyPrint(json_encode($composer)));
+    }
+
+    /**
+     * @param bool|false $warn
+     */
+    public function initWpCli($warn = false)
+    {
+        if (!file_exists(BASEPATH.'/wp-cli.yml')) {
+            $wpcli = "";
+
+            $wpcli .= "require:\n";
+            $wpcli .= "  - vendor/eriktorsner/wp-bootstrap/bin/wpcli.php\n";
+
+            $ls = json_decode(file_get_contents(BASEPATH.'/localsettings.json'));
+            if (isset($ls->wppath)) {
+                if ($ls->wppath != '[wppath]') {
+                    $wpcli .= "path: {$ls->wppath}\n";
+                }
+            }
+            file_put_contents(BASEPATH.'/wp-cli.yml', $wpcli);
+        } elseif ($warn) {
+            die("wp-cli.yml already exists. Remove it first if you want to regenerate it\n");
+        }
     }
 }
