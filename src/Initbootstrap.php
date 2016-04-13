@@ -56,6 +56,8 @@ class Initbootstrap
             $appSettings->themes->standard = array('twentysixteen');
             $appSettings->themes->active = 'twentysixteen';
             file_put_contents(BASEPATH.'/appsettings.json', $this->helpers->prettyPrint(json_encode($appSettings)));
+        } else {
+            $this->output("Note: appsettings.json already exists");
         }
         if (!file_exists(BASEPATH.'/localsettings.json')) {
             $localSettings = new \stdClass();
@@ -69,6 +71,8 @@ class Initbootstrap
             $localSettings->wppass = '[wppass]';
             $localSettings->wppath = '[wppath]';
             file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
+        } else {
+            $this->output("Note: localsettings.json already exists");
         }
 
         $this->initWpCli();
@@ -118,7 +122,18 @@ class Initbootstrap
             }
             file_put_contents(BASEPATH.'/wp-cli.yml', $wpcli);
         } elseif ($warn) {
-            die("wp-cli.yml already exists. Remove it first if you want to regenerate it\n");
+            die("Warning: wp-cli.yml already exists. Remove it first if you want to regenerate it\n");
+        } else {
+            $this->output("Note: wp-cli.yml already exists.");
+        }
+    }
+
+    private function output($msg)
+    {
+        if (defined('WPBOOT_LAUNCHER') && WPBOOT_LAUNCHER == 'wpcli') {
+            \WP_CLI::line($msg);
+        } else {
+            echo "$msg\n";
         }
     }
 }
