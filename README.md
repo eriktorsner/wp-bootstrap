@@ -400,19 +400,23 @@ Contributions are welcome. Apart from code, the project is in need of better doc
 
 ## Version history
 
+**0.3.8**
+  - New feature: Support for running as a wp-cli sub command
+  - Enhancement: snapshots command now includes column 'manage' in diff and show
+  - Enhancement: improved column names snapshots in diff and show
+  
 **0.3.7**
-  - new feature: Support for dependencies between themes/plugins to determine installation order
+  - New feature: Support for dependencies between themes/plugins to determine installation order
   - Bug fix: During import, importing a menu and theme_mods would reset theme modifications.
   - Enhancement: Logging (DEBUG level) output from external commands (wp-cli, rm, cp, ln etc).
 
-
 **0.3.6**
-  - new feature: Support for extensions
+  - New feature: Support for extensions
   - Better media extraction from content, now finding images in serialized/base64 encoded content
   - Improved performance on imports
 
 **0.3.6**
-  - new feature: Support for extensions
+  - New feature: Support for extensions
   - Better media extraction from content, now finding images in serialized/base64 encoded content
   - Improved performance on imports
 
