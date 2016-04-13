@@ -42,20 +42,27 @@ class Settings
             return;
         }
 
-        if (isset($this->obj->environment) && $this->obj->environment == 'test') {
-            if (!defined('TESTMODE')) {
-                define('TESTMODE', true);
-            }
+        // determine environment.
+        $environment = 'development'; // default
+        // if environment is defined in localsettings, use it
+        if ($type == 'local' && isset($this->obj->environment)) {
+            $environment = $this->obj->environment;
+        }
+        // highest prio, if environment is defined via command line, use that
+        if (defined('WPBOOT_ENVIRONMENT')) {
+            $environment = WPBOOT_ENVIRONMENT;
+        } else {
+            define('WPBOOT_ENVIRONMENT', $environment);
+        }
+        if ($type == 'local') {
+            $this->obj->environment = $environment;
         }
 
-        if (defined('TESTMODE') && TESTMODE) {
-            $this->obj->environment = 'test';
-            foreach ($this->obj as $key => $param) {
-                $parts = explode('_', $key);
-                $name = $parts[0];
-                if (isset($parts[1]) && $parts[1] == 'test') {
-                    $this->obj->$name = $param;
-                }
+        foreach ($this->obj as $key => $param) {
+            $parts = explode('_', $key);
+            $name = $parts[0];
+            if (isset($parts[1]) && $parts[1] == $environment) {
+                $this->obj->$name = $param;
             }
         }
     }
