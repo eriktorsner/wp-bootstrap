@@ -70,8 +70,8 @@ class Initbootstrap
             $localSettings->wppath = '[wppath]';
             file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
         }
-	
-	$this->initWpCli();
+
+        $this->initWpCli();
     }
 
     /**
@@ -105,9 +105,10 @@ class Initbootstrap
     {
         if (!file_exists(BASEPATH.'/wp-cli.yml')) {
             $wpcli = "";
+            $wpCliBinary = dirname(__DIR__) . '/bin/wpcli.php';
 
             $wpcli .= "require:\n";
-            $wpcli .= "  - vendor/eriktorsner/wp-bootstrap/bin/wpcli.php\n";
+            $wpcli .= "  - $wpCliBinary\n";
 
             $ls = json_decode(file_get_contents(BASEPATH.'/localsettings.json'));
             if (isset($ls->wppath)) {
