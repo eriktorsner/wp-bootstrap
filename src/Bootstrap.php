@@ -53,8 +53,13 @@ class Bootstrap
         if (is_null($this->argv)) {
             $argv = array();
         } else {
-            array_shift($this->argv);
-            array_shift($this->argv);
+            if (defined('WPBOOT_LAUNCHER') && WPBOOT_LAUNCHER == 'wpcli') {
+                $arguments = \WP_CLI::get_runner()->arguments;
+                $this->argv = array_slice($arguments, 2);
+            } else {
+                array_shift($this->argv);
+                array_shift($this->argv);
+            }
         }
 
         $this->utils = $container->getUtils();
@@ -126,8 +131,8 @@ class Bootstrap
         );
         $this->utils->exec($cmd);
 
-        // a brand new wordpress install has content, we don't want that
-        // unless the appSettings explicitly tells us to keep it
+        // a brand new wordpress install has content, themes and plugins. We don't want
+        // that unless the appSettings explicitly tells us to keep it
         if (!isset($this->appSettings->keepDefaultContent) || $this->appSettings->keepDefaultContent == false) {
             $cmd = $wpcmd.sprintf(
                 'db query "%s %s %s %s"',
@@ -135,6 +140,18 @@ class Bootstrap
                 'delete from wp_postmeta;',
                 'delete from wp_comments;',
                 'delete from wp_commentmeta;'
+            );
+            $this->utils->exec($cmd);
+
+            $cmd = sprintf(
+                "rm -rf %s/wp-content/plugins/*",
+                $this->localSettings->wppath
+            );
+            $this->utils->exec($cmd);
+
+            $cmd = sprintf(
+                "rm -rf %s/wp-content/themes/*",
+                $this->localSettings->wppath
             );
             $this->utils->exec($cmd);
         }
