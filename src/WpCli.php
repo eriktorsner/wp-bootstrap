@@ -21,7 +21,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function bootstrap($args, $assocArgs)
+    public function bootstrap($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $bootstrap = $this->container->getBootstrap();
@@ -37,7 +37,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function install($args, $assocArgs)
+    public function install($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $bootstrap = $this->container->getBootstrap();
@@ -53,7 +53,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function reset($args, $assocArgs)
+    public function reset($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $bootstrap = $this->container->getBootstrap();
@@ -82,7 +82,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function setup($args, $assocArgs)
+    public function setup($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $bootstrap = $this->container->getBootstrap();
@@ -98,7 +98,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function import($args, $assocArgs)
+    public function import($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $import = $this->container->getImport();
@@ -113,7 +113,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function export($args, $assocArgs)
+    public function export($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $export = $this->container->getExport();
@@ -130,7 +130,7 @@ class WpCli
      * @subcommand init-project
      * @when before_wp_load
      */
-    function init_project($args, $assocArgs)
+    public function initProject($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $initBootstrap = $this->container->getInitbootstrap();
@@ -145,7 +145,7 @@ class WpCli
      *
      * @when before_wp_load
      */
-    function snapshots($args, $assocArgs)
+    public function snapshots($args, $assocArgs)
     {
         $this->initiate($args, $assocArgs);
         $this->container->validateSettings();
