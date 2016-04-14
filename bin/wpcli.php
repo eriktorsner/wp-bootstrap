@@ -18,7 +18,7 @@ if (isset($argv[1]) && $argv[1] == 'bootstrap') {
     }
     $localSettings = new \Wpbootstrap\Settings('local');
 
-    if (rtrim($localSettings->wppath, '/') != rtrim($config['path'], '/')) {
+    if (rtrim($localSettings->wppath, '/') != rtrim($config['path'], '/') && $localSettings->wppath != '[wppath]') {
         wpbstrp_rewritePath($localSettings->wppath);
         $cmd = join(' ', $argv);
         $output = [];
@@ -39,6 +39,6 @@ function wpbstrp_rewritePath($newPath) {
             $buffer .= $line;
         }
     }
-    $buffer .= "\npath: $newPath";
+    $buffer .= "path: $newPath";
     file_put_contents(BASEPATH . '/wp-cli.yml', $buffer);
 }
