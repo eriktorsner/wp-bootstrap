@@ -42,6 +42,20 @@ class Setup
      */
     private $installables = [];
 
+    /**
+     * Array of already installed plugins
+     *
+     * @var array
+     */
+    private $installedPlugins;
+
+    /**
+     * Array of already installed themes
+     *
+     * @var array
+     */
+    private $installedThemes;
+
     public function __construct()
     {
         $container = Container::getInstance();
@@ -66,6 +80,8 @@ class Setup
      */
     public function setup()
     {
+        $this->checkAlreadyInstalled();
+
         $this->log->addDebug('Running Setup::setup');
         $this->log->addDebug('Creating symlinks in Wp-content');
         $this->wpContentSymlinks();
@@ -77,7 +93,7 @@ class Setup
         }
 
         $this->log->addDebug('Installing themes and plugins');
-        $this->installInstallables();
+        $this->installInstallable();
         $this->log->addDebug('Applying settings from appsettings.json');
         $this->applySettings();
     }
@@ -238,7 +254,7 @@ class Setup
         $this->installables[$id] = $obj;
     }
 
-    private function installInstallables()
+    private function installInstallable()
     {
         foreach ($this->installables as $key => $installable) {
             switch ($installable->path) {
@@ -268,6 +284,15 @@ class Setup
      */
     private function installStandard($installable)
     {
+        if ($installable->type == 'plugin' && in_array($installable->slug, $this->installedPlugins)) {
+            $this->log->addDebug("Skipping plugin {$installable->slug}. Already installed");
+            return;
+        }
+        if ($installable->type == 'theme' && in_array($installable->slug, $this->installedThemes)) {
+            $this->log->addDebug("Skipping theme {$installable->slug}. Already installed");
+            return;
+        }
+
         $wpcmd = $this->utils->getWpCommand();
         $cmd = sprintf(
             '%s %s install %s %s',
@@ -342,7 +367,6 @@ class Setup
 
     private function wpContentSymlinks()
     {
-
         if (isset($this->appSettings->symlinks)) {
             foreach ($this->appSettings->symlinks as $symlink) {
                 if (!file_exists(BASEPATH . '/wp-content/' . $symlink)) {
@@ -366,4 +390,36 @@ class Setup
             }
         }
     }
+
+    private function checkAlreadyInstalled()
+    {
+        $this->utils->includeWordPress();
+
+        $this->installedPlugins = [];
+        $plugins = get_plugins();
+        foreach ($plugins as $path => $plugin) {
+            $this->installedPlugins[] = $this->getPluginName($path);
+        }
+
+        $this->installedThemes = [];
+        foreach (wp_get_themes() as $key => $theme) {
+            $this->installedThemes[] = $key;
+        }
+    }
+
+    /**
+     * Converts a plugin basename back into a friendly slug.
+     *
+     * From wp-cli php/utils-wp.php
+     */
+    private function getPluginName($basename)
+    {
+        if (false === strpos($basename, '/')) {
+            $name = basename($basename, '.php');
+        } else {
+            $name = dirname($basename);
+        }
+        return $name;
+    }
 }
+
