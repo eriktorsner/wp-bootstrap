@@ -393,33 +393,21 @@ class Setup
 
     private function checkAlreadyInstalled()
     {
-        $this->utils->includeWordPress();
+        $cmd = sprintf("%s plugin list --format=json", $this->utils->getWpCommand());
+        $plugins = json_decode(exec($cmd));
 
         $this->installedPlugins = [];
-        $plugins = get_plugins();
-        foreach ($plugins as $path => $plugin) {
-            $this->installedPlugins[] = $this->getPluginName($path);
+        foreach ($plugins as $plugin) {
+            $this->installedPlugins[] = $plugin->name;
         }
+
+        $cmd = sprintf("%s theme list --format=json", $this->utils->getWpCommand());
+        $themes = json_decode(exec($cmd));
 
         $this->installedThemes = [];
-        foreach (wp_get_themes() as $key => $theme) {
-            $this->installedThemes[] = $key;
+        foreach ($themes as $theme) {
+            $this->installedThemes[] = $theme->name;
         }
-    }
-
-    /**
-     * Converts a plugin basename back into a friendly slug.
-     *
-     * From wp-cli php/utils-wp.php
-     */
-    private function getPluginName($basename)
-    {
-        if (false === strpos($basename, '/')) {
-            $name = basename($basename, '.php');
-        } else {
-            $name = dirname($basename);
-        }
-        return $name;
     }
 }
 
