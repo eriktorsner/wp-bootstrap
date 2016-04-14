@@ -61,15 +61,15 @@ class Initbootstrap
         }
         if (!file_exists(BASEPATH.'/localsettings.json')) {
             $localSettings = new \stdClass();
-            $localSettings->environment = '[environment]';
-            $localSettings->url = '[url]';
+            $localSettings->environment = 'development';
+            $localSettings->url = 'http://';
             $localSettings->dbhost = '[dbhost]';
             $localSettings->dbname = '[dbname]';
             $localSettings->dbuser = '[dbuser]';
             $localSettings->dbpass = '[dbpass]';
             $localSettings->wpuser = '[wpuser]';
             $localSettings->wppass = '[wppass]';
-            $localSettings->wppath = '[wppath]';
+            $localSettings->wppath =  getcwd() . '/';
             file_put_contents(BASEPATH.'/localsettings.json', $this->helpers->prettyPrint(json_encode($localSettings)));
         } else {
             $this->output("Note: localsettings.json already exists");
