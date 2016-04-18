@@ -3,142 +3,159 @@
 namespace Wpbootstrap;
 
 /**
- * Class Bootstrap
- * @package Wpbootstrap
- *
- * Main entry point for installations and setup tasks
+ * Tools to manage a WordPress installation via config files
  */
 class Bootstrap
 {
     /**
-     * @var Settings
-     */
-    public $localSettings;
-
-    /**
-     * @var Settings
-     */
-    public $appSettings;
-
-    /**
-     * Subset of global argv
+     * @var \Pimple\Container
      *
-     * @var array
      */
-    public $argv = array();
+    private static $application;
 
     /**
-     * @var \Monolog\Logger
+     * @return \Pimple\Container
      */
-    private $log;
-
-    /**
-     * @var \Wpbootstrap\Utils
-     */
-    private $utils;
-
-    const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
-    const VERSION = '0.3.2';
-
-    /**
-     * Bootstrap constructor.
-     */
-    public function __construct()
+    public static function getApplication()
     {
-        global $argv;
-
-        $container = Container::getInstance();
-
-        $this->argv = $argv;
-        if (is_null($this->argv)) {
-            $argv = array();
-        } else {
-            if (defined('WPBOOT_LAUNCHER') && WPBOOT_LAUNCHER == 'wpcli') {
-                $arguments = \WP_CLI::get_runner()->arguments;
-                $this->argv = array_slice($arguments, 2);
-            } else {
-                array_shift($this->argv);
-                array_shift($this->argv);
-            }
+        if (!self::$application) {
+            self::$application = new \Pimple\Container();
+            self::$application->register(new Providers\DefaultObjectProvider());
+            self::$application->register(new Providers\ApplicationParametersProvider());
         }
 
-        $this->utils = $container->getUtils();
-        $this->helpers = $container->getHelpers();
-        $this->log = $container->getLog();
-        $this->localSettings = $container->getLocalSettings();
-        $this->appSettings = $container->getAppSettings();
-
-        $this->log->addDebug('Parsed argv', $this->argv);
-        $this->log->addInfo('Bootstrap initiated. Basepath is '.BASEPATH);
+        return self::$application;
     }
 
     /**
-     * Run install and setup in one command
+     * @param \Pimple\Container $application
      */
-    public function bootstrap()
+    public static function setApplication($application)
     {
-        $this->log->addDebug('Running Bootstrap::bootstrap');
-        $this->install();
-        $this->setup();
-    }
-
-    public function setup()
-    {
-        $container = Container::getInstance();
-        $setup = $container->getSetup();
-        $setup->setup();
-    }
-
-
-
-    /**
-     * Completely remove the current WordPress installation
-     */
-    public function reset()
-    {
-        $wpcmd = $this->utils->getWpCommand();
-        $cmd = $wpcmd.'db reset --yes';
-        exec($cmd);
-
-        $cmd = 'rm -rf '.$this->localSettings->wppath.'/*';
-        $this->utils->exec($cmd);
+        self::$application = $application;
     }
 
     /**
-     * Run update via wp-cli, arguments are passed via $argv
-     *   no args      => update core, themes and plugins
-     *   plugin       => update all plugins
-     *   plugin NAME  => update named plugin
-     *   theme        => update all themes
-     *   theme NAME   => update named theme
+     * Bootstrap a WordPress site based on appsettings.json and localsettings.json.
+     * Equal to running commands install, setup and import
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @when before_wp_load
      */
-    public function update()
+    public function bootstrap($args, $assocArgs)
     {
-        $this->log->addDebug('Running Bootstrap::update');
-        $wpcmd = $this->utils->getWpCommand();
-        $commands = array();
-
-        if (count($this->argv) == 0) {
-            $commands[] = $wpcmd.'plugin update --all';
-            $commands[] = $wpcmd.'theme update --all';
-            $commands[] = $wpcmd.'core update';
-        } elseif ($this->argv[0] == 'plugins') {
-            if (count($this->argv) == 1) {
-                $commands[] = $wpcmd.'plugin update --all';
-            } else {
-                $commands[] = $wpcmd.'plugin update '.$this->argv[1];
-            }
-        } elseif ($this->argv[0] == 'themes') {
-            if (count($this->argv) == 1) {
-                $commands[] = $wpcmd.'theme update --all';
-            } else {
-                $commands[] = $wpcmd.'theme update '.$this->argv[1];
-            }
-        }
-
-        foreach ($commands as $cmd) {
-            $this->log->addDebug("Executing: $cmd");
-            $this->utils->exec($cmd);
-        }
+        $this->initiate($args, $assocArgs);
+        $bootstrap = $this->container->getBootstrap();
+        $this->container->validateSettings();
+        $bootstrap->bootstrap();
     }
+
+    /**
+     * Install a WordPress site based on appsettings.json and localsettings.json.
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @when before_wp_load
+     */
+    public function install($args, $assocArgs)
+    {
+        $app = self::getApplication();
+        $installer = $app['install'];
+        $installer->run($args, $assocArgs);
+    }
+
+    /**
+     * Completely removes the WordPress installation defined in localsettings.json
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     */
+    public function reset($args, $assocArgs)
+    {
+        $app = self::getApplication();
+        $reset = $app['reset'];
+        $reset->run($args, $assocArgs);
+    }
+
+    /**
+     * Install themes and plugins and apply options from appsettings.yml
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     */
+    public function setup($args, $assocArgs)
+    {
+        $app = self::getApplication();
+        $obj = $app['setup'];
+        $obj->run($args, $assocArgs);
+    }
+
+    /**
+     * Import serialized settings and content from folder bootstrap/
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @when before_wp_load
+     */
+    public function import($args, $assocArgs)
+    {
+        $this->initiate($args, $assocArgs);
+        $import = $this->container->getImport();
+        $import->import();
+    }
+
+    /**
+     * Export serialized settings and content to folder bootstrap/
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @when before_wp_load
+     */
+    public function export($args, $assocArgs)
+    {
+        $this->initiate($args, $assocArgs);
+        $export = $this->container->getExport();
+        $export->export();
+    }
+
+    /**
+     * Initiate a new project with default localsettings.json,
+     * appsettings.json and wp-cli.yml
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @subcommand init-project
+     * @when before_wp_load
+     */
+    public function initProject($args, $assocArgs)
+    {
+        $this->initiate($args, $assocArgs);
+        $initBootstrap = $this->container->getInitbootstrap();
+        $initBootstrap->init();
+    }
+
+    /**
+     * Manage snapshots. WordPress options serialized to disk
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @when before_wp_load
+     */
+    public function snapshots($args, $assocArgs)
+    {
+        $this->initiate($args, $assocArgs);
+        $this->container->validateSettings();
+        $snapshots = $this->container->getSnapshots();
+        $snapshots->manage();
+    }
+
 }
