@@ -1,43 +1,14 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Commands;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
- * Class Snapshots
- * @package Wpbootstrap
+ * Snap, list, show and diff snapshots of the WordPress options table. Part of WP Bootstrap
  */
-class Snapshots
+class OptionSnap
 {
-    /**
-     * @var Bootstrap
-     */
-    private $bootstrap;
-
-    /**
-     * @var
-     */
-    private $localSettings;
-
-    /**
-     * @var Helpers
-     */
-    private $helpers;
-
-    /**
-     * @var Utils
-     */
-    private $utils;
-
-    /**
-     * @var \Monolog\Logger
-     */
-    private $log;
-
-    /**
-     * @var string
-     */
-    private $baseFolder;
-
     /**
      * Max strlen to be printed in a output table
      */
@@ -53,81 +24,49 @@ class Snapshots
     );
 
     /**
-     * Snapshots constructor.
+     * @var string
      */
+    private $baseFolder;
+
     public function __construct()
     {
-        $container = Container::getInstance();
-        $this->bootstrap = $container->getBootstrap();
-        $this->log = $container->getLog();
-        $this->helpers = $container->getHelpers();
-        $this->utils = $container->getUtils();
-        $this->localSettings = $container->getLocalSettings();
-        $utils = $container->getUtils();
-        $this->climate = $container->getCLImate();
-
-        $this->baseFolder = BASEPATH.'/bootstrap/config/snapshots';
-        $utils->includeWordpress();
+        $this->baseFolder = BASEPATH . '/bootstrap/snapshots';
     }
 
     /**
-     * Main entry point, checks argv and calls sub commands
-     */
-    public function manage()
-    {
-        if (count($this->bootstrap->argv) == 0) {
-            $this->climate->out('wp-snapshots expects at least one sub command');
-        }
-
-        switch ($this->bootstrap->argv[0]) {
-            case 'snapshot':
-                $this->takeSnapshot();
-                break;
-            case 'list':
-                $this->listSnapshots();
-                break;
-            case 'diff':
-                $this->diffSnapshots();
-                break;
-            case 'show':
-                $this->showSnapshot();
-                break;
-        }
-    }
-
-    /**
-     * Creates a snapshot
+     * Grab a snapshot of the current option table and store to disk
      *
-     * Optional arguments passed via argv
-     *   arg1  name The name for the new snapshot, default to current UNIX timestamp
-     *   arg2  comment A comment
+     * ## OPTIONS
+     *
+     * <name>
+     * : A name for the new snapshot
+     *
+     * [--comment=<comment>]
+     * : A comment. I.e "before installing plugin Foobar"
+     *
+     * @param $args
+     * @param $assocArgs
      *
      */
-    private function takeSnapshot()
+    public function snap($args, $assocArgs)
     {
-        $snapshotName = ''.time();
-        $snapshotComment = '';
-        if (count($this->bootstrap->argv) > 1) {
-            if ($snapshotName != 'now') {
-                $snapshotName = $this->bootstrap->argv[1];
-            }
-        }
-        if (count($this->bootstrap->argv) > 2) {
-            $snapshotComment = $this->bootstrap->argv[2];
-        }
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        list($name) = $args;
+        $comment = isset($assocArgs['comment'])?$assocArgs['comment']:'';
 
-        $file = $this->baseFolder.'/'.$snapshotName.'.snapshot';
+        $file = "{$this->baseFolder}/$name.snapshot";
         if (file_exists($file)) {
-            $this->climate->out("Snapshot $snapshotName already exists");
+            $cli->line("Snapshot $name already exists");
         }
 
         $snapshot = new \stdClass();
-        $snapshot->name = $snapshotName;
+        $snapshot->name = $name;
         $snapshot->created = date('Y-m-d H:i:s');
-        $snapshot->environment = $this->localSettings->environment;
+        $snapshot->environment = $app['environment'];
         $snapshot->host = php_uname('n');
         $snapshot->options = $this->getOptionsSnapshot();
-        $snapshot->comment = $snapshotComment;
+        $snapshot->comment = $comment;
 
         if (!file_exists($this->baseFolder)) {
             @mkdir($this->baseFolder, 0777, true);
@@ -136,11 +75,20 @@ class Snapshots
     }
 
     /**
-     * Lists all current snapshots
+     * List all existing snapshots
+     *
+     * @param $args
+     * @param $assocArgs
+     *
+     * @subcommand list
      */
-    private function listSnapshots()
+    public function listSnapshots($args, $assocArgs)
     {
-        $snapshots = $this->helpers->getFiles($this->baseFolder);
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $cliutils = $app['cliutils'];
+
+        $snapshots = $helpers->getFiles($this->baseFolder);
         $output = array();
         foreach ($snapshots as $snapshotFile) {
             $snapshot = unserialize(file_get_contents($this->baseFolder.'/'.$snapshotFile));
@@ -153,91 +101,94 @@ class Snapshots
             );
         }
         if (count($output) > 0) {
-            $this->climate->table($output);
+            $cliutils->format_items('table', $output, array_keys($output[0]));
         }
     }
 
     /**
-     * Shows all modified options between the current WordPress install or between two
-     * snapshots
+     * Shows all modified options between the current WordPress install or between two snapshots
      *
-     * Required arguments passed via argv
-     *   arg1 snapshot Name of the snapshot to compare current options against
      *
-     * Optional arguments passed via argv
-     *   arg2 snapshot2 If a second name is passed in, the diff will be between snapshot and snapshot2
+     * ## OPTIONS
+     *
+     * <name>...
+     * : Name of the snapshot to compare current WordPress options against,
+     *   If a second <name> is passed in, the diff diff will be between <name> and <name2>
+     *
+     * @param $args
+     * @param $assocArgs
+     *
      */
-    private function diffSnapshots()
+    public function diff($args, $assocArgs)
     {
-        if (count($this->bootstrap->argv) < 2) {
-            $this->climate->out('wp-state diff requires at least 1 additional argument Name the snapshot');
-            $this->climate->out('name to compare current state with. Or name 2 existing snapshots to compare');
-            $this->climate->out('to each other');
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $cliutils = $app['cliutils'];
 
-            return;
-        }
         $oldState = false;
         $newState = false;
-        if (count($this->bootstrap->argv) == 2) {
-            $oldState = $this->readSnapshot($this->bootstrap->argv[1]);
+        if (count($args) == 1) {
+            $oldState = $this->readSnapshot($args[0]);
             if (!$oldState) {
-                $this->climate->out("There's no snapshot file for {$this->bootstrap->argv[1]}. Aborting");
-
-                return;
+                $cli->error("There's no snapshot file for {$args[0]}. Aborting");
             }
             $newState = new \stdClass();
             $newState->name = '[current state]';
             $newState->created = 'just now';
             $newState->options = $this->getOptionsSnapshot();
         }
-        if (count($this->bootstrap->argv) > 2) {
-            $oldState = $this->readSnapshot($this->bootstrap->argv[1]);
+        if (count($args) > 1) {
+            $oldState = $this->readSnapshot($args[0]);
             if (!$oldState) {
-                $this->climate->out("There's no snapshot file for {$this->bootstrap->argv[1]}. Aborting");
-
-                return;
+                $cli->error("There's no snapshot file for {$args[0]}. Aborting");
             }
-            $newState = $this->readSnapshot($this->bootstrap->argv[2]);
+            $newState = $this->readSnapshot($args[1]);
             if (!$newState) {
-                $this->climate->out("There's no snapshot file for {$this->bootstrap->argv[2]}. Aborting");
-
-                return;
+                $cli->error("There's no snapshot file for {$args[1]}. Aborting");
             }
         }
 
-        $diff = $this->diff($oldState, $newState);
-        $this->climate->out("Comparing snapshot {$oldState->name}, created {$oldState->created} with ");
-        $this->climate->out("snapshot {$newState->name}, created {$newState->created}");
+        $diff = $this->internalDiff($oldState, $newState);
+        $cli->line("Comparing snapshot {$oldState->name}, created {$oldState->created} with ");
+        $cli->line("snapshot {$newState->name}, created {$newState->created}");
 
         if (count($diff) > 0) {
-            $this->climate->table($diff);
+            $cliutils->format_items('table', $diff, array_keys($diff[0]));
         } else {
-            $this->climate->flank('No new, removed or changed options.');
+            $cli->line('No new, removed or changed options.');
         }
     }
 
+
     /**
-     * Show all options contained in a snapshot
+     * Show all options and values contained in a snapshot, or an individual option
+     *
+     * ## OPTIONS
+     *
+     * <name>...
+     * : Name of the snapshot to show
+     * If a second <name> is passed in, shows the option named <name2>
+     * Objects and arrays will be shown json encoded
+     *
+     * @param $args
+     * @param $assocArgs
+     *
      */
-    private function showSnapshot()
+    public function show($args, $assocArgs)
     {
-        if (count($this->bootstrap->argv) < 2) {
-            $this->climate->out('wp-state show requires 1 additional arguments. Name the snapshot name to show');
-            $this->climate->out('Optionally name the option name to display in detail');
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $cliutils = $app['cliutils'];
+        $helpers = $app['helpers'];
 
-            return;
-        }
-
-        $oldState = $this->readSnapshot($this->bootstrap->argv[1]);
+        $oldState = $this->readSnapshot($args[0]);
         if (!$oldState) {
-            $this->climate->out("There's no snapshot file for {$this->bootstrap->argv[1]}. Aborting");
-
-            return;
+            $cli->error("There's no snapshot file for {$args[0]}. Aborting");
         }
 
-        $wpCfmSettings = $this->utils->getWPCFMSettings();
+        $wpCfmSettings = $helpers->getWPCFMSettings();
 
-        if (count($this->bootstrap->argv) == 2) {
+        if (count($args) == 1) {
             $options = array();
             foreach ($oldState->options as $name => $value) {
                 if (in_array($name, $this->excludedOptions)) {
@@ -250,13 +201,17 @@ class Snapshots
                 );
             }
             if (count($options) > 0) {
-                $this->climate->table($options);
+                $cliutils->format_items('table', $options, array_keys($options[0]));
             }
         } else {
-            $name = $this->bootstrap->argv[2];
+            $name = $args[1];
             $value = $oldState->options[$name];
-            $this->climate->json($value);
-            $this->climate->out('');
+            if (is_object($value) || is_array($value)) {
+                $cli->line($helpers->prettyPrint(json_encode($value)));
+            } else {
+                $cli->line($value);
+            }
+
         }
     }
 
@@ -267,7 +222,7 @@ class Snapshots
      * @param \stdClass $newState
      * @return array
      */
-    private function diff($oldState, $newState)
+    private function internalDiff($oldState, $newState)
     {
         $added = array();
         $modified = array();
@@ -275,7 +230,9 @@ class Snapshots
         $oldName = $oldState->name;
         $newName = $newState->name;
 
-        $wpCfmSettings = $this->utils->getWPCFMSettings();
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $wpCfmSettings = $helpers->getWPCFMSettings();
 
         foreach ($oldState->options as $name => $value) {
             if (in_array($name, $this->excludedOptions)) {

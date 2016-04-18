@@ -1,7 +1,7 @@
 <?php
 namespace Wpbootstrap\Commands;
 
-use Wpbootstrap\WpCli;
+use Wpbootstrap\Bootstrap;
 
 /**
  * Class Install
@@ -41,7 +41,7 @@ class Setup extends BaseCommand
 
     public function run($args, $assocArgs)
     {
-        $this->app = WpCli::getApplication();
+        $this->app = Bootstrap::getApplication();
         $this->cli = $this->app['cli'];
         $this->cli->log('Running Bootstrap::setup');
 

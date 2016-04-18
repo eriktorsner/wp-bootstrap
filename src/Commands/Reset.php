@@ -9,7 +9,7 @@ class Reset extends BaseCommand
 {
     public function run($args, $assocArgs)
     {
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
         $cli->log('Running Bootstrap::reset');
 
@@ -23,9 +23,10 @@ class Reset extends BaseCommand
             $cli->line("The WordPress installation located in {$app['path']} will be removed");
             $resp = $cli->confirm("Are you sure? Hit Y to go ahead, anything else to cancel");
         }
-        if (strtolower($resp) == "y\n") {
-            $reset = $app['reset'];
-            $reset->run($args, $assocArgs);
+
+        if (strtolower($resp) != "y\n") {
+            $cli->line("Aborted");
+            return;
         }
 
         // Reset the DB

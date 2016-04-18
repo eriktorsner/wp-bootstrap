@@ -14,7 +14,7 @@ class Install extends BaseCommand
      */
     public function run($args, $assocArgs)
     {
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
         $cli->log('Running Bootstrap::install');
 
@@ -26,7 +26,7 @@ class Install extends BaseCommand
      */
     private function installCore()
     {
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
 
         $ret = $this->requireEnv(array('wppath', 'wpurl', 'wpuser', 'wppass', 'dbhost', 'dbname', 'dbuser', 'dbpass'));
@@ -86,11 +86,11 @@ class Install extends BaseCommand
      */
     private function deleteDefaultContent()
     {
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
 
         $cli->log('Deleting default posts, comments, themes and plugins');
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
 
         if (!isset($app['settings']['keepDefaultContent']) || $app['settings']['keepDefaultContent'] == false) {
             $cmd = sprintf(

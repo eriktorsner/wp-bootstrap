@@ -12,7 +12,7 @@ class BaseCommand
 
     protected function requireEnv($parameters)
     {
-        $app = \Wpbootstrap\WpCli::getApplication();
+        $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
         $dotEnv = new Dotenv(BASEPATH);
 
