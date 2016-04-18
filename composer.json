@@ -18,9 +18,13 @@
         "issues": "https://github.com/eriktorsner/wp-bootstrap/issues"
     },
     "require": {
-        "php": ">=5.3.3",
-        "monolog/monolog": "^1.17",
-        "league/climate": "^3.2"
+        "php": ">=5.3.9",
+        "symfony/yaml": "^2.8",
+        "vlucas/phpdotenv": "^2.2",
+        "pimple/pimple": "~3.0"
+    },
+    "require-dev": {
+        "10up/wp_mock": "dev-master"
     },
     "autoload": {
         "psr-4": {
