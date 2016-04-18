@@ -8,9 +8,32 @@ namespace Wpbootstrap;
 class WpCli
 {
     /**
-     * @var \Wpbootstrap\Container
+     * @var \Pimple\Container
+     *
      */
-    private $container;
+    private static $application;
+
+    /**
+     * @return \Pimple\Container
+     */
+    public static function getApplication()
+    {
+        if (!self::$application) {
+            self::$application = new \Pimple\Container();
+            self::$application->register(new Providers\DefaultObjectProvider());
+            self::$application->register(new Providers\ApplicationParametersProvider());
+        }
+
+        return self::$application;
+    }
+
+    /**
+     * @param \Pimple\Container $application
+     */
+    public static function setApplication($application)
+    {
+        self::$application = $application;
+    }
 
     /**
      * Bootstrap a WordPress site based on appsettings.json and localsettings.json.
@@ -39,10 +62,9 @@ class WpCli
      */
     public function install($args, $assocArgs)
     {
-        $this->initiate($args, $assocArgs);
-        $bootstrap = $this->container->getBootstrap();
-        $this->container->validateSettings();
-        $bootstrap->install();
+        $app = self::getApplication();
+        $installer = $app['install'];
+        $installer->run($args, $assocArgs);
     }
 
     /**
@@ -51,43 +73,26 @@ class WpCli
      * @param $args
      * @param $assocArgs
      *
-     * @when before_wp_load
      */
     public function reset($args, $assocArgs)
     {
-        $this->initiate($args, $assocArgs);
-        $bootstrap = $this->container->getBootstrap();
-        $this->container->validateSettings();
-        $localSettings = $this->container->getLocalSettings();
-        $resp = "y\n";
-        if (!isset($assocArgs['force'])) {
-            echo "*************************************************************************************\n";
-            echo "**\n";
-            echo "** WARNING!   WARNING!    WARNING!    WARNING!   WARNING!  WARNING!     WARNING!    **\n";
-            echo "**\n";
-            echo "*************************************************************************************\n";
-            echo "The WordPress installation located in {$localSettings->wppath} will be removed\n";
-            \WP_CLI::confirm("Are you sure? Hit Y to go ahead, anything else to cancel");
-        }
-        if (strtolower($resp) == "y\n") {
-            $bootstrap->reset();
-        }
+        $app = self::getApplication();
+        $reset = $app['reset'];
+        $reset->run($args, $assocArgs);
     }
 
     /**
-     * Install themes and plugins into the WordPress site based on appsettings.json
+     * Install themes and plugins and apply options from appsettings.yml
      *
      * @param $args
      * @param $assocArgs
      *
-     * @when before_wp_load
      */
     public function setup($args, $assocArgs)
     {
-        $this->initiate($args, $assocArgs);
-        $bootstrap = $this->container->getBootstrap();
-        $this->container->validateSettings();
-        $bootstrap->setup();
+        $app = self::getApplication();
+        $obj = $app['setup'];
+        $obj->run($args, $assocArgs);
     }
 
     /**
@@ -162,8 +167,9 @@ class WpCli
      */
     private function initiate($args, $assocArgs)
     {
-        $this->container = \Wpbootstrap\Container::getInstance();
-        $this->container->getExtensions()->init();
+        //$this->application = Application::getInstance();
+        //$this->container = \Wpbootstrap\Container::getInstance();
+        //$this->container->getExtensions()->init();
 
     }
 }

@@ -89,73 +89,7 @@ class Bootstrap
         $setup->setup();
     }
 
-    /**
-     * Install WordPress as specified in localsettings.json and appsettings.json
-     */
-    public function install()
-    {
-        $this->log->addDebug('Running Bootstrap::install');
-        $wpcmd = $this->utils->getWpCommand();
 
-        if (file_exists($this->localSettings->wpath . '/wp-config.php')) {
-            $this->log->addInfo('WordPress already installed');
-            return;
-        }
-
-        $cmd = $wpcmd.'core download --force';
-        if (isset($this->appSettings->version)) {
-            $cmd .= ' --version='.$this->appSettings->version;
-        }
-        $this->utils->exec($cmd);
-
-        $cmd = $wpcmd.sprintf(
-            'core config --dbhost=%s --dbname=%s --dbuser=%s --dbpass=%s --quiet',
-            $this->localSettings->dbhost,
-            $this->localSettings->dbname,
-            $this->localSettings->dbuser,
-            $this->localSettings->dbpass
-        );
-        $this->utils->exec($cmd);
-
-        if (!isset($this->localSettings->wpemail)) {
-            $this->localSettings->wpemail = 'admin@local.dev';
-        }
-
-        $cmd = $wpcmd.sprintf(
-            'core install --url=%s --title="%s" --admin_name=%s --admin_email="%s" --admin_password="%s"',
-            $this->localSettings->url,
-            $this->appSettings->title,
-            $this->localSettings->wpuser,
-            $this->localSettings->wpemail,
-            $this->localSettings->wppass
-        );
-        $this->utils->exec($cmd);
-
-        // a brand new wordpress install has content, themes and plugins. We don't want
-        // that unless the appSettings explicitly tells us to keep it
-        if (!isset($this->appSettings->keepDefaultContent) || $this->appSettings->keepDefaultContent == false) {
-            $cmd = $wpcmd.sprintf(
-                'db query "%s %s %s %s"',
-                'delete from wp_posts;',
-                'delete from wp_postmeta;',
-                'delete from wp_comments;',
-                'delete from wp_commentmeta;'
-            );
-            $this->utils->exec($cmd);
-
-            $cmd = sprintf(
-                "rm -rf %s/wp-content/plugins/*",
-                $this->localSettings->wppath
-            );
-            $this->utils->exec($cmd);
-
-            $cmd = sprintf(
-                "rm -rf %s/wp-content/themes/*",
-                $this->localSettings->wppath
-            );
-            $this->utils->exec($cmd);
-        }
-    }
 
     /**
      * Completely remove the current WordPress installation
@@ -207,10 +141,4 @@ class Bootstrap
             $this->utils->exec($cmd);
         }
     }
-
-
-
-
-
-
 }
