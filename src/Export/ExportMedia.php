@@ -1,25 +1,19 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExportMedia
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExportMedia extends ExportBase
+class ExportMedia
 {
     /**
      * @var array mediaIds
      */
     private $mediaIds = array();
-
-    /**
-     * ExportMedia constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * Exports media
@@ -58,11 +52,14 @@ class ExportMedia extends ExportBase
      */
     public function addMedia($mediaId)
     {
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+
         if (is_array($mediaId)) {
-            $this->log->addDebug('Including thumbnail media', $mediaId);
+            $cli->debug('Including thumbnail media', $mediaId);
             $this->mediaIds = array_merge($this->mediaIds, $mediaId);
         } else {
-            $this->log->addDebug('Including thumbnail media', array($mediaId));
+            $cli->debug('Including thumbnail media', array($mediaId));
             $this->mediaIds[] = $mediaId;
         }
     }

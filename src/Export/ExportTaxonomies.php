@@ -1,12 +1,14 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExportTaxonomies
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExportTaxonomies extends ExportBase
+class ExportTaxonomies
 {
     /**
      * @var \stdClass
@@ -18,43 +20,60 @@ class ExportTaxonomies extends ExportBase
      */
     public function __construct()
     {
-        parent::__construct();
-
         $this->taxonomies = new \stdClass();
-        if (isset($this->appSettings->content->taxonomies)) {
-            foreach ($this->appSettings->content->taxonomies as $taxonomyName => $terms) {
-                $this->taxonomies->$taxonomyName = new \stdClass();
-                $this->taxonomies->$taxonomyName->termsDescriptor = $terms;
-                $this->taxonomies->$taxonomyName->type = 'standard';
-                $this->taxonomies->$taxonomyName->terms = array();
-                if (is_object($terms)) {
-                    if (isset($terms->terms)) {
-                        $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
-                    } else {
-                        $this->log->addWarning("No terms property defined on $taxonomyName, using *");
-                        $this->taxonomies->$taxonomyName->termsDescriptor = '*';
-                    }
-                    $this->taxonomies->$taxonomyName->type = $terms->type;
-                }
-                if ($this->taxonomies->$taxonomyName->termsDescriptor == '*') {
-                    $allTerms = get_terms($taxonomyName, array('hide_empty' => false));
-                    foreach ($allTerms as $term) {
-                        $this->addTerm($taxonomyName, $term->slug);
-                    }
+    }
+
+    /**
+     * Export Taxonomies
+     */
+    public function export()
+    {
+        $app = Bootstrap::getApplication();
+        $settings = $app['settings'];
+        if (!isset($settings['content']['taxonomies'])) {
+            return;
+        }
+
+        $cli = $app['cli'];
+
+        foreach ($settings['content']['taxonomies'] as $taxonomyName => $terms) {
+            $this->taxonomies->$taxonomyName = new \stdClass();
+            $this->taxonomies->$taxonomyName->termsDescriptor = $terms;
+            $this->taxonomies->$taxonomyName->type = 'standard';
+            $this->taxonomies->$taxonomyName->terms = array();
+            if (is_object($terms)) {
+                if (isset($terms->terms)) {
+                    $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
                 } else {
-                    foreach ($terms as $term) {
-                        $this->addTerm($taxonomyName, $term);
-                    }
+                    $cli->warning("No terms property defined on $taxonomyName, using *");
+                    $this->taxonomies->$taxonomyName->termsDescriptor = '*';
+                }
+                $this->taxonomies->$taxonomyName->type = $terms->type;
+            }
+            if ($this->taxonomies->$taxonomyName->termsDescriptor == '*') {
+                $allTerms = get_terms($taxonomyName, array('hide_empty' => false));
+                foreach ($allTerms as $term) {
+                    $this->addTerm($taxonomyName, $term->slug);
+                }
+            } else {
+                foreach ($terms as $term) {
+                    $this->addTerm($taxonomyName, $term);
                 }
             }
         }
+
+        $this->doExport();
     }
 
     /**
      * Export taxonomies
      */
-    public function export()
+    private function doExport()
     {
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $helpers = $app['helpers'];
+
         $count = 1;
         while ($count > 0) {
             $count = 0;
@@ -86,8 +105,8 @@ class ExportTaxonomies extends ExportBase
             $manifest->name = $taxonomyName;
             $manifest->type = $taxonomy->type;
             $manifest->termsDescriptor = $taxonomy->termsDescriptor;
-            $this->log->addDebug("Creating $taxonomyName manifest ".$manifestFile);
-            file_put_contents($manifestFile, $this->helpers->prettyPrint(json_encode($manifest)));
+            $cli->debug("Creating $taxonomyName manifest ".$manifestFile);
+            file_put_contents($manifestFile, $helpers->prettyPrint(json_encode($manifest)));
         }
     }
 
@@ -99,7 +118,10 @@ class ExportTaxonomies extends ExportBase
      */
     public function addTerm($taxonomyName, $slug)
     {
-        $this->log->addDebug("Adding term $slug to Taxonomy $taxonomyName");
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+
+        $cli->debug("Adding term $slug to Taxonomy $taxonomyName");
         if (!isset($this->taxonomies->$taxonomyName)) {
             $this->taxonomies->$taxonomyName = new \stdClass();
             $this->taxonomies->$taxonomyName->type = 'standard';

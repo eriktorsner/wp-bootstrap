@@ -1,10 +1,10 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
 
 /**
  * Class ExportBase
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
 class ExportBase
 {
@@ -68,7 +68,7 @@ class ExportBase
      */
     public function __construct()
     {
-        $container = Container::getInstance();
+        /*$container = Container::getInstance();
         $this->localSettings = $container->getLocalSettings();
         $this->appSettings = $container->getAppSettings();
 
@@ -77,7 +77,7 @@ class ExportBase
         $this->utils = $container->getUtils();
 
         $this->utils->includeWordPress();
-        $this->baseUrl = get_option('siteurl');
+        $this->baseUrl = get_option('siteurl');*/
 
     }
 }

@@ -1,19 +1,20 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExtractMedia
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExtractMedia extends ExportBase
+class ExtractMedia
 {
     /**
      * ExtractMedia constructor.
      */
     public function __construct()
     {
-        parent::__construct();
         $this->uploadDir = wp_upload_dir();
     }
 
@@ -55,12 +56,14 @@ class ExtractMedia extends ExportBase
     private function findMediaFromObj($obj)
     {
         $ret = array();
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
 
-        $b64 = $this->helpers->isBase64($obj);
+        $b64 = $helpers->isBase64($obj);
         if ($b64) {
             $obj = base64_decode($obj);
         }
-        $ser = $this->helpers->isSerialized($obj);
+        $ser = $helpers->isSerialized($obj);
         if ($ser) {
             $obj = unserialize($obj);
         }

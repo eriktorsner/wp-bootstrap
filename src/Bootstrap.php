@@ -13,6 +13,9 @@ class Bootstrap
      */
     private static $application;
 
+    const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
+    const VERSION = '0.4.0';
+
     /**
      * @return \Pimple\Container
      */
@@ -111,18 +114,17 @@ class Bootstrap
     }
 
     /**
-     * Export serialized settings and content to folder bootstrap/
+     * Export serialized settings and content to folder ./bootstrap
      *
      * @param $args
      * @param $assocArgs
      *
-     * @when before_wp_load
      */
     public function export($args, $assocArgs)
     {
-        $this->initiate($args, $assocArgs);
-        $export = $this->container->getExport();
-        $export->export();
+        $app = self::getApplication();
+        $obj = $app['export'];
+        $obj->run($args, $assocArgs);
     }
 
     /**
@@ -140,22 +142,6 @@ class Bootstrap
         $this->initiate($args, $assocArgs);
         $initBootstrap = $this->container->getInitbootstrap();
         $initBootstrap->init();
-    }
-
-    /**
-     * Manage snapshots. WordPress options serialized to disk
-     *
-     * @param $args
-     * @param $assocArgs
-     *
-     * @when before_wp_load
-     */
-    public function snapshots($args, $assocArgs)
-    {
-        $this->initiate($args, $assocArgs);
-        $this->container->validateSettings();
-        $snapshots = $this->container->getSnapshots();
-        $snapshots->manage();
     }
 
 }

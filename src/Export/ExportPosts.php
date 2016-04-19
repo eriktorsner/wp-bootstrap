@@ -1,12 +1,14 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExportPosts
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExportPosts extends ExportBase
+class ExportPosts
 {
     /**
      * @var \stdClass
@@ -25,42 +27,58 @@ class ExportPosts extends ExportBase
      */
     public function __construct()
     {
-        parent::__construct();
-        $container = Container::getInstance();
-        $this->exportMedia = $container->getExportMedia();
-        $this->extractMedia = $container->getExtractMedia();
-        $this->exportTaxonomies = $container->getExportTaxonomies();
-
         $this->posts = new \stdClass();
-        if (isset($this->appSettings->content->posts)) {
-            foreach ($this->appSettings->content->posts as $postType => $posts) {
-                if ($posts == '*') {
-                    $args = array(
-                        'post_type' => $postType,
-                        'posts_per_page' => -1,
-                        'post_status' => array('publish', 'inherit')
-                    );
-                    $allPosts = get_posts($args);
-                    foreach ($allPosts as $post) {
-                        $this->addPost($postType, $post->post_name);
-                    }
-                } else {
-                    foreach ($posts as $post) {
-                        $this->addPost($postType, $post);
-                    }
+    }
+
+    /**
+     *  Export posts
+     */
+    public function export()
+    {
+        $app = Bootstrap::getApplication();
+        $settings = $app['settings'];
+        if (!isset($settings['content']['posts'])) {
+            return;
+        }
+
+        $cli = $app['cli'];
+
+        foreach ($settings['content']['posts'] as $postType => $posts) {
+            if ($posts == '*') {
+                $args = array(
+                    'post_type' => $postType,
+                    'posts_per_page' => -1,
+                    'post_status' => array('publish', 'inherit')
+                );
+                $allPosts = get_posts($args);
+                foreach ($allPosts as $post) {
+                    $this->addPost($postType, $post->post_name);
+                }
+            } else {
+                foreach ($posts as $post) {
+                    $this->addPost($postType, $post);
                 }
             }
         }
 
-        $this->log->addDebug('Initiated ExportPosts.');
+        $cli->debug('Initiated ExportPosts');
+        $this->doExport();
     }
 
     /**
      * Export the posts
      */
-    public function export()
+    public function doExport()
     {
         global $wpdb;
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $extractMedia = $app['extractmedia'];
+        $exportMedia = $app['exportmedia'];
+        $exportTaxonomies = $app['exporttaxonomies'];
+        $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
+
         $count = 1;
         while ($count > 0) {
             $count = 0;
@@ -76,11 +94,11 @@ class ExportPosts extends ExportBase
                     ));
                     $objPost = get_post($postId);
                     if (!$objPost) {
-                        $this->log->addDebug("Post $postId not found");
+                        $cli->debug("Post $postId not found");
                         continue;
                     }
 
-                    $this->log->addDebug('Exporting post '.$post->slug, array($postId));
+                    $cli->debug("Exporting post {$post->slug} ($postId)");
                     $meta = get_post_meta($objPost->ID);
                     $objPost->taxonomies = array();
 
@@ -88,30 +106,30 @@ class ExportPosts extends ExportBase
                     // 1. from attached media:
                     $media = get_attached_media('', $postId);
                     foreach ($media as $item) {
-                        $this->exportMedia->addMedia($item->ID);
+                        $exportMedia->addMedia($item->ID);
                     }
 
                     // 2. from featured image:
                     if (has_post_thumbnail($postId)) {
                         $mediaId = get_post_thumbnail_id($postId);
-                        $this->exportMedia->addMedia($mediaId);
+                        $exportMedia->addMedia($mediaId);
                     }
 
                     // 3. Is this post actually an attachment?
                     if ($objPost->post_type == 'attachment') {
-                        $this->exportMedia->addMedia($objPost->ID);
+                        $exportMedia->addMedia($objPost->ID);
                     }
 
                     // 4. referenced in the content
-                    $ret = $this->extractMedia->getReferencedMedia($objPost);
+                    $ret = $extractMedia->getReferencedMedia($objPost);
                     if (count($ret) > 0) {
-                        $this->exportMedia->addMedia($ret);
+                        $exportMedia->addMedia($ret);
                     }
 
                     // 5. referenced in meta data
-                    $ret = $this->extractMedia->getReferencedMedia($meta);
+                    $ret = $extractMedia->getReferencedMedia($meta);
                     if (count($ret) > 0) {
-                        $this->exportMedia->addMedia($ret);
+                        $exportMedia->addMedia($ret);
                     }
 
                     // terms
@@ -121,11 +139,11 @@ class ExportPosts extends ExportBase
                         }
                         $terms = wp_get_object_terms($postId, $taxonomy);
                         if (count($terms)) {
-                            $this->log->addDebug('Adding '.count($terms)." terms from $taxonomy");
+                            $cli->debug('Adding '.count($terms)." terms from $taxonomy");
                         }
                         foreach ($terms as $objTerm) {
                             // add it to the exported terms
-                            $this->exportTaxonomies->addTerm($taxonomy, $objTerm->slug);
+                            $exportTaxonomies->addTerm($taxonomy, $objTerm->slug);
 
                             if (!isset($objPost->taxonomies[$taxonomy])) {
                                 $objPost->taxonomies[$taxonomy] = array();
@@ -135,10 +153,10 @@ class ExportPosts extends ExportBase
                     }
 
                     $objPost->post_meta = $meta;
-                    $this->helpers->fieldSearchReplace($objPost, $this->baseUrl, Bootstrap::NEUTRALURL);
+                    $helpers->fieldSearchReplace($objPost, $baseUrl, Bootstrap::NEUTRALURL);
 
                     $file = BASEPATH."/bootstrap/posts/{$objPost->post_type}/{$objPost->post_name}";
-                    $this->log->addDebug("Storing $file");
+                    $cli->debug("Storing $file");
                     @mkdir(dirname($file), 0777, true);
                     file_put_contents($file, serialize($objPost));
                     $post->done = true;

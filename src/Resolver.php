@@ -17,8 +17,8 @@ class Resolver
      */
     public function __construct()
     {
-        $container = Container::getInstance();
-        $this->import = $container->getImport();
+        $app = Bootstrap::getApplication();
+        $this->import = $app['import'];
     }
 
     /**
@@ -80,7 +80,7 @@ class Resolver
     {
         foreach ($references as $key => $value) {
             if (is_integer($key)) {
-                foreach ($this->import->posts->posts as $post) {
+                foreach ($this->import->posts as $post) {
                     if (isset($post->post->post_meta[$value])) {
                         foreach ($post->post->post_meta[$value] as $currentValue) {
                             $newValue = $this->calcNewValue($currentValue, $type);

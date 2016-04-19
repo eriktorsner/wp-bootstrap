@@ -1,6 +1,6 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
 
 /**
  * Class Export
@@ -101,60 +101,10 @@ class Export extends ExportBase
      */
     private function exportContent()
     {
-        $base = BASEPATH.'/bootstrap';
 
-        $this->log->addDebug("Cleaning folder $base");
-        $this->helpers->recursiveRemoveDirectory($base.'/menus');
-        $this->helpers->recursiveRemoveDirectory($base.'/posts');
-        $this->helpers->recursiveRemoveDirectory($base.'/media');
-        $this->helpers->recursiveRemoveDirectory($base.'/taxonomies');
-        $this->helpers->recursiveRemoveDirectory($base.'/sidebars');
-
-        $this->exportMenus->export();
-        $this->exportSidebars->export();
-        $this->exportPosts->export();
-        $this->exportTaxonomies->export();
-        $this->exportMedia->export();
     }
 
-    /**
-     * Checks if a wpbootstrap bundle exists in WP-CFM settings and creates one if needed
-     */
-    private function ensureBundleExists()
-    {
-        $wpcfm = json_decode(get_option('wpcfm_settings', '{}'));
-        if (!isset($wpcfm->bundles)) {
-            $wpcfm->bundles = array();
-        }
-        $found = false;
-        foreach ($wpcfm->bundles as $bundle) {
-            if ($bundle->name == 'wpbootstrap') {
-                $found = true;
-            }
-        }
-        if (!$found) {
-            $bundle = new \stdClass();
-            $bundle->name = 'wpbootstrap';
-            $bundle->label = 'wpbootstrap';
-            $bundle->config = null;
-            $wpcfm->bundles[] = $bundle;
-            update_option('wpcfm_settings', json_encode($wpcfm));
-        }
-    }
 
-    /**
-     * Create and saves manifest file with details about the export
-     */
-    private function createManifest()
-    {
-        $manifest = new \stdClass();
-        $manifest->created = date('Y-m-d H:i:s');
-        $manifest->boostrapVersion = Bootstrap::VERSION;
-        $manifest->appSettings = json_decode($this->appSettings->toString());
 
-        $manifestFile = BASEPATH.'/bootstrap/manifest.json';
-        if (file_exists(dirname($manifestFile))) {
-            file_put_contents($manifestFile, $this->helpers->prettyPrint(json_encode($manifest)));
-        }
-    }
+
 }

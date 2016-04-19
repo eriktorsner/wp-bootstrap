@@ -1,35 +1,33 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExportSidebars
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExportSidebars extends ExportBase
+class ExportSidebars
 {
-    /**
-     * ExportSidebars constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $container = Container::getInstance();
-        $this->extractMedia = $container->getExtractMedia();
-        $this->exportMedia = $container->getExportMedia();
-    }
-
     /**
      * Export sidebars
      */
     public function export()
     {
-        if (!isset($this->appSettings->content->sidebars)) {
+        $app = Bootstrap::getApplication();
+        $settings = $app['settings'];
+        if (!isset($settings['content']['sidebars'])) {
             return;
         }
 
+        $extractMedia = $app['extractmedia'];
+        $exportMedia = $app['exportmedia'];
+        $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
+
         $storedSidebars = get_option('sidebars_widgets', array());
-        foreach ($this->appSettings->content->sidebars as $sidebar) {
+        foreach ($settings['content']['sidebars'] as $sidebar) {
             $dir = BASEPATH.'/bootstrap/sidebars/'.$sidebar;
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);
@@ -45,11 +43,11 @@ class ExportSidebars extends ExportBase
                 $widgetTypeSettings = get_option('widget_'.$name);
                 $widgetSettings = $widgetTypeSettings[$ord];
 
-                $ret = $this->extractMedia->getReferencedMedia($widgetSettings);
-                $this->exportMedia->addMedia($ret);
+                $ret = $extractMedia->getReferencedMedia($widgetSettings);
+                $exportMedia->addMedia($ret);
 
                 $file = $dir.'/'.$widget;
-                $this->helpers->fieldSearchReplace($widgetSettings, $this->baseUrl, Bootstrap::NEUTRALURL);
+                $helpers->fieldSearchReplace($widgetSettings, $baseUrl, Bootstrap::NEUTRALURL);
                 file_put_contents($file, serialize($widgetSettings));
             }
 

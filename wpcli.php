@@ -7,4 +7,5 @@ if (!defined('BASEPATH')) {
 if (defined('WP_CLI') && class_exists('WP_CLI', false)) {
     WP_CLI::add_command('bootstrap', Wpbootstrap\Bootstrap::class);
     WP_CLI::add_command('setenv', '\Wpbootstrap\Commands\SetEnv');
+    WP_CLI::add_command('optionsnap', Wpbootstrap\Commands\OptionSnap::class);
 }

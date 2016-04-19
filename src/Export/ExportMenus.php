@@ -1,35 +1,32 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Export;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ExportMenus
- * @package Wpbootstrap
+ * @package Wpbootstrap\Export
  */
-class ExportMenus extends ExportBase
+class ExportMenus
 {
-    /**
-     * ExportMenus constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $container = Container::getInstance();
-        $this->exportPosts = $container->getExportPosts();
-        $this->exportTaxonomies = $container->getExportTaxonomies();
-    }
-
-
     /**
      * Export Menus
      */
     public function export()
     {
-        if (!isset($this->appSettings->content->menus)) {
+        $app = Bootstrap::getApplication();
+        $settings = $app['settings'];
+        if (!isset($settings['content']['menus'])) {
             return;
         }
 
-        foreach ($this->appSettings->content->menus as $menu => $locations) {
+        $helpers = $app['helpers'];
+        $exportTaxonomies = $app['exporttaxonomies'];
+        $exportPosts = $app['exportposts'];
+        $baseUrl = get_option('siteurl');
+
+        foreach ($settings['content']['menus'] as $menu => $locations) {
             $menuItems = array();
             wp_set_current_user(1);
             $loggedInMenuItems = wp_get_nav_menu_items($menu);
@@ -41,7 +38,7 @@ class ExportMenus extends ExportBase
             if (is_array($notLoggedInMenuItems)) {
                 $menuItems = @array_merge($menuItems, $notLoggedInMenuItems);
             }
-            $menuItems = $this->helpers->uniqueObjectArray($menuItems, 'ID');
+            $menuItems = $helpers->uniqueObjectArray($menuItems, 'ID');
 
             $dir = BASEPATH.'/bootstrap/menus/'.$menu;
             array_map('unlink', glob("$dir/*"));
@@ -56,18 +53,18 @@ class ExportMenus extends ExportBase
                         $postType = $obj->post_meta['_menu_item_object'][0];
                         $postId = $obj->post_meta['_menu_item_object_id'][0];
                         $objPost = get_post($postId);
-                        $this->exportPosts->addPost($postType, $objPost->post_name);
+                        $exportPosts->addPost($postType, $objPost->post_name);
                         break;
                     case 'taxonomy':
                         $id = $obj->post_meta['_menu_item_object_id'][0];
                         $taxonomy = $obj->post_meta['_menu_item_object'][0];
                         $objTerm = get_term($id, $taxonomy);
                         if (!is_wp_error($objTerm)) {
-                            $this->exportTaxonomies->addTerm($taxonomy, $objTerm->slug);
+                            $exportTaxonomies->addTerm($taxonomy, $objTerm->slug);
                         }
                         break;
                 }
-                $this->helpers->fieldSearchReplace($obj, $this->baseUrl, Bootstrap::NEUTRALURL);
+                $helpers->fieldSearchReplace($obj, $baseUrl, Bootstrap::NEUTRALURL);
 
                 $file = $dir.'/'.$menuItem->post_name;
                 file_put_contents($file, serialize($obj));

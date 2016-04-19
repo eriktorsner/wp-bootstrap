@@ -251,6 +251,23 @@ class Helpers
     }
 
     /**
+     * @return array|mixed|object
+     */
+    public function getWPCFMSettings()
+    {
+        $ret = [];
+        $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
+        if (file_exists($src)) {
+            $config = json_decode(file_get_contents($src));
+            if ($config) {
+                $ret = $config;
+            }
+        }
+
+        return $ret;
+    }
+
+    /**
      * @param mixed $data
      * @return bool
      */
@@ -262,7 +279,7 @@ class Helpers
 
         $decoded = base64_decode($data, true);
         if (@base64_encode($decoded) === $data) {
-            $printable = ctype_print($decoded);
+            $printable = $this->ctype_print_unicode($decoded); //ctype_print($decoded);
             if ($printable) {
                 return true;
             } else {
@@ -271,5 +288,14 @@ class Helpers
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param string $input
+     * @return int
+     */
+    private function ctype_print_unicode($input) {
+        $pattern = "~^[\pL\pN\s\"\~". preg_quote("!#$%&'()*+,-./:;<=>?@[\]^_`{|}´") ."]+$~u";
+        return preg_match($pattern, $input);
     }
 }

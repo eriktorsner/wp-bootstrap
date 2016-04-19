@@ -13,17 +13,16 @@ class Extensions
 
     public function init()
     {
-        $container = Container::getInstance();
-        $appSettings = $container->getAppSettings();
-        $log = $container->getLog();
+        $app = Bootstrap::getApplication();
+        $setting = $app['settings'];
+        $cli = $app['cli'];
 
-        if (isset($appSettings->extensions) && is_array($appSettings->extensions)) {
-            foreach ($appSettings->extensions as $class) {
+        if (isset($setting['extensions']) && is_array($setting['extensions'])) {
+            foreach ($setting['extensions'] as $class) {
                 if (class_exists($class)) {
                     $this->extensions[] = new $class;
                 } else {
-                    $log->addError("Error: the class: $class not found");
-                    die();
+                    $cli->error("Error: the class: $class not found");
                 }
             }
         }
@@ -33,10 +32,12 @@ class Extensions
 
     private function callFunction($functionName)
     {
-        $container = Container::getInstance();
-        $log = $container->getLog();
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+
         foreach ($this->extensions as $extension) {
             if (method_exists($extension, $functionName)) {
+                $cli->debug("Calling $functionName on extension ". get_class($extension));
                 call_user_func(array($extension, $functionName));
             }
         }
