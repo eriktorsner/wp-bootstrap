@@ -38,21 +38,37 @@ class Import extends BaseCommand
         $extensions = $app['extensions'];
         $extensions->init();
 
-        require_once $app['path'] . '/wp-admin/includes/image.php';
 
         $this->baseUrl = get_option('siteurl');
         $this->uploadDir = wp_upload_dir();
-
 
         // Run the import
         do_action('wp-bootstrap_before_import');
 
         $cli->log('Importing settings');
-        //$this->importSettings();
+        $importOptions = $app['importoptions'];
+        $importOptions->import();
         do_action('wp-bootstrap_after_import_settings');
 
         $cli->log('Importing content');
-        //$this->importContent();
+
+        $cli->debug('Importing posts');
+        $posts = $app['importposts'];
+        $posts->import();
+
+        $cli->debug('Importing taxonomies');
+        $taxonomies = $app['importtaxonomies'];
+        $taxonomies->import();
+
+        $cli->debug('Importing menus');
+        $menus = $app['importmenus'];
+        $menus->import();
+
+        $cli->debug('Importing sidebars');
+        $sidebars = $app['importsidebars'];
+        $sidebars->import();
+
+        //$taxonomies->assignObjects();
         do_action('wp-bootstrap_after_import_content');
 
         // references
