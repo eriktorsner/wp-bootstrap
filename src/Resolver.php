@@ -110,16 +110,15 @@ class Resolver
             if ($newId != 0) {
                 return $newId;
             }
-        } else {
-            $count = preg_match_all('!\d+!', $currentValue, $matches);
-            if ($count == 1) {
-                $oldId = $matches[0][0];
-                $newId = $this->import->findTargetObjectId($oldId, $type);
-                if ($newId != 0) {
-                    $newValue = str_replace($oldId, $newId, $currentValue);
+        }
+        $count = preg_match_all('!\d+!', $currentValue, $matches);
+        if ($count == 1) {
+            $oldId = $matches[0][0];
+            $newId = $this->import->findTargetObjectId($oldId, $type);
+            if ($newId != 0) {
+                $newValue = str_replace($oldId, $newId, $currentValue);
 
-                    return $newValue;
-                }
+                return $newValue;
             }
         }
 
