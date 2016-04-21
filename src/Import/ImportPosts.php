@@ -1,10 +1,12 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Import;
+
+use Wpbootstrap\Bootstrap;
 
 /**
  * Class ImportPosts
- * @package Wpbootstrap
+ * @package Wpbootstrap\Import
  */
 class ImportPosts
 {
@@ -24,29 +26,16 @@ class ImportPosts
     private $import;
 
     /**
-     * @var \Monolog\Logger
+     * The main import process
      */
-    private $log;
-
-    /**
-     * @var Helpers
-     */
-    private $helpers;
-
-    /**
-     * ImportPosts constructor.
-     */
-    public function __construct()
+    public function import()
     {
-        $container = Container::getInstance();
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
 
-        $this->log = $container->getLog();
-        $this->helpers = $container->getHelpers();
-        $this->import = $container->getImport();
-
-        $dir = BASEPATH.'/bootstrap/posts';
-        foreach ($this->helpers->getFiles($dir) as $postType) {
-            foreach ($this->helpers->getFiles($dir.'/'.$postType) as $slug) {
+        $dir = BASEPATH . '/bootstrap/posts';
+        foreach ($helpers->getFiles($dir) as $postType) {
+            foreach ($helpers->getFiles($dir . '/' . $postType) as $slug) {
                 $newPost = new \stdClass();
                 $newPost->done = false;
                 $newPost->id = 0;
@@ -55,22 +44,25 @@ class ImportPosts
                 $newPost->type = $postType;
                 $newPost->tries = 0;
 
-                $file = BASEPATH."/bootstrap/posts/$postType/$slug";
+                $file = BASEPATH . "/bootstrap/posts/$postType/$slug";
                 $newPost->post = unserialize(file_get_contents($file));
 
                 $this->posts[] = $newPost;
             }
         }
 
-        $this->helpers->fieldSearchReplace($this->posts, Bootstrap::NEUTRALURL, $this->import->baseUrl);
-        $this->process();
+        if (count($this->posts) > 0) {
+            $this->internalImport();
+        }
     }
 
-    /**
-     * The main import process
-     */
-    private function process()
+    private function internalImport()
     {
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
+
+        $helpers->fieldSearchReplace($this->posts, Bootstrap::NEUTRALURL, $baseUrl);
         remove_all_actions('transition_post_status');
 
         $done = false;
@@ -105,14 +97,16 @@ class ImportPosts
     private function updatePost(&$post, $parentId)
     {
         global $wpdb;
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
 
-        $postId = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type = %s",
-                $post->slug,
-                $post->type
-            )
+        $sql = $wpdb->prepare(
+            "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type = %s",
+            $post->slug,
+            $post->type
         );
+
+        $postId = $wpdb->get_var($sql);
         $args = array(
           'post_type' => $post->post->post_type,
           'post_mime_type' => $post->post->post_mime_type,
@@ -145,7 +139,7 @@ class ImportPosts
             }
             $i = 0;
             foreach ($value as $val) {
-                if ($this->helpers->isSerialized($val)) {
+                if ($helpers->isSerialized($val)) {
                     $val = unserialize($val);
                 }
                 if (isset($existingMetaItem[$i])) {
@@ -163,6 +157,10 @@ class ImportPosts
      */
     private function importMedia()
     {
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $uploadDir = wp_upload_dir();
+
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = unserialize(file_get_contents("$dir/meta"));
@@ -171,27 +169,14 @@ class ImportPosts
             // does this image have an imported post as it's parent?
             $parentId = $this->parentId($item->post_parent, $this->posts);
             if ($parentId != 0) {
-                $this->log->addDebug('Media is attached to post', array($item->ID, $parentId));
-                //$include = true;
+                $cli->debug('Media is attached to post', array($item->ID, $parentId));
             }
 
             // does an imported post have this image as thumbnail?
             $isAThumbnail = $this->isAThumbnail($item->ID);
             if ($isAThumbnail) {
-                $this->log->addDebug('Media is thumbnail to (at least) one post', array($item->id));
-                //$include = true;
+                $cli->debug('Media is thumbnail to (at least) one post  ' . $item->ID);
             }
-
-            // is this the payload for an imported attachment?
-            /*$isAttachment = $this->isAnAttachment($item->ID);
-            if ($isAttachment) {
-                $this->log->addDebug('Media is payload for an included attachment', array($item->id));
-                //$include = true;
-            }*/
-
-            /*if (!$include) {
-                continue;
-            }*/
 
             $args = array(
                 'name' => $item->post_name,
@@ -209,7 +194,7 @@ class ImportPosts
                     'post_parent' => $parentId,
                     'post_status' => $item->post_status,
                     'post_mime_type' => $item->post_mime_type,
-                    'guid' => $this->import->uploadDir['basedir'].'/'.$file,
+                    'guid' => $uploadDir['basedir'].'/'.$file,
                 );
                 $id = wp_insert_post($args);
             } else {
@@ -219,8 +204,8 @@ class ImportPosts
 
             // move the file
             $src = $dir.'/'.basename($file);
-            $trg = $this->import->uploadDir['basedir'].'/'.$file;
-            @mkdir($this->import->uploadDir['basedir'].'/'.dirname($file), 0777, true);
+            $trg = $uploadDir['basedir'].'/'.$file;
+            @mkdir($uploadDir['basedir'].'/'.dirname($file), 0777, true);
 
             // Add it to collection
             $mediaItem = new \stdClass();
@@ -284,23 +269,6 @@ class ImportPosts
                 if ($thumbId == $id) {
                     return true;
                 }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if a post id is an attachment
-     *
-     * @param int $id
-     * @return bool
-     */
-    private function isAnAttachment($id)
-    {
-        foreach ($this->posts as $post) {
-            if ($post->post->post_type == 'attachment' && $post->post->ID == $id) {
-                return true;
             }
         }
 

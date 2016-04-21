@@ -17,7 +17,6 @@ class ImportOptions
     {
         $app = Bootstrap::getApplication();
         $helpers = $app['helpers'];
-        $utils = $app['utils'];
         $baseUrl = get_option('siteurl');
 
         $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
@@ -32,8 +31,18 @@ class ImportOptions
             $helpers->fieldSearchReplace($settings, Bootstrap::NEUTRALURL, $baseUrl);
             file_put_contents($trg, $helpers->prettyPrint(json_encode($settings)));
 
-            $cmd = $wpcmd.'config pull wpbootstrap';
-            $utils->exec($cmd);
+            if (function_exists('WPCFM')) {
+                WPCFM()->readwrite->pull_bundle('wpbootstrap');
+            } else {
+                $cli->warning('Plugin WP-CFM does not seem to be installed. No options imported.');
+                $cli->warning('Add the WP-CFM plugin directly to this install using:');
+                $cli->warning('$ wp plugin install wp-cfm --activate');
+                $cli->warning('');
+                $cli->warning('...or to your appsettings using:');
+                $cli->warning('$ wp bootstrap add plugin wp-cfm');
+                $cli->warning('$ wp bootstrap setup');
+                return;
+            }
 
             // Flush options to make sure no other code overwrites based
             // on old settings stored in cache

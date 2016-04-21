@@ -1,10 +1,12 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Import;
+
+use Wpbootstrap\Bootstrap;
 
 /**
  * Class ImportSidebars
- * @package Wpbootstrap
+ * @package Wpbootstrap\Import
  */
 class ImportSidebars
 {
@@ -13,27 +15,21 @@ class ImportSidebars
      */
     private $sidebars = array();
 
-    /**
-     * @var Import
-     */
-    private $import;
-
-    /**
-     * @var Helpers
-     */
-    private $helpers;
-
-    /**
+     /**
      * ImportSidebars constructor.
      */
     public function __construct()
     {
-        $container = Container::getInstance();
-        $this->helpers = $container->getHelpers();
-        $this->import = $container->getImport();
+    }
+
+    public function import()
+    {
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
 
         $dir = BASEPATH.'/bootstrap/sidebars';
-        foreach ($this->helpers->getFiles($dir) as $sidebar) {
+        foreach ($helpers->getFiles($dir) as $sidebar) {
             $subdir = BASEPATH."/bootstrap/sidebars/$sidebar";
             $newSidebar = new \stdClass();
             $newSidebar->slug = $sidebar;
@@ -54,7 +50,7 @@ class ImportSidebars
             $this->sidebars[] = $newSidebar;
         }
 
-        $this->helpers->fieldSearchReplace($this->sidebars, Bootstrap::NEUTRALURL, $this->import->baseUrl);
+        $helpers->fieldSearchReplace($this->sidebars, Bootstrap::NEUTRALURL, $baseUrl);
         $this->process();
     }
 

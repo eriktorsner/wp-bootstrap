@@ -1,10 +1,12 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Import;
+
+use \Wpbootstrap\Bootstrap;
 
 /**
  * Class ImportTaxonomies
- * @package Wpbootstrap
+ * @package Wpbootstrap\Import
  */
 class ImportTaxonomies
 {
@@ -23,11 +25,14 @@ class ImportTaxonomies
      */
     public function __construct()
     {
-        $container = Container::getInstance();
+    }
 
-        $helpers = $container->getHelpers();
-        $this->import = $container->getImport();
-        $this->log = $container->getLog();
+    public function import()
+    {
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $import = $app['import'];
+
         $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($helpers->getFiles($dir) as $subdir) {
             if (!is_dir("$dir/$subdir")) {
@@ -47,16 +52,8 @@ class ImportTaxonomies
             }
             $this->taxonomies[] = $taxonomy;
         }
-        $this->process();
-    }
 
-    /**
-     * The main import process
-     */
-    private function process()
-    {
         $currentTaxonomies = get_taxonomies();
-
         foreach ($this->taxonomies as &$taxonomy) {
             if (isset($currentTaxonomies[$taxonomy->slug])) {
                 $this->processTaxonomy($taxonomy);
@@ -95,6 +92,9 @@ class ImportTaxonomies
      */
     private function processTaxonomy(&$taxonomy)
     {
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+
         $currentTerms = get_terms($taxonomy->slug, array('hide_empty' => false));
         $done = false;
         while (!$done) {
@@ -102,7 +102,7 @@ class ImportTaxonomies
             foreach ($taxonomy->terms as &$term) {
                 if (!$term->done) {
                     $parentId = $this->parentId($term->term->parent, $taxonomy);
-                    $this->log->addDebug("Importing term {$term->term->name}/{$term->term->slug}");
+                    $cli->debug("Importing term {$term->term->name}/{$term->term->slug}");
                     if ($parentId || $term->term->parent == 0) {
                         $args = array(
                             'description' => $term->term->description,

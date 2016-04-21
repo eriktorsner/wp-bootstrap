@@ -1,10 +1,12 @@
 <?php
 
-namespace Wpbootstrap;
+namespace Wpbootstrap\Import;
+
+use Wpbootstrap\Bootstrap;
 
 /**
  * Class ImportMenus
- * @package Wpbootstrap
+ * @package Wpbootstrap\Import
  */
 class ImportMenus
 {
@@ -23,37 +25,29 @@ class ImportMenus
     );
 
     /**
-     * @var Helpers
-     */
-    private $helpers;
-
-    /**
-     * @var Import
-     */
-    private $import;
-
-    /**
      * ImportMenus constructor.
      */
     public function __construct()
     {
-        $container = Container::getInstance();
+    }
 
-        $this->helpers = $container->getHelpers();
-        $this->import = $container->getImport();
-        $appSettings = $container->getAppSettings();
+    public function import()
+    {
+        $app = Bootstrap::getApplication();
+        $settings = $app['settings'];
+        $helpers = $app['helpers'];
 
-        if (!isset($appSettings->content->menus)) {
+        if (!isset($settings['content']['menus'])) {
             return;
         }
 
-        foreach ($appSettings->content->menus as $menu => $locations) {
+        foreach ($settings['content']['menus'] as $menu => $locations) {
             $dir = BASEPATH."/bootstrap/menus/$menu";
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;
             $newMenu->locations = $locations;
             $newMenu->items = array();
-            foreach ($this->helpers->getFiles($dir) as $file) {
+            foreach ($helpers->getFiles($dir) as $file) {
                 $menuItem = new \stdClass();
                 $menuItem->done = false;
                 $menuItem->id = 0;
@@ -68,7 +62,7 @@ class ImportMenus
             $this->menus[] = $newMenu;
         }
 
-        $this->helpers->fieldSearchReplace($this->menus, Bootstrap::NEUTRALURL, $this->import->baseUrl);
+        $helpers->fieldSearchReplace($this->menus, Bootstrap::NEUTRALURL, $this->import->baseUrl);
         $this->process();
     }
 
