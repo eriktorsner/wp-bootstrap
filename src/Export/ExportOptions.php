@@ -20,7 +20,6 @@ class ExportOptions
 
         if (function_exists('WPCFM')) {
             // running inside WordPress, use WPCFM directly
-            $this->ensureBundleExists();
             WPCFM()->readwrite->push_bundle('wpbootstrap');
         } else {
             $cli->warning('Plugin WP-CFM does not seem to be installed. No options exported.');
