@@ -53,6 +53,26 @@ class DefaultObjectProvider implements ServiceProviderInterface
             return new Commands\Import();
         };
 
+        $pimple['importoptions'] = function ($p) {
+            return new \Wpbootstrap\Import\ImportOptions();
+        };
+
+        $pimple['importposts'] = function ($p) {
+            return new \Wpbootstrap\Import\ImportPosts();
+        };
+
+        $pimple['importtaxonomies'] = function ($p) {
+            return new \Wpbootstrap\Import\ImportTaxonomies();
+        };
+
+        $pimple['importmenus'] = function ($p) {
+            return new \Wpbootstrap\Import\ImportMenus();
+        };
+
+        $pimple['importsidebars'] = function ($p) {
+            return new \Wpbootstrap\Import\ImportSidebars();
+        };
+
         $pimple['export'] = function ($p) {
             return new Commands\Export();
         };
