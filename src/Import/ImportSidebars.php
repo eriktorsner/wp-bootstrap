@@ -59,6 +59,10 @@ class ImportSidebars
      */
     private function process()
     {
+        $app = Bootstrap::getApplication();
+        $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
+
         $currentSidebars = get_option('sidebars_widgets', array());
         foreach ($this->sidebars as $sidebar) {
             $current = array();
@@ -74,7 +78,7 @@ class ImportSidebars
                 $currentWidgetDef = get_option('widget_'.$widget->type, array());
                 $ord = $this->findFirstFree($currentWidgetDef);
 
-                $this->helpers->fieldSearchReplace($widget->meta, Bootstrap::NEUTRALURL, $this->import->baseUrl);
+                $helpers->fieldSearchReplace($widget->meta, Bootstrap::NEUTRALURL, $baseUrl);
                 $currentWidgetDef[$ord] = $widget->meta;
                 update_option('widget_'.$widget->type, $currentWidgetDef);
 

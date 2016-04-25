@@ -34,6 +34,7 @@ class ImportOptions
             if (function_exists('WPCFM')) {
                 WPCFM()->readwrite->pull_bundle('wpbootstrap');
             } else {
+                $cli = $app['cli'];
                 $cli->warning('Plugin WP-CFM does not seem to be installed. No options imported.');
                 $cli->warning('Add the WP-CFM plugin directly to this install using:');
                 $cli->warning('$ wp plugin install wp-cfm --activate');

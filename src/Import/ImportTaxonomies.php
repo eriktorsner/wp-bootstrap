@@ -68,8 +68,12 @@ class ImportTaxonomies
     public function assignObjects()
     {
         // Posts
-        $this->log->addDebug('Assigning objects to taxonomies');
-        $posts = $this->import->posts->posts;
+        $app = Bootstrap::getApplication();
+        $cli = $app['cli'];
+        $import = $app['import'];
+
+        $cli->debug('Assigning objects to taxonomies');
+        $posts = $import->posts;
         foreach ($this->taxonomies as &$taxonomy) {
             foreach ($posts as $post) {
                 if (isset($post->post->taxonomies[$taxonomy->slug])) {
@@ -78,7 +82,7 @@ class ImportTaxonomies
                         $termSlug = $this->findNewTerm($taxonomy, $orgSlug);
                         $newTerms[] = $termSlug;
                     }
-                    $this->log->addDebug("adding terms to object {$post->id}", $newTerms);
+                    $cli->debug("adding terms to object {$post->id}", $newTerms);
                     wp_set_object_terms($post->id, $newTerms, $taxonomy->slug, false);
                 }
             }
@@ -240,7 +244,7 @@ class ImportTaxonomies
      * @param $target
      * @return int
      */
-    public function findTargetTermId($target)
+    public function _findTargetTermId($target)
     {
         foreach ($this->taxonomies as $taxonomy) {
             foreach ($taxonomy->terms as $term) {

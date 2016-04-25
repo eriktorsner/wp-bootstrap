@@ -35,7 +35,9 @@ class ImportMenus
     {
         $app = Bootstrap::getApplication();
         $settings = $app['settings'];
+
         $helpers = $app['helpers'];
+        $baseUrl = get_option('siteurl');
 
         if (!isset($settings['content']['menus'])) {
             return;
@@ -62,7 +64,7 @@ class ImportMenus
             $this->menus[] = $newMenu;
         }
 
-        $helpers->fieldSearchReplace($this->menus, Bootstrap::NEUTRALURL, $this->import->baseUrl);
+        $helpers->fieldSearchReplace($this->menus, Bootstrap::NEUTRALURL, $baseUrl);
         $this->process();
     }
 
@@ -88,6 +90,12 @@ class ImportMenus
      */
     private function processMenu(&$menu)
     {
+        $app = Bootstrap::getApplication();
+        $importPosts = $app['importposts'];
+        $importTaxonomies = $app['importtaxonomies'];
+        $import = $app['import'];
+        $helpers = $app['helpers'];
+
         $objMenu = wp_get_nav_menu_object($menu->slug);
         if (!$objMenu) {
             wp_create_nav_menu($menu->slug);
@@ -96,12 +104,12 @@ class ImportMenus
         $menuId = $objMenu->term_id;
         $menu->id = $menuId;
 
-        wp_set_current_user(1);
+        //wp_set_current_user(1);
         $loggedInMenuItems = wp_get_nav_menu_items($menu->slug);
-        wp_set_current_user(0);
+        //wp_set_current_user(0);
         $notLoggedInMenuItems = wp_get_nav_menu_items($menu->slug);
         $existingMenuItems = array_merge($loggedInMenuItems, $notLoggedInMenuItems);
-        $existingMenuItems = $this->helpers->uniqueObjectArray($existingMenuItems, 'ID');
+        $existingMenuItems = $helpers->uniqueObjectArray($existingMenuItems, 'ID');
         foreach ($existingMenuItems as $existingMenuItem) {
             wp_delete_post($existingMenuItem->ID, true);
         }
@@ -111,13 +119,15 @@ class ImportMenus
             $newTarget = 0;
             switch ($menuItemType) {
                 case 'post_type':
-                    $newTarget = $this->import->posts->findTargetPostId(
-                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0]
+                    $newTarget = $import->findTargetObjectId(
+                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0],
+                        'post'
                     );
                     break;
                 case 'taxonomy':
-                    $newTarget = $this->import->taxonomies->findTargetTermId(
-                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0]
+                    $newTarget = $import->findTargetObjectId(
+                        $objMenuItem->menu->post_meta['_menu_item_object_id'][0],
+                        'term'
                     );
                     break;
             }
@@ -157,7 +167,7 @@ class ImportMenus
      * @param int $target
      * @return int
      */
-    public function findMenuItem($target)
+    private function findMenuItem($target)
     {
         foreach ($this->menus as $menu) {
             foreach ($menu->items as $item) {

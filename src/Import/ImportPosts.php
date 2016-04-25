@@ -20,10 +20,11 @@ class ImportPosts
      */
     public $media = array();
 
-    /**
-     * @var Import
-     */
-    private $import;
+
+    public function __construct()
+    {
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+    }
 
     /**
      * The main import process
@@ -299,7 +300,7 @@ class ImportPosts
      * @param $target
      * @return int
      */
-    public function findTargetPostId($target)
+    public function _findTargetPostId($target)
     {
         foreach ($this->posts as $post) {
             if ($post->post->ID == $target) {
