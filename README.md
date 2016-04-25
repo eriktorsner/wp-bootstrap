@@ -2,7 +2,7 @@
 # wp-bootstrap
 Wp-cli subcommand for managing WordPress installations. Automates installation, configuration and importing/exporting content.
 
-The central idea with WP Bootstrap is to provide a tool that makes it easier to create a decent WordPress deployment workflow. WP Bootstrap lets you use configuration files and a few command line commands to install WordPress, set it up with the correct plugins and themes, import options as well as pages, posts, menus etc. To top it of,
+The central idea with WP Bootstrap is to provide a tool that makes it easier to create a decent WordPress deployment workflow. WP Bootstrap lets you use configuration files and a few command line commands to install WordPress, set it up with the correct plugins and themes, import options as well as pages, posts, menus etc. To top it of, it also maintains ID integrity during import so that the site looks the same when it's imported as it did when it was exported, even if all the underlying post ID's have changed.
 
 Tutorial for pre-subcommand usage (before 0.4.0):
 [Tutorial on wpessentials.io](http://www.wpessentials.io/2015/12/preparing-a-wordpress-site-for-git-using-wp-bootstrap/)
