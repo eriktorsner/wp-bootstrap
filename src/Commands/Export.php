@@ -10,17 +10,6 @@ use Symfony\Component\Yaml\Dumper;
  */
 class Export extends BaseCommand
 {
-
-    /**
-     * @var \Pimple\Pimple
-     */
-    private $app;
-
-    /**
-     * @var \Wpbootstrap\Providers\CliWrapper;
-     */
-    private $cli;
-
     public function run($args, $assocArgs)
     {
         $app = \Wpbootstrap\Bootstrap::getApplication();
