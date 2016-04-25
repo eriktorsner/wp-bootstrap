@@ -54,6 +54,7 @@ class Setup extends BaseCommand
         $this->parseInstallables('theme', 'local');
         $this->parseInstallables('theme', 'localcopy');
         $this->resolveInstallOrder();
+
         $this->installAll();
 
         $this->applySettings();
@@ -77,43 +78,44 @@ class Setup extends BaseCommand
                 if (is_string($installable)) {
                     $this->addInstallableString($type, $path, $installable);
                 } else {
-                    $this->addInstallableObject($type, $path, $installable);
+                    $this->addInstallableArray($type, $path, $installable);
                 }
             }
         }
     }
 
     /**
-     * Add an installable plugin or theme based on an object
+     * Add an installable plugin or theme based on an array
      * definition
      *
      * @param string $type
      * @param string $path
-     * @param \stdClass $definition
+     * @param array $arr
      */
-    private function addInstallableObject($type, $path, $definition)
+    private function addInstallableArray($type, $path, $arr)
     {
-        $definition->path = $path;
-        $definition->type = $type;
+        $definition = reset($arr);
+        $slug = key($arr);
 
-        if (!isset($definition->version)) {
-            $definition->version = null;
+        $obj = new \stdClass();
+        $obj->type = $type;
+        $obj->path = $path;
+        $obj->slug = isset($definition['slug']) ? $definition['slug']:$slug;
+        $obj->version = isset($definition['version']) ? $definition['version']:null;
+        $obj->requires = new \stdClass();
+        $obj->requires->plugins = [];
+        $obj->requires->themes = [];
+
+        if (isset($definition['requires']['plugins'])) {
+            $obj->requires->plugins = $definition['requires']['plugins'];
         }
 
-        if (!isset($definition->requires)) {
-            $definition->requires = new \stdClass();
+        if (isset($definition['requires']['themes'])) {
+            $obj->requires->themes = $definition['requires']['themes'];
         }
 
-        if (!isset($definition->requires->plugins)) {
-            $definition->requires->plugins = [];
-        }
-
-        if (!isset($definition->requires->themes)) {
-            $definition->requires->themes = [];
-        }
-
-        $id = $type . ':' . $definition->slug;
-        $this->installables[$id] = $definition;
+        $id = $type . ':' . $obj->slug;
+        $this->installables[$id] = $obj;
     }
 
     /**
@@ -271,7 +273,7 @@ class Setup extends BaseCommand
             $path = 'themes';
         }
 
-        $cmd = sprintf('rm -f %s/wp-content/%s/%s', $this->app['path'], $path, $installable->slug);
+        $cmd = sprintf('rm -rf %s/wp-content/%s/%s', $this->app['path'], $path, $installable->slug);
         $this->cli->launch($cmd);
 
         $cmdTemplate = 'ln -s %s/wp-content/%s/%s %s/wp-content/%s/%s';
@@ -324,7 +326,7 @@ class Setup extends BaseCommand
                     continue;
                 }
                 $cmd = sprintf(
-                    'rm -f %s/wp-content/%s',
+                    'rm -rf %s/wp-content/%s',
                     $this->app['path'],
                     $symlink
                 );
