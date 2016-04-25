@@ -1,11 +1,11 @@
 {
     "name": "eriktorsner/wp-bootstrap",
     "description": "Utils for bootstrapping a WordPress installation",
+    "homepage": "https://github.com/eriktorsner/wp-bootstrap/",
     "type": "library",
     "keywords": [
         "wordpress"
     ],
-    "homepage": "https://github.com/eriktorsner/wp-bootstrap/",
     "license": "MIT",
     "authors": [
         {
@@ -32,6 +32,5 @@
         },
         "files": ["wpcli.php"]
     },
-
     "bin": ["bin/wpbootstrap"]
 }
