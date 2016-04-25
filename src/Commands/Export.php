@@ -26,8 +26,8 @@ class Export extends BaseCommand
         $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
 
-        //$extensions = $container->getExtensions();
-        //$extensions->init();
+        $extensions = $app['extensions'];
+        $extensions->init();
 
         do_action('wp-bootstrap_before_export');
 
