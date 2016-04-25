@@ -29,7 +29,8 @@
     "autoload": {
         "psr-4": {
             "Wpbootstrap\\": "src"
-        }
+        },
+        "files": ["wpcli.php"]
     },
 
     "bin": ["bin/wpbootstrap"]
