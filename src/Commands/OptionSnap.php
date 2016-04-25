@@ -57,7 +57,8 @@ class OptionSnap
 
         $file = "{$this->baseFolder}/$name.snapshot";
         if (file_exists($file)) {
-            $cli->line("Snapshot $name already exists");
+            $cli->error("Snapshot $name already exists");
+            return;
         }
 
         $snapshot = new \stdClass();
@@ -131,6 +132,7 @@ class OptionSnap
             $oldState = $this->readSnapshot($args[0]);
             if (!$oldState) {
                 $cli->error("There's no snapshot file for {$args[0]}. Aborting");
+                return;
             }
             $newState = new \stdClass();
             $newState->name = '[current state]';
@@ -141,10 +143,12 @@ class OptionSnap
             $oldState = $this->readSnapshot($args[0]);
             if (!$oldState) {
                 $cli->error("There's no snapshot file for {$args[0]}. Aborting");
+                return;
             }
             $newState = $this->readSnapshot($args[1]);
             if (!$newState) {
                 $cli->error("There's no snapshot file for {$args[1]}. Aborting");
+                return;
             }
         }
 
@@ -184,6 +188,7 @@ class OptionSnap
         $oldState = $this->readSnapshot($args[0]);
         if (!$oldState) {
             $cli->error("There's no snapshot file for {$args[0]}. Aborting");
+            return;
         }
 
         $wpCfmSettings = $helpers->getWPCFMSettings();
