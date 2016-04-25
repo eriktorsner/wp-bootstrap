@@ -30,34 +30,34 @@ class ExportTaxonomies
     {
         $app = Bootstrap::getApplication();
         $settings = $app['settings'];
-        if (!isset($settings['content']['taxonomies'])) {
-            return;
-        }
-
         $cli = $app['cli'];
 
-        foreach ($settings['content']['taxonomies'] as $taxonomyName => $terms) {
-            $this->taxonomies->$taxonomyName = new \stdClass();
-            $this->taxonomies->$taxonomyName->termsDescriptor = $terms;
-            $this->taxonomies->$taxonomyName->type = 'standard';
-            $this->taxonomies->$taxonomyName->terms = array();
-            if (is_object($terms)) {
-                if (isset($terms->terms)) {
-                    $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
+        if (isset($settings['content']['taxonomies'])) {
+            foreach ($settings['content']['taxonomies'] as $taxonomyName => $terms) {
+                if (!isset($this->taxonomies->$taxonomyName)) {
+                    $this->taxonomies->$taxonomyName = new \stdClass();
+                }
+                $this->taxonomies->$taxonomyName->termsDescriptor = $terms;
+                $this->taxonomies->$taxonomyName->type = 'standard';
+                $this->taxonomies->$taxonomyName->terms = array();
+                if (is_object($terms)) {
+                    if (isset($terms->terms)) {
+                        $this->taxonomies->$taxonomyName->termsDescriptor = $terms->terms;
+                    } else {
+                        $cli->warning("No terms property defined on $taxonomyName, using *");
+                        $this->taxonomies->$taxonomyName->termsDescriptor = '*';
+                    }
+                    $this->taxonomies->$taxonomyName->type = $terms->type;
+                }
+                if ($this->taxonomies->$taxonomyName->termsDescriptor == '*') {
+                    $allTerms = get_terms($taxonomyName, array('hide_empty' => false));
+                    foreach ($allTerms as $term) {
+                        $this->addTerm($taxonomyName, $term->slug);
+                    }
                 } else {
-                    $cli->warning("No terms property defined on $taxonomyName, using *");
-                    $this->taxonomies->$taxonomyName->termsDescriptor = '*';
-                }
-                $this->taxonomies->$taxonomyName->type = $terms->type;
-            }
-            if ($this->taxonomies->$taxonomyName->termsDescriptor == '*') {
-                $allTerms = get_terms($taxonomyName, array('hide_empty' => false));
-                foreach ($allTerms as $term) {
-                    $this->addTerm($taxonomyName, $term->slug);
-                }
-            } else {
-                foreach ($terms as $term) {
-                    $this->addTerm($taxonomyName, $term);
+                    foreach ($terms as $term) {
+                        $this->addTerm($taxonomyName, $term);
+                    }
                 }
             }
         }
