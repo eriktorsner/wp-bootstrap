@@ -39,23 +39,6 @@ class Bootstrap
     }
 
     /**
-     * Bootstrap a WordPress site based on appsettings.json and localsettings.json.
-     * Equal to running commands install, setup and import
-     *
-     * @param $args
-     * @param $assocArgs
-     *
-     * @when before_wp_load
-     */
-    public function bootstrap($args, $assocArgs)
-    {
-        $this->initiate($args, $assocArgs);
-        $bootstrap = $this->container->getBootstrap();
-        $this->container->validateSettings();
-        $bootstrap->bootstrap();
-    }
-
-    /**
      * Install a WordPress site based on appsettings.json and localsettings.json.
      *
      * @param $args
@@ -104,13 +87,12 @@ class Bootstrap
      * @param $args
      * @param $assocArgs
      *
-     * @when before_wp_load
      */
     public function import($args, $assocArgs)
     {
-        $this->initiate($args, $assocArgs);
-        $import = $this->container->getImport();
-        $import->import();
+        $app = self::getApplication();
+        $obj = $app['import'];
+        $obj->run($args, $assocArgs);
     }
 
     /**
@@ -126,22 +108,4 @@ class Bootstrap
         $obj = $app['export'];
         $obj->run($args, $assocArgs);
     }
-
-    /**
-     * Initiate a new project with default localsettings.json,
-     * appsettings.json and wp-cli.yml
-     *
-     * @param $args
-     * @param $assocArgs
-     *
-     * @subcommand init-project
-     * @when before_wp_load
-     */
-    public function initProject($args, $assocArgs)
-    {
-        $this->initiate($args, $assocArgs);
-        $initBootstrap = $this->container->getInitbootstrap();
-        $initBootstrap->init();
-    }
-
 }
