@@ -32,11 +32,10 @@ class Menus extends ItemsManagerCommand
         if (isset($app['settings']['content']['menus'])) {
             $managedMenus = $app['settings']['content']['menus'];
         }
-
         $output = array();
         foreach ($menus as $menu) {
             $fldManaged = 'No';
-            if (isset($managedMenus[$menu->slug])) {
+            if (in_array($menu->slug, $managedMenus)) {
                 $fldManaged = 'Yes';
             }
 
@@ -70,15 +69,7 @@ class Menus extends ItemsManagerCommand
         foreach ($args as $menuIdentifier) {
             $menu = $this->getMenuSlug($menuIdentifier, $menus);
             if ($menu) {
-                if (count($menu->locations) > 0) {
-                    foreach ($menu->locations as $location) {
-                        $this->updateSettings(
-                            array('content','menus', $menu->slug , $location)
-                        );
-                    }
-                } else {
-                    $this->updateSettings(array('content','menus', $menu->slug , array()));
-                }
+                $this->updateSettings(array('content','menus', $menu->slug));
                 $this->writeAppsettings();
             } else {
                 $cli->warning("Menu $menuIdentifier not found\n");

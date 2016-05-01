@@ -93,10 +93,14 @@ class Posts extends ItemsManagerCommand
             if (is_numeric($postIdentifier)) {
                 $post = get_post($postIdentifier);
             } else {
+                $post = false;
                 $args = array('name' => $postIdentifier, 'post_type' => 'any');
                 $posts = get_posts($args);
-                $post = array_shift($posts);
+                if (is_array($posts)) {
+                    $post = reset($posts);
+                }
             }
+
             if ($post) {
                 $this->updateSettings(
                     array('content','posts', $post->post_type, $post->post_name)
