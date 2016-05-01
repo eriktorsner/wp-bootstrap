@@ -59,39 +59,6 @@ class ItemsManagerCommand
         }
     }
 
-    /**
-     * @param array $assocArgs
-     * @param string $name
-     * @param string $default
-     * @param string $new
-     */
-    protected function preserveAndSetList(&$assocArgs, $name, $default, $new)
-    {
-        $this->preservedFields[$name] = $default;
-        if (isset($assocArgs[$name])) {
-            $this->preservedFields[$name] = $assocArgs[$name];
-        }
-
-        $assocArgs[$name] = $this->preservedFields[$name] . ",$new";
-
-    }
-
-    /**
-     * @param array $assocArgs
-     * @param string $name
-     * @param string $default
-     * @param string $new
-     */
-    protected function preserveAndSet(&$assocArgs, $name, $default, $new)
-    {
-        $this->preservedFields[$name] = $default;
-        if (isset($assocArgs[$name])) {
-            $this->preservedFields[$name] = $assocArgs[$name];
-        }
-
-        $assocArgs[$name] = $new;
-    }
-
     protected function getJsonList($cmd, $args = array(), $assocArgs = array())
     {
         $app = Bootstrap::getApplication();
@@ -147,7 +114,6 @@ class ItemsManagerCommand
     {
         $app = Bootstrap::getApplication();
         $cliutils = $app['cliutils'];
-        $cli = $app['cli'];
 
         if (count($output) > 0) {
             $cliutils->format_items(
