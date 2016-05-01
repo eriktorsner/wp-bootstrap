@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Import;
 
 use Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ImportPosts
@@ -33,6 +34,7 @@ class ImportPosts
     {
         $app = Bootstrap::getApplication();
         $helpers = $app['helpers'];
+        $yaml = new Yaml();
 
         $dir = BASEPATH . '/bootstrap/posts';
         foreach ($helpers->getFiles($dir) as $postType) {
@@ -46,7 +48,7 @@ class ImportPosts
                 $newPost->tries = 0;
 
                 $file = BASEPATH . "/bootstrap/posts/$postType/$slug";
-                $newPost->post = unserialize(file_get_contents($file));
+                $newPost->post = $yaml->parse(file_get_contents($file));
 
                 $this->posts[] = $newPost;
             }
@@ -72,8 +74,8 @@ class ImportPosts
             foreach ($this->posts as &$post) {
                 $post->tries++;
                 if (!$post->done) {
-                    $parentId = $this->parentId($post->post->post_parent, $this->posts);
-                    if ($parentId || $post->post->post_parent == 0 || $post->tries > 9) {
+                    $parentId = $this->parentId($post->post['post_parent'], $this->posts);
+                    if ($parentId || $post->post['post_parent'] == 0 || $post->tries > 9) {
                         $this->updatePost($post, $parentId);
                         $post->done = true;
                     } else {
@@ -109,21 +111,21 @@ class ImportPosts
 
         $postId = $wpdb->get_var($sql);
         $args = array(
-          'post_type' => $post->post->post_type,
-          'post_mime_type' => $post->post->post_mime_type,
+          'post_type' => $post->post['post_type'],
+          'post_mime_type' => $post->post['post_mime_type'],
           'post_parent' => $parentId,
-          'post_title' => $post->post->post_title,
-          'post_content' => $post->post->post_content,
-          'post_status' => $post->post->post_status,
-          'post_name' => $post->post->post_name,
-          'post_exerp' => $post->post->post_exerp,
-          'ping_status' => $post->post->ping_status,
-          'pinged' => $post->post->pinged,
-          'comment_status' => $post->post->comment_status,
-          'post_date' => $post->post->post_date,
-          'post_date_gmt' => $post->post->post_date_gmt,
-          'post_modified' => $post->post->post_modified,
-          'post_modified_gmt' => $post->post->post_modified_gmt,
+          'post_title' => $post->post['post_title'],
+          'post_content' => $post->post['post_content'],
+          'post_status' => $post->post['post_status'],
+          'post_name' => $post->post['post_name'],
+          'post_excerpt' => $post->post['post_excerpt'],
+          'ping_status' => $post->post['ping_status'],
+          'pinged' => $post->post['pinged'],
+          'comment_status' => $post->post['comment_status'],
+          'post_date' => $post->post['post_date'],
+          'post_date_gmt' => $post->post['post_date_gmt'],
+          'post_modified' => $post->post['post_modified'],
+          'post_modified_gmt' => $post->post['post_modified_gmt'],
         );
 
         if (!$postId) {
@@ -134,7 +136,7 @@ class ImportPosts
         }
 
         $existingMeta = get_post_meta($postId);
-        foreach ($post->post->post_meta as $meta => $value) {
+        foreach ($post->post['post_meta'] as $meta => $value) {
             if (isset($existingMeta[$meta])) {
                 $existingMetaItem = $existingMeta[$meta];
             }
@@ -161,40 +163,41 @@ class ImportPosts
         $app = Bootstrap::getApplication();
         $cli = $app['cli'];
         $uploadDir = wp_upload_dir();
+        $yaml = new Yaml();
 
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
-            $item = unserialize(file_get_contents("$dir/meta"));
+            $item = $yaml->parse(file_get_contents("$dir/meta"));
             //$include = false;
 
             // does this image have an imported post as it's parent?
-            $parentId = $this->parentId($item->post_parent, $this->posts);
+            $parentId = $this->parentId($item['post_parent'], $this->posts);
             if ($parentId != 0) {
                 $cli->debug('Media is attached to post', array($item->ID, $parentId));
             }
 
             // does an imported post have this image as thumbnail?
-            $isAThumbnail = $this->isAThumbnail($item->ID);
+            $isAThumbnail = $this->isAThumbnail($item['ID']);
             if ($isAThumbnail) {
-                $cli->debug('Media is thumbnail to (at least) one post  ' . $item->ID);
+                $cli->debug('Media is thumbnail to (at least) one post  ' . $item['ID']);
             }
 
             $args = array(
-                'name' => $item->post_name,
-                'post_type' => $item->post_type,
+                'name' => $item['post_name'],
+                'post_type' => $item['post_type'],
             );
 
-            $file = $item->post_meta['_wp_attached_file'][0];
+            $file = $item['post_meta']['_wp_attached_file'][0];
 
             $existing = new \WP_Query($args);
             if (!$existing->have_posts()) {
                 $args = array(
-                    'post_title' => $item->post_title,
-                    'post_name' => $item->post_name,
-                    'post_type' => $item->post_type,
+                    'post_title' => $item['post_title'],
+                    'post_name' => $item['>post_name'],
+                    'post_type' => $item['post_type'],
                     'post_parent' => $parentId,
-                    'post_status' => $item->post_status,
-                    'post_mime_type' => $item->post_mime_type,
+                    'post_status' => $item['post_status'],
+                    'post_mime_type' => $item['post_mime_type'],
                     'guid' => $uploadDir['basedir'].'/'.$file,
                 );
                 $id = wp_insert_post($args);
@@ -209,10 +212,10 @@ class ImportPosts
             @mkdir($uploadDir['basedir'].'/'.dirname($file), 0777, true);
 
             // Add it to collection
-            $mediaItem = new \stdClass();
+            /*$mediaItem = new \stdClass();
             $mediaItem->meta = $item;
             $mediaItem->id = $id;
-            $this->media[] = $mediaItem;
+            $this->media[] = $mediaItem;*/
 
             if (file_exists($src) && file_exists($trg)) {
                 if (filesize($src) == filesize($trg)) {
@@ -248,7 +251,7 @@ class ImportPosts
     private function parentId($foreignParentId, $objects)
     {
         foreach ($objects as $object) {
-            if ($object->post->ID == $foreignParentId) {
+            if ($object->post['ID'] == $foreignParentId) {
                 return $object->id;
             }
         }
@@ -292,28 +295,5 @@ class ImportPosts
                 }
             }
         }
-    }
-
-    /**
-     * Finds a post based on it's original id. If found, returns the new (after import) id
-     *
-     * @param $target
-     * @return int
-     */
-    public function _findTargetPostId($target)
-    {
-        foreach ($this->posts as $post) {
-            if ($post->post->ID == $target) {
-                return $post->id;
-            }
-        }
-
-        foreach ($this->media as $media) {
-            if ($media->meta->ID == $target) {
-                return $media->id;
-            }
-        }
-
-        return 0;
     }
 }

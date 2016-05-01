@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Import;
 
 use \Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ImportTaxonomies
@@ -31,7 +32,7 @@ class ImportTaxonomies
     {
         $app = Bootstrap::getApplication();
         $helpers = $app['helpers'];
-        $import = $app['import'];
+        $yaml = new Yaml();
 
         $dir = BASEPATH.'/bootstrap/taxonomies';
         foreach ($helpers->getFiles($dir) as $subdir) {
@@ -47,7 +48,7 @@ class ImportTaxonomies
                 $term->done = false;
                 $term->id = 0;
                 $term->slug = $file;
-                $term->term = unserialize(file_get_contents($dir.'/'.$subdir.'/'.$file));
+                $term->term = $yaml->parse(file_get_contents($dir.'/'.$subdir.'/'.$file));
                 $taxonomy->terms[] = $term;
             }
             $this->taxonomies[] = $taxonomy;
@@ -76,13 +77,13 @@ class ImportTaxonomies
         $posts = $import->posts;
         foreach ($this->taxonomies as &$taxonomy) {
             foreach ($posts as $post) {
-                if (isset($post->post->taxonomies[$taxonomy->slug])) {
+                if (isset($post->post['taxonomies'][$taxonomy->slug])) {
                     $newTerms = array();
-                    foreach ($post->post->taxonomies[$taxonomy->slug] as $orgSlug) {
+                    foreach ($post->post['taxonomies'][$taxonomy->slug] as $orgSlug) {
                         $termSlug = $this->findNewTerm($taxonomy, $orgSlug);
                         $newTerms[] = $termSlug;
                     }
-                    $cli->debug("adding terms to object {$post->id}", $newTerms);
+                    $cli->debug("adding terms to post {$post->slug}", $newTerms);
                     wp_set_object_terms($post->id, $newTerms, $taxonomy->slug, false);
                 }
             }
@@ -105,15 +106,15 @@ class ImportTaxonomies
             $deferred = 0;
             foreach ($taxonomy->terms as &$term) {
                 if (!$term->done) {
-                    $parentId = $this->parentId($term->term->parent, $taxonomy);
-                    $cli->debug("Importing term {$term->term->name}/{$term->term->slug}");
-                    if ($parentId || $term->term->parent == 0) {
+                    $parentId = $this->parentId($term->term['parent'], $taxonomy);
+                    $cli->debug("Importing term {$term->term['name']}/{$term->term['slug']} parent: $parentId");
+                    if ($parentId || $term->term['parent'] == 0) {
                         $args = array(
-                            'description' => $term->term->description,
+                            'description' => $term->term['description'],
                             'parent' => $parentId,
-                            'slug' => $term->term->slug,
-                            'term_group' => $term->term->term_group,
-                            'name' => $term->term->name,
+                            'slug' => $term->term['slug'],
+                            'term_group' => $term->term['term_group'],
+                            'name' => $term->term['name'],
                         );
                         switch ($taxonomy->type) {
                             case 'postid':
@@ -125,7 +126,7 @@ class ImportTaxonomies
                             wp_update_term($existingTermId, $taxonomy->slug, $args);
                             $term->id = $existingTermId;
                         } else {
-                            $id = wp_insert_term($term->term->name, $taxonomy->slug, $args);
+                            $id = wp_insert_term($term->term['name'], $taxonomy->slug, $args);
                             $term->id = $id['term_id'];
                         }
                         $term->done = true;
@@ -150,13 +151,13 @@ class ImportTaxonomies
     {
         // slug refers to a postid.
         $importPosts = $this->import->posts;
-        $newId = $importPosts->findTargetPostId($term->slug);
+        $newId = $importPosts->findTargetPostId($term['slug']);
 
         if ($newId) {
             $args['slug'] = strval($newId);
             $args['name'] = strval($newId);
-            $term->name = strval($newId);
-            $term->slug = strval($newId);
+            $term['name'] = strval($newId);
+            $term['slug'] = strval($newId);
         }
     }
 
@@ -172,7 +173,7 @@ class ImportTaxonomies
     {
         foreach ($taxonomy->terms as $term) {
             if ($term->slug == $orgSlug) {
-                return $term->term->slug;
+                return $term->term['slug'];
             }
         }
 
@@ -189,7 +190,7 @@ class ImportTaxonomies
     private function parentId($foreignParentId, $taxonomy)
     {
         foreach ($taxonomy->terms as $term) {
-            if ($term->term->term_id == $foreignParentId) {
+            if ($term->term['term_id'] == $foreignParentId) {
                 return $term->id;
             }
         }
@@ -208,7 +209,7 @@ class ImportTaxonomies
     private function findExistingTerm($term, $currentTerms)
     {
         foreach ($currentTerms as $currentTerm) {
-            if ($currentTerm->slug == $term->term->slug) {
+            if ($currentTerm->slug == $term->term['slug']) {
                 return $currentTerm->term_id;
             }
         }
@@ -224,36 +225,18 @@ class ImportTaxonomies
      */
     private function readManifest(&$taxonomy, $taxonomyName)
     {
+        $yaml = new Yaml();
         $taxonomy->type = 'standard';
         $taxonomy->termDescriptor = 'indirect';
-        $file = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest.json";
+        $file = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
         if (file_exists($file)) {
-            $manifest = json_decode(file_get_contents($file));
-            if (isset($manifest->type)) {
-                $taxonomy->type = $manifest->type;
+            $manifest = $yaml->parse(file_get_contents($file));
+            if (isset($manifest['type'])) {
+                $taxonomy->type = $manifest['type'];
             }
-            if (isset($manifest->termDescriptor)) {
-                $taxonomy->termDescriptor = $manifest->termDescriptor;
-            }
-        }
-    }
-
-    /**
-     * Searches all imported taxonomies for a specific term, returns the term id if fount
-     *
-     * @param $target
-     * @return int
-     */
-    public function _findTargetTermId($target)
-    {
-        foreach ($this->taxonomies as $taxonomy) {
-            foreach ($taxonomy->terms as $term) {
-                if ($term->term->term_id == $target) {
-                    return $term->id;
-                }
+            if (isset($manifest['termDescriptor'])) {
+                $taxonomy->termDescriptor = $manifest['termDescriptor'];
             }
         }
-
-        return 0;
     }
 }

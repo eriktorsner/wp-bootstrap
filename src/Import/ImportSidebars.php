@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Import;
 
 use Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class ImportSidebars
@@ -27,14 +28,19 @@ class ImportSidebars
         $app = Bootstrap::getApplication();
         $helpers = $app['helpers'];
         $baseUrl = get_option('siteurl');
+        $yaml = new Yaml();
 
         $dir = BASEPATH.'/bootstrap/sidebars';
         foreach ($helpers->getFiles($dir) as $sidebar) {
+            if (!is_dir(BASEPATH."/bootstrap/sidebars/$sidebar")) {
+                continue;
+            }
             $subdir = BASEPATH."/bootstrap/sidebars/$sidebar";
+            $manifest = BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
             $newSidebar = new \stdClass();
             $newSidebar->slug = $sidebar;
             $newSidebar->items = array();
-            $newSidebar->meta = unserialize(file_get_contents($subdir.'/meta'));
+            $newSidebar->meta = $yaml->parse(file_get_contents($manifest));
 
             foreach ($newSidebar->meta as $key => $widgetRef) {
                 $widget = new \stdClass();
@@ -44,7 +50,7 @@ class ImportSidebars
 
                 $widget->type = $type;
                 $widget->ord = $ord;
-                $widget->meta = unserialize(file_get_contents($subdir.'/'.$widgetRef));
+                $widget->meta = $yaml->parse(file_get_contents($subdir.'/'.$widgetRef));
                 $newSidebar->items[] = $widget;
             }
             $this->sidebars[] = $newSidebar;
