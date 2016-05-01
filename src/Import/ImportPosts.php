@@ -167,13 +167,13 @@ class ImportPosts
 
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
+            echo "dir: $dir\n";
             $item = $yaml->parse(file_get_contents("$dir/meta"));
-            //$include = false;
 
             // does this image have an imported post as it's parent?
             $parentId = $this->parentId($item['post_parent'], $this->posts);
             if ($parentId != 0) {
-                $cli->debug('Media is attached to post', array($item->ID, $parentId));
+                $cli->debug("Media is attached to post {$item['ID']} $parentId");
             }
 
             // does an imported post have this image as thumbnail?
@@ -193,7 +193,7 @@ class ImportPosts
             if (!$existing->have_posts()) {
                 $args = array(
                     'post_title' => $item['post_title'],
-                    'post_name' => $item['>post_name'],
+                    'post_name' => $item['post_name'],
                     'post_type' => $item['post_type'],
                     'post_parent' => $parentId,
                     'post_status' => $item['post_status'],
@@ -202,7 +202,7 @@ class ImportPosts
                 );
                 $id = wp_insert_post($args);
             } else {
-                $id = $existing->post->ID;
+                $id = $existing->post['ID'];
             }
             update_post_meta($id, '_wp_attached_file', $file);
 
@@ -210,12 +210,6 @@ class ImportPosts
             $src = $dir.'/'.basename($file);
             $trg = $uploadDir['basedir'].'/'.$file;
             @mkdir($uploadDir['basedir'].'/'.dirname($file), 0777, true);
-
-            // Add it to collection
-            /*$mediaItem = new \stdClass();
-            $mediaItem->meta = $item;
-            $mediaItem->id = $id;
-            $this->media[] = $mediaItem;*/
 
             if (file_exists($src) && file_exists($trg)) {
                 if (filesize($src) == filesize($trg)) {
@@ -236,7 +230,7 @@ class ImportPosts
 
             // set this image as a thumbnail if needed
             if ($isAThumbnail) {
-                $this->setAsThumbnail($item->ID, $id);
+                $this->setAsThumbnail($item['ID'], $id);
             }
         }
     }
@@ -268,8 +262,8 @@ class ImportPosts
     private function isAThumbnail($id)
     {
         foreach ($this->posts as $post) {
-            if (isset($post->post->post_meta['_thumbnail_id'])) {
-                $thumbId = $post->post->post_meta['_thumbnail_id'][0];
+            if (isset($post->post['post_meta']['_thumbnail_id'])) {
+                $thumbId = $post->post['post_meta']['_thumbnail_id'][0];
                 if ($thumbId == $id) {
                     return true;
                 }
@@ -288,8 +282,8 @@ class ImportPosts
     private function setAsThumbnail($oldId, $newId)
     {
         foreach ($this->posts as $post) {
-            if (isset($post->post->post_meta['_thumbnail_id'])) {
-                $thumbId = $post->post->post_meta['_thumbnail_id'][0];
+            if (isset($post->post['post_meta']['_thumbnail_id'])) {
+                $thumbId = $post->post['post_meta']['_thumbnail_id'][0];
                 if ($thumbId == $oldId) {
                     set_post_thumbnail($post->id, $newId);
                 }

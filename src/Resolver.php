@@ -81,8 +81,8 @@ class Resolver
         foreach ($references as $key => $value) {
             if (is_integer($key)) {
                 foreach ($this->import->posts as $post) {
-                    if (isset($post->post->post_meta[$value])) {
-                        foreach ($post->post->post_meta[$value] as $currentValue) {
+                    if (isset($post->post['post_meta'][$value])) {
+                        foreach ($post->post['post_meta'][$value] as $currentValue) {
                             $newValue = $this->calcNewValue($currentValue, $type);
                             if ($newValue !== false) {
                                 update_post_meta($post->id, $value, $newValue, $currentValue);
