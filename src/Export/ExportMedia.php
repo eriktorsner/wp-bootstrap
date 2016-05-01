@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Export;
 
 use \Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Dumper;
 
 /**
  * Class ExportMedia
@@ -22,21 +23,22 @@ class ExportMedia
     {
         $this->mediaIds = array_unique($this->mediaIds);
         $uploadDir = wp_upload_dir();
+        $dumper = new Dumper();
 
         foreach ($this->mediaIds as $itemId) {
-            $item = get_post($itemId);
+            $item = get_post($itemId, ARRAY_A);
             if ($item) {
                 $meta = get_post_meta($itemId);
-                $item->post_meta = $meta;
+                $item['post_meta'] = $meta;
 
                 $file = $meta['_wp_attached_file'][0];
 
                 $attachmentMeta = wp_get_attachment_metadata($itemId, true);
-                $item->attachment_meta = $attachmentMeta;
+                $item['attachment_meta'] = $attachmentMeta;
 
-                $dir = BASEPATH.'/bootstrap/media/'.$item->post_name;
+                $dir = BASEPATH.'/bootstrap/media/'.$item['post_name'];
                 @mkdir($dir, 0777, true);
-                file_put_contents($dir.'/meta', serialize($item));
+                file_put_contents($dir.'/meta', $dumper->dump($item, 4));
                 $src = $uploadDir['basedir'].'/'.$file;
                 $trg = $dir.'/'.basename($file);
                 if (file_exists($src)) {

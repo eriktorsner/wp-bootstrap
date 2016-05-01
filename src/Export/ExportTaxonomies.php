@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Export;
 
 use \Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Dumper;
 
 /**
  * Class ExportTaxonomies
@@ -73,6 +74,7 @@ class ExportTaxonomies
         $app = Bootstrap::getApplication();
         $cli = $app['cli'];
         $helpers = $app['helpers'];
+        $dumper = new Dumper();
 
         $count = 1;
         while ($count > 0) {
@@ -84,14 +86,14 @@ class ExportTaxonomies
                         continue;
                     }
 
-                    $objTerm = get_term_by('slug', $term->slug, $taxonomyName);
+                    $objTerm = get_term_by('slug', $term->slug, $taxonomyName, ARRAY_A);
                     $file = BASEPATH."/bootstrap/taxonomies/$taxonomyName/{$term->slug}";
                     @mkdir(dirname($file), 0777, true);
-                    file_put_contents($file, serialize($objTerm));
+                    file_put_contents($file, $dumper->dump($objTerm, 4));
 
-                    if ($objTerm->parent) {
-                        $parentTerm = get_term_by('id', $objTerm->parent, $taxonomyName);
-                        $this->addTerm($taxonomyName, $parentTerm->slug);
+                    if ($objTerm['parent']) {
+                        $parentTerm = get_term_by('id', $objTerm['parent'], $taxonomyName, ARRAY_A);
+                        $this->addTerm($taxonomyName, $parentTerm['slug']);
                     }
                     $term->done = true;
                     ++$count;
@@ -100,13 +102,13 @@ class ExportTaxonomies
         }
 
         foreach ($this->taxonomies as $taxonomyName => $taxonomy) {
-            $manifestFile = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest.json";
-            $manifest = new \stdClass();
-            $manifest->name = $taxonomyName;
-            $manifest->type = $taxonomy->type;
-            $manifest->termsDescriptor = $taxonomy->termsDescriptor;
+            $manifestFile = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
+            $manifest = array();
+            $manifest['name'] = $taxonomyName;
+            $manifest['type'] = $taxonomy->type;
+            $manifest['termsDescriptor'] = $taxonomy->termsDescriptor;
             $cli->debug("Creating $taxonomyName manifest ".$manifestFile);
-            file_put_contents($manifestFile, $helpers->prettyPrint(json_encode($manifest)));
+            file_put_contents($manifestFile, $dumper->dump($manifest, 4));
         }
     }
 

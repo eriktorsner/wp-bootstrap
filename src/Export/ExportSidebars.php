@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Export;
 
 use \Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Dumper;
 
 /**
  * Class ExportSidebars
@@ -25,6 +26,7 @@ class ExportSidebars
         $exportMedia = $app['exportmedia'];
         $helpers = $app['helpers'];
         $baseUrl = get_option('siteurl');
+        $dumper = new Dumper();
 
         $storedSidebars = get_option('sidebars_widgets', array());
         foreach ($settings['content']['sidebars'] as $sidebar) {
@@ -32,27 +34,27 @@ class ExportSidebars
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);
 
-            $obj = new \stdClass();
+            $sidebarDef = array();
             if (isset($storedSidebars[$sidebar])) {
-                $obj = $storedSidebars[$sidebar];
+                $sidebarDef = $storedSidebars[$sidebar];
             }
-            foreach ($obj as $key => $widget) {
-                $parts = explode('-', $widget);
+            foreach ($sidebarDef as $key => $widgetRef) {
+                $parts = explode('-', $widgetRef);
                 $ord = end($parts);
-                $name = substr($widget, 0, -1 * strlen('-'.$ord));
+                $name = substr($widgetRef, 0, -1 * strlen('-'.$ord));
                 $widgetTypeSettings = get_option('widget_'.$name);
                 $widgetSettings = $widgetTypeSettings[$ord];
 
                 $ret = $extractMedia->getReferencedMedia($widgetSettings);
                 $exportMedia->addMedia($ret);
 
-                $file = $dir.'/'.$widget;
+                $file = $dir.'/'.$widgetRef;
                 $helpers->fieldSearchReplace($widgetSettings, $baseUrl, Bootstrap::NEUTRALURL);
-                file_put_contents($file, serialize($widgetSettings));
+                file_put_contents($file, $dumper->dump($widgetSettings, 4));
             }
 
-            $file = $dir.'/meta';
-            file_put_contents($file, serialize($obj));
+            $file = BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
+            file_put_contents($file, $dumper->dump($sidebarDef, 4));
         }
     }
 }

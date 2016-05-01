@@ -3,6 +3,7 @@
 namespace Wpbootstrap\Export;
 
 use \Wpbootstrap\Bootstrap;
+use Symfony\Component\Yaml\Dumper;
 
 /**
  * Class ExportPosts
@@ -78,6 +79,7 @@ class ExportPosts
         $exportTaxonomies = $app['exporttaxonomies'];
         $helpers = $app['helpers'];
         $baseUrl = get_option('siteurl');
+        $dumper = new Dumper();
 
         $count = 1;
         while ($count > 0) {
@@ -92,15 +94,15 @@ class ExportPosts
                         $postType,
                         $post->slug
                     ));
-                    $objPost = get_post($postId);
-                    if (!$objPost) {
+                    $arrPost = get_post($postId, ARRAY_A);
+                    if (!$arrPost) {
                         $cli->debug("Post $postId not found");
                         continue;
                     }
 
                     $cli->debug("Exporting post {$post->slug} ($postId)");
-                    $meta = get_post_meta($objPost->ID);
-                    $objPost->taxonomies = array();
+                    $meta = get_post_meta($arrPost['ID']);
+                    $arrPost['taxonomies'] = array();
 
                     // extract media ids
                     // 1. from attached media:
@@ -116,12 +118,12 @@ class ExportPosts
                     }
 
                     // 3. Is this post actually an attachment?
-                    if ($objPost->post_type == 'attachment') {
-                        $exportMedia->addMedia($objPost->ID);
+                    if ($arrPost['post_type'] == 'attachment') {
+                        $exportMedia->addMedia($arrPost['ID']);
                     }
 
                     // 4. referenced in the content
-                    $ret = $extractMedia->getReferencedMedia($objPost);
+                    $ret = $extractMedia->getReferencedMedia($arrPost);
                     if (count($ret) > 0) {
                         $exportMedia->addMedia($ret);
                     }
@@ -145,20 +147,20 @@ class ExportPosts
                             // add it to the exported terms
                             $exportTaxonomies->addTerm($taxonomy, $objTerm->slug);
 
-                            if (!isset($objPost->taxonomies[$taxonomy])) {
-                                $objPost->taxonomies[$taxonomy] = array();
+                            if (!isset($arrPost['taxonomies'][$taxonomy])) {
+                                $arrPost['taxonomies'][$taxonomy] = array();
                             }
-                            $objPost->taxonomies[$taxonomy][] = $objTerm->slug;
+                            $arrPost['taxonomies'][$taxonomy][] = $objTerm->slug;
                         }
                     }
 
-                    $objPost->post_meta = $meta;
-                    $helpers->fieldSearchReplace($objPost, $baseUrl, Bootstrap::NEUTRALURL);
+                    $arrPost['post_meta'] = $meta;
+                    $helpers->fieldSearchReplace($arrPost, $baseUrl, Bootstrap::NEUTRALURL);
 
-                    $file = BASEPATH."/bootstrap/posts/{$objPost->post_type}/{$objPost->post_name}";
+                    $file = BASEPATH."/bootstrap/posts/{$arrPost['post_type']}/{$arrPost['post_name']}";
                     $cli->debug("Storing $file");
                     @mkdir(dirname($file), 0777, true);
-                    file_put_contents($file, serialize($objPost));
+                    file_put_contents($file, $dumper->dump($arrPost, 4));
                     $post->done = true;
                     ++$count;
                 }
