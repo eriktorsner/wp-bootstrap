@@ -167,7 +167,6 @@ class ImportPosts
 
         // check all the media.
         foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
-            echo "dir: $dir\n";
             $item = $yaml->parse(file_get_contents("$dir/meta"));
 
             // does this image have an imported post as it's parent?
