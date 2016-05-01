@@ -125,7 +125,7 @@ class Import extends BaseCommand
         switch ($type) {
             case 'post':
                 foreach ($this->posts as $post) {
-                    if ($post->post->ID == $originalId) {
+                    if ($post->post['ID'] == $originalId) {
                         return $post->id;
                     }
                 }
@@ -133,7 +133,7 @@ class Import extends BaseCommand
             case 'term':
                 foreach ($this->taxonomies as $taxonomy) {
                     foreach ($taxonomy->terms as $term) {
-                        if ($term->term->term_id == $originalId) {
+                        if ($term->term['term_id'] == $originalId) {
                             return $term->id;
                         }
                     }
