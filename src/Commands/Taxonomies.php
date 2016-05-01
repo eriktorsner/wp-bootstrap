@@ -8,19 +8,17 @@ use Wpbootstrap\Bootstrap;
  * Class Posts
  * @package Wpbootstrap\Command
  */
-class Terms
+class Taxonomies extends ItemsManagerCommand
 {
-    private $preservedFields = array();
-
     /**
-     * List all terms that currectly exists in WordPress. Adds a column to indicate
+     * List terms that currectly exists in WordPress. Adds a column to indicate
      * if it's managed by WP Boostrap or not
      *
-     * <taxonomy>
+     * <taxonomy>...
      * :List terms of one or more taxonomies
      *
-     * [--fields=<fields>]
-     * : Limit the output to specific object fields.
+     * [--format=<format>]
+     * :Accepted values: table, csv, json, count, ids, yaml. Default: table
      *
      * @subcommand list
      *
@@ -30,63 +28,50 @@ class Terms
      */
     public function listItems($args, $assocArgs)
     {
+        $this->args = $args;
+        $this->assocArgs = $assocArgs;
+
         $app = Bootstrap::getApplication();
-        $defaultFields = 'term_id,term_taxonomy_id,name,slug,description,parent,count';
+        $terms = $this->getTerms();
 
-        $this->preserveAndSet($assocArgs, 'format', 'table', 'json');
-        $this->preserveAndSetList($assocArgs, 'fields', $defaultFields, 'post_type,post_name');
-        $postTypes = isset($assocArgs['post_type'])?$assocArgs['post_type']:'all';
-
-        if ($postTypes == 'all') {
-            $postTypes = get_post_types();
-            unset($postTypes['revision']);
-            unset($postTypes['nav_menu_item']);
-            $assocArgs['post_type'] = join(',', $postTypes);
-        }
-
-        $posts = $this->getJsonList('post list --format=json', $args, $assocArgs);
-        $managedPosts = array();
-        if (isset($app['settings']['content']['posts'])) {
-            $managedPosts = $app['settings']['content']['posts'];
+        $managedTerms = array();
+        if (isset($app['settings']['content']['taxonomies'])) {
+            $managedTerms = $app['settings']['content']['taxonomies'];
         }
 
         $output = array();
-        foreach ($posts as $post) {
+        foreach ($terms as $term) {
             $fldManaged = 'No';
-            if (isset($managedPosts[$post->post_type])) {
-                if (is_array($managedPosts[$post->post_type])) {
-                    $fldManaged = in_array($post->post_name, $managedPosts[$post->post_type])?'Yes':'No';
+            if (isset($managedTerms[$term->taxonomy])) {
+                if (is_array($managedTerms[$term->taxonomy])) {
+                    $fldManaged = in_array($term->slug, $managedTerms[$term->taxonomy])?'Yes':'No';
                 } else {
-                    if ($managedPosts[$post->post_type] == '*') {
+                    if ($managedTerms[$term->taxonomy] == '*') {
                         $fldManaged = 'Yes';
                     }
                 }
             }
 
             $row = array();
-            foreach ($post as $fieldName => $fieldValue) {
+            foreach ($term as $fieldName => $fieldValue) {
                 $row[$fieldName] = $fieldValue;
             }
             $row['Managed'] = $fldManaged;
             $output[] = $row;
         }
 
-        if (count($output) > 0) {
-            $cliutils = $app['cliutils'];
-            $cliutils->format_items(
-                $this->preservedFields['format'],
-                $output,
-                array_keys($output[0])
-            );
-        }
+        $this->output($output);
+
     }
 
     /**
      * Add a post to be managed by WP Bootstrap
      *
+     * <taxonomy>
+     * :The name of the taxonomy
      *
-     * <post_identifier>...
-     * :One or more post_name (slug) or post id's to be added
+     * <term_identifier>...
+     * :One or more term slugs or term id's to be added
      *
      * [--post_type=<post-type>]
      * :When adding a posts by post name, limit the post search
@@ -97,104 +82,56 @@ class Terms
      */
     public function add($args, $assocArgs)
     {
+        $this->args = $args;
+        $this->assocArgs = $assocArgs;
+
         $app = Bootstrap::getApplication();
         $cli = $app['cli'];
+        $taxonomy = array_shift($args);
 
-        foreach ($args as $postIdentifier) {
-            if (is_numeric($postIdentifier)) {
-                $post = get_post($postIdentifier);
-            } else {
-                $args = array('name' => $postIdentifier, 'post_type' => 'any');
-                $posts = get_posts($args);
-                $post = array_shift($posts);
-            }
-            if ($post) {
-                $settings = $app['settings'];
+        foreach ($args as $termIdentifier) {
+            $slug = false;
 
-                $this->addToSettings(
-                    array('content','posts', $post->post_type, $post->post_name),
-                    $settings
-                );
-                $app['settings'] = $settings;
-
-                $settingsManager = $app['settingsmanager'];
-                $settingsManager->writeAppsettings();
-            } else {
-                $cli->warning("Post $postIdentifier not found\n");
-            }
-        }
-    }
-
-    /**
-     * @param string $path
-     */
-    private function addToSettings($path, &$settings)
-    {
-        $app = Bootstrap::getApplication();
-        $cli = $app['cli'];
-
-        $head = array_shift($path);
-        if (count($path) == 0) {
-            if (is_array($settings)) {
-                if (!in_array($head, $settings)) {
-                    $settings[] = $head;
+            if ($termIdentifier != '*') {
+                if (is_numeric($termIdentifier)) {
+                    $term = get_term_by('id', $termIdentifier, $taxonomy);
                 } else {
-                    $cli->warning("$head is already managed.");
+                    $term = get_term_by('slug', $termIdentifier, $taxonomy);
                 }
+                if ($term) {
+                    $slug = $term->slug;
+                }
+            } else {
+                $slug = $termIdentifier;
             }
+
+            if ($slug) {
+                $this->updateSettings(
+                    array('content','taxonomies', $taxonomy, $slug)
+                );
+            } else {
+                $cli->warning("Term $termIdentifier not found");
+                return;
+            }
+        }
+        $this->writeAppsettings();
+    }
+
+    private function getTerms()
+    {
+        global $wp_version;
+        if (version_compare($wp_version, '4.5', '>=')) {
+            $terms = get_terms(array(
+                'taxonomy' => $this->args,
+                'hide_empty' => false,
+            ));
+            return $terms;
         } else {
-            if (!isset($settings[$head])) {
-                $settings[$head] = array();
-            }
-            $this->addToSettings($path, $settings[$head]);
+            $terms = get_terms($this->args, array(
+                'hide_empty' => false,
+            ));
+
+            return $terms;
         }
-    }
-
-    /**
-     * @param array $assocArgs
-     * @param string $name
-     * @param string $default
-     * @param string $new
-     */
-    private function preserveAndSetList(&$assocArgs, $name, $default, $new)
-    {
-        $this->preservedFields[$name] = $default;
-        if (isset($assocArgs[$name])) {
-            $this->preservedFields[$name] = $assocArgs[$name];
-        }
-
-        $assocArgs[$name] = $this->preservedFields[$name] . ",$new";
-
-    }
-
-    /**
-     * @param array $assocArgs
-     * @param string $name
-     * @param string $default
-     * @param string $new
-     */
-    private function preserveAndSet(&$assocArgs, $name, $default, $new)
-    {
-        $this->preservedFields[$name] = $default;
-        if (isset($assocArgs[$name])) {
-            $this->preservedFields[$name] = $assocArgs[$name];
-        }
-
-        $assocArgs[$name] = $new;
-    }
-
-
-    private function getJsonList($cmd, $args = array(), $assocArgs = array())
-    {
-        $app = Bootstrap::getApplication();
-        $cli = $app['cli'];
-
-        $ret = $cli->launch_self($cmd, $args, $assocArgs, false, true);
-
-        if ($ret->return_code == 0) {
-            return json_decode($ret->stdout);
-        }
-
-        return array();
     }
 }
