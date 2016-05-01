@@ -279,7 +279,7 @@ class Helpers
 
         $decoded = base64_decode($data, true);
         if (@base64_encode($decoded) === $data) {
-            $printable = $this->ctype_print_unicode($decoded); //ctype_print($decoded);
+            $printable = $this->ctypePrintUnicode($decoded); //ctype_print($decoded);
             if ($printable) {
                 return true;
             } else {
@@ -294,7 +294,8 @@ class Helpers
      * @param string $input
      * @return int
      */
-    private function ctype_print_unicode($input) {
+    private function ctypePrintUnicode($input)
+    {
         $pattern = "~^[\pL\pN\s\"\~". preg_quote("!#$%&'()*+,-./:;<=>?@[\]^_`{|}´") ."]+$~u";
         return preg_match($pattern, $input);
     }
