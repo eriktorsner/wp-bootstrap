@@ -13,7 +13,7 @@ To add this package as a local, per-project dependency to your project, simply a
 
     {
         "require": {
-            "eriktorsner/wp-bootstrap": "~0.4.0"
+            "eriktorsner/wp-bootstrap": "~0.5.0"
         }
     }
 

@@ -14,7 +14,7 @@ class Bootstrap
     private static $application;
 
     const NEUTRALURL = '@@__**--**NEUTRAL**--**__@@';
-    const VERSION = '0.4.0';
+    const VERSION = '0.5.0';
 
     /**
      * @return \Pimple\Container

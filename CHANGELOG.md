@@ -1,3 +1,7 @@
+**0.5.0**
+  - New feature: All object serialization is now in Yaml instead of serialized php objects. Note! This breaks backwards compatibility and is also the reason for bumping the version to 0.5.0
+  - New feature: List and add posts, taxonomies and menus to appsettings.yml via new sub commands posts, taxonomies and menus
+
 **0.4.0**
   - Major upgrade. WP Bootstrap now runs as a proper wp-cli sub command
   - New feature: localsettings.json is replaced with .env files
