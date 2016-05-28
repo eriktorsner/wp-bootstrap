@@ -1,10 +1,10 @@
 <?php
 global $argc, $argv;
 
-define('BASEPATH', getcwd());
+define('WPBOOT_BASEPATH', getcwd());
 define('WPBOOT_LAUNCHER', 'wpcli');
 
-require_once BASEPATH . '/vendor/autoload.php';
+require_once WPBOOT_BASEPATH . '/vendor/autoload.php';
 
 if (isset($argv[1]) && $argv[1] == 'bootstrap') {
     $runner = WP_CLI::get_runner();
@@ -32,7 +32,7 @@ if (isset($argv[1]) && $argv[1] == 'bootstrap') {
 WP_CLI::add_command('bootstrap', 'Wpbootstrap\WpCli');
 
 function wpbstrp_rewritePath($newPath) {
-    $lines = file(BASEPATH . '/wp-cli.yml');
+    $lines = file(WPBOOT_BASEPATH . '/wp-cli.yml');
     $buffer = '';
     foreach ($lines as $line) {
         if (substr($line, 0, 5) != 'path:') {
@@ -40,5 +40,5 @@ function wpbstrp_rewritePath($newPath) {
         }
     }
     $buffer .= "path: $newPath";
-    file_put_contents(BASEPATH . '/wp-cli.yml', $buffer);
+    file_put_contents(WPBOOT_BASEPATH . '/wp-cli.yml', $buffer);
 }

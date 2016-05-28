@@ -45,14 +45,14 @@ class ApplicationParametersProvider implements ServiceProviderInterface
      */
     private function readDotEnv(Container $pimple)
     {
-        if (file_exists(BASEPATH . "/.env")) {
-            $dotEnv = new Dotenv(BASEPATH);
+        if (file_exists(WPBOOT_BASEPATH . "/.env")) {
+            $dotEnv = new Dotenv(WPBOOT_BASEPATH);
             $dotEnv->load();
         }
 
         $file = '.env-' . $pimple['environment'];
-        if (file_exists(BASEPATH . "/$file")) {
-            $dotEnv = new Dotenv(BASEPATH, $file);
+        if (file_exists(WPBOOT_BASEPATH . "/$file")) {
+            $dotEnv = new Dotenv(WPBOOT_BASEPATH, $file);
             $dotEnv->overload();
         }
     }
@@ -62,15 +62,15 @@ class ApplicationParametersProvider implements ServiceProviderInterface
      */
     private function loadAppsettings(Container $pimple)
     {
-        if (file_exists(BASEPATH . '/appsettings.yml')) {
+        if (file_exists(WPBOOT_BASEPATH . '/appsettings.yml')) {
             $yaml = new Yaml();
-            $settings = $yaml->parse(file_get_contents(BASEPATH . '/appsettings.yml'));
+            $settings = $yaml->parse(file_get_contents(WPBOOT_BASEPATH . '/appsettings.yml'));
             $pimple['settings'] = $settings;
             return;
         }
 
-        if (file_exists(BASEPATH . '/appsettings.json')) {
-            $settings = json_decode(file_get_contents(BASEPATH . '/appsettings.json'));
+        if (file_exists(WPBOOT_BASEPATH . '/appsettings.json')) {
+            $settings = json_decode(file_get_contents(WPBOOT_BASEPATH . '/appsettings.json'));
             $settings = (array)$settings;
             $pimple['settings'] = $settings;
             return;

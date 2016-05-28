@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-define('BASEPATH', getcwd());
+define('WPBOOT_BASEPATH', getcwd());
 define('WPBOOT_LAUNCHER', 'wpbootsrap');
 
 require_once BASEPATH . '/vendor/autoload.php';
