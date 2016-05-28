@@ -237,6 +237,50 @@ class Helpers
     }
 
     /**
+     * Scans through a PHP file and ensures that a specific
+     * define statement exists and has the correct value
+     *
+     * @param string $file   The file to scan
+     * @param string $define The define to look for
+     * @param string $value  The target value of the define
+     */
+    public function ensureDefineInFile($file, $define, $value)
+    {
+        if (!file_exists($file)) {
+            return;
+        }
+        $lines = file($file);
+        $safeDefine = preg_quote($define);
+        $pattern = "/\s*define\s*\(\s*'($safeDefine)'\s*,\s*'([^']+)'\)\s*;/";
+        $targetLine = "    define('$define', '$value');\n";
+        $hit = false;
+        $modified = false;
+        foreach ($lines as &$line) {
+            if (preg_match($pattern, $line, $matches)) {
+                $hit = true;
+                if ($matches[2] != $value) {
+                    $modified = true;
+                    $line = $targetLine;
+                }
+            }
+        }
+
+        if (!$hit) {
+            $modified = true;
+            $newLine  = "\n// ** Added by WP Bootstrap (don't edit)** //\n";
+            $newLine .= "if (!defined('$define')) {\n";
+            $newLine .= $targetLine;
+            $newLine .= "}\n";
+
+            array_splice($lines, 1, 0, $newLine);
+        }
+
+        if ($modified) {
+            file_put_contents($file, join('', $lines));
+        }
+    }
+
+    /**
      * @param mixed$data
      * @return bool
      */
@@ -256,7 +300,7 @@ class Helpers
     public function getWPCFMSettings()
     {
         $ret = [];
-        $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
+        $src = WPBOOT_BASEPATH.'/bootstrap/config/wpbootstrap.json';
         if (file_exists($src)) {
             $config = json_decode(file_get_contents($src));
             if ($config) {
@@ -299,4 +343,5 @@ class Helpers
         $pattern = "~^[\pL\pN\s\"\~". preg_quote("!#$%&'()*+,-./:;<=>?@[\]^_`{|}´") ."]+$~u";
         return preg_match($pattern, $input);
     }
+
 }
