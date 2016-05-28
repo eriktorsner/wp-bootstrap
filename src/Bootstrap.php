@@ -51,6 +51,8 @@ class Bootstrap
         $app = self::getApplication();
         $installer = $app['install'];
         $installer->run($args, $assocArgs);
+
+        $this->writeDefinesInWPConfig();
     }
 
     /**
@@ -79,6 +81,8 @@ class Bootstrap
         $app = self::getApplication();
         $obj = $app['setup'];
         $obj->run($args, $assocArgs);
+
+        $this->writeDefinesInWPConfig();
     }
 
     /**
@@ -107,5 +111,16 @@ class Bootstrap
         $app = self::getApplication();
         $obj = $app['export'];
         $obj->run($args, $assocArgs);
+    }
+
+    private function writeDefinesInWPConfig()
+    {
+        $app = self::getApplication();
+        $helpers = $app['helpers'];
+        $helpers->ensureDefineInFile(
+            $app['path'] . '/wp-config.php',
+            'WPBOOT_BASEPATH',
+            WPBOOT_BASEPATH
+        );
     }
 }
