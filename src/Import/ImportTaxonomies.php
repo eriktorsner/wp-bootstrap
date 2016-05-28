@@ -34,7 +34,7 @@ class ImportTaxonomies
         $helpers = $app['helpers'];
         $yaml = new Yaml();
 
-        $dir = BASEPATH.'/bootstrap/taxonomies';
+        $dir = WPBOOT_BASEPATH.'/bootstrap/taxonomies';
         foreach ($helpers->getFiles($dir) as $subdir) {
             if (!is_dir("$dir/$subdir")) {
                 continue;
@@ -228,7 +228,7 @@ class ImportTaxonomies
         $yaml = new Yaml();
         $taxonomy->type = 'standard';
         $taxonomy->termDescriptor = 'indirect';
-        $file = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
+        $file = WPBOOT_BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
         if (file_exists($file)) {
             $manifest = $yaml->parse(file_get_contents($file));
             if (isset($manifest['type'])) {

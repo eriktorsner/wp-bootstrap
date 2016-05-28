@@ -283,7 +283,7 @@ class Setup extends BaseCommand
 
         $cmd = sprintf(
             $cmdTemplate,
-            BASEPATH,
+            WPBOOT_BASEPATH,
             $path,
             $installable->slug,
             $this->app['path'],
@@ -322,7 +322,7 @@ class Setup extends BaseCommand
         $settings = $this->app['settings'];
         if (isset($settings['symlinks'])) {
             foreach ($settings['symlinks'] as $symlink) {
-                if (!file_exists(BASEPATH . '/wp-content/' . $symlink)) {
+                if (!file_exists(WPBOOT_BASEPATH . '/wp-content/' . $symlink)) {
                     continue;
                 }
                 $cmd = sprintf(
@@ -334,7 +334,7 @@ class Setup extends BaseCommand
 
                 $cmd = sprintf(
                     'ln -s %s/wp-content/%s %s/wp-content/%s',
-                    BASEPATH,
+                    WPBOOT_BASEPATH,
                     $symlink,
                     $this->app['path'],
                     $symlink

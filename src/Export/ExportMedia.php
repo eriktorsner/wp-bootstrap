@@ -36,7 +36,7 @@ class ExportMedia
                 $attachmentMeta = wp_get_attachment_metadata($itemId, true);
                 $item['attachment_meta'] = $attachmentMeta;
 
-                $dir = BASEPATH.'/bootstrap/media/'.$item['post_name'];
+                $dir = WPBOOT_BASEPATH.'/bootstrap/media/'.$item['post_name'];
                 @mkdir($dir, 0777, true);
                 file_put_contents($dir.'/meta', $dumper->dump($item, 4));
                 $src = $uploadDir['basedir'].'/'.$file;

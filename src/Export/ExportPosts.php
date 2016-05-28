@@ -157,7 +157,7 @@ class ExportPosts
                     $arrPost['post_meta'] = $meta;
                     $helpers->fieldSearchReplace($arrPost, $baseUrl, Bootstrap::NEUTRALURL);
 
-                    $file = BASEPATH."/bootstrap/posts/{$arrPost['post_type']}/{$arrPost['post_name']}";
+                    $file = WPBOOT_BASEPATH."/bootstrap/posts/{$arrPost['post_type']}/{$arrPost['post_name']}";
                     $cli->debug("Storing $file");
                     @mkdir(dirname($file), 0777, true);
                     file_put_contents($file, $dumper->dump($arrPost, 4));

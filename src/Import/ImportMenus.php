@@ -46,8 +46,8 @@ class ImportMenus
         }
 
         foreach ($settings['content']['menus'] as $menu) {
-            $dir = BASEPATH."/bootstrap/menus/$menu";
-            $menuMeta = $yaml->parse(file_get_contents(BASEPATH."/bootstrap/menus/{$menu}_manifest"));
+            $dir = WPBOOT_BASEPATH."/bootstrap/menus/$menu";
+            $menuMeta = $yaml->parse(file_get_contents(WPBOOT_BASEPATH."/bootstrap/menus/{$menu}_manifest"));
 
             $newMenu = new \stdClass();
             $newMenu->slug = $menu;

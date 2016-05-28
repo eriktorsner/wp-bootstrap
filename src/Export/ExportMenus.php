@@ -37,7 +37,7 @@ class ExportMenus
         $baseUrl = get_option('siteurl');
 
         foreach ($settings['content']['menus'] as $menu) {
-            $dir = BASEPATH.'/bootstrap/menus/'.$menu;
+            $dir = WPBOOT_BASEPATH.'/bootstrap/menus/'.$menu;
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);
 
@@ -47,7 +47,7 @@ class ExportMenus
                 $menuMeta['locations'] = $this->navMenus[$menu]->locations;
             }
 
-            $file = BASEPATH."/bootstrap/menus/{$menu}_manifest";
+            $file = WPBOOT_BASEPATH."/bootstrap/menus/{$menu}_manifest";
             file_put_contents($file, $dumper->dump($menuMeta, 4));
 
             $menuItems = wp_get_nav_menu_items($menu);

@@ -14,7 +14,7 @@ class BaseCommand
     {
         $app = \Wpbootstrap\Bootstrap::getApplication();
         $cli = $app['cli'];
-        $dotEnv = new Dotenv(BASEPATH);
+        $dotEnv = new Dotenv(WPBOOT_BASEPATH);
 
         try {
             foreach ($parameters as $parameter) {

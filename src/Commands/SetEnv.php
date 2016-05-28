@@ -31,14 +31,14 @@ class SetEnv
     {
         $environment = $args[0];
 
-        if (file_exists(BASEPATH . "/.env")) {
-            $dotEnv = new Dotenv(BASEPATH);
+        if (file_exists(WPBOOT_BASEPATH . "/.env")) {
+            $dotEnv = new Dotenv(WPBOOT_BASEPATH);
             $dotEnv->load();
         }
 
         $file = '.env-' . $environment;
-        if (file_exists(BASEPATH . "/$file")) {
-            $dotEnv = new Dotenv(BASEPATH, $file);
+        if (file_exists(WPBOOT_BASEPATH . "/$file")) {
+            $dotEnv = new Dotenv(WPBOOT_BASEPATH, $file);
             $dotEnv->overload();
         }
 

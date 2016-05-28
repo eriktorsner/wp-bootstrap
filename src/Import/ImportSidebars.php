@@ -30,13 +30,13 @@ class ImportSidebars
         $baseUrl = get_option('siteurl');
         $yaml = new Yaml();
 
-        $dir = BASEPATH.'/bootstrap/sidebars';
+        $dir = WPBOOT_BASEPATH.'/bootstrap/sidebars';
         foreach ($helpers->getFiles($dir) as $sidebar) {
-            if (!is_dir(BASEPATH."/bootstrap/sidebars/$sidebar")) {
+            if (!is_dir(WPBOOT_BASEPATH."/bootstrap/sidebars/$sidebar")) {
                 continue;
             }
-            $subdir = BASEPATH."/bootstrap/sidebars/$sidebar";
-            $manifest = BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
+            $subdir = WPBOOT_BASEPATH."/bootstrap/sidebars/$sidebar";
+            $manifest = WPBOOT_BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
             $newSidebar = new \stdClass();
             $newSidebar->slug = $sidebar;
             $newSidebar->items = array();

@@ -34,7 +34,7 @@ class ExportOptions
         }
 
         $src = $app['path'] . '/wp-content/config/wpbootstrap.json';
-        $trg = BASEPATH . '/bootstrap/config/wpbootstrap.json';
+        $trg = WPBOOT_BASEPATH . '/bootstrap/config/wpbootstrap.json';
         if (file_exists($src)) {
             @mkdir(dirname($trg), 0777, true);
             copy($src, $trg);

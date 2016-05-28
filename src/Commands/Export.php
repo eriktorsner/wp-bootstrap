@@ -53,7 +53,7 @@ class Export extends BaseCommand
         $app = \Wpbootstrap\Bootstrap::getApplication();
         $helpers = $app['helpers'];
         $cli = $app['cli'];
-        $base = BASEPATH.'/bootstrap';
+        $base = WPBOOT_BASEPATH.'/bootstrap';
 
         $cli->debug("Cleaning export folders under $base");
         $helpers->recursiveRemoveDirectory($base.'/menus');
@@ -78,7 +78,7 @@ class Export extends BaseCommand
         $manifest->boostrapVersion = Bootstrap::VERSION;
         $manifest->appSettings = $dumper->dump($settings, 2);
 
-        $manifestFile = BASEPATH.'/bootstrap/manifest.json';
+        $manifestFile = WPBOOT_BASEPATH.'/bootstrap/manifest.json';
         if (file_exists(dirname($manifestFile))) {
             file_put_contents($manifestFile, $helpers->prettyPrint(json_encode($manifest)));
         }

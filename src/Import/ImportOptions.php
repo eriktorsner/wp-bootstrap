@@ -19,7 +19,7 @@ class ImportOptions
         $helpers = $app['helpers'];
         $baseUrl = get_option('siteurl');
 
-        $src = BASEPATH.'/bootstrap/config/wpbootstrap.json';
+        $src = WPBOOT_BASEPATH.'/bootstrap/config/wpbootstrap.json';
         $trg = $app['path'] .'/wp-content/config/wpbootstrap.json';
 
         if (file_exists($src)) {

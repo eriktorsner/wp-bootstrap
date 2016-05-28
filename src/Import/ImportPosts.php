@@ -36,7 +36,7 @@ class ImportPosts
         $helpers = $app['helpers'];
         $yaml = new Yaml();
 
-        $dir = BASEPATH . '/bootstrap/posts';
+        $dir = WPBOOT_BASEPATH . '/bootstrap/posts';
         foreach ($helpers->getFiles($dir) as $postType) {
             foreach ($helpers->getFiles($dir . '/' . $postType) as $slug) {
                 $newPost = new \stdClass();
@@ -47,7 +47,7 @@ class ImportPosts
                 $newPost->type = $postType;
                 $newPost->tries = 0;
 
-                $file = BASEPATH . "/bootstrap/posts/$postType/$slug";
+                $file = WPBOOT_BASEPATH . "/bootstrap/posts/$postType/$slug";
                 $newPost->post = $yaml->parse(file_get_contents($file));
 
                 $this->posts[] = $newPost;
@@ -166,7 +166,7 @@ class ImportPosts
         $yaml = new Yaml();
 
         // check all the media.
-        foreach (glob(BASEPATH.'/bootstrap/media/*') as $dir) {
+        foreach (glob(WPBOOT_BASEPATH.'/bootstrap/media/*') as $dir) {
             $item = $yaml->parse(file_get_contents("$dir/meta"));
 
             // does this image have an imported post as it's parent?

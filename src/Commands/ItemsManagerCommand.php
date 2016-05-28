@@ -105,7 +105,7 @@ class ItemsManagerCommand
         $app = Bootstrap::getApplication();
         $settings = $app['settings'];
 
-        $file = BASEPATH . '/appsettings.yml';
+        $file = WPBOOT_BASEPATH . '/appsettings.yml';
         $dumper = new Dumper();
         file_put_contents($file, $dumper->dump($settings, 4));
     }

@@ -87,7 +87,7 @@ class ExportTaxonomies
                     }
 
                     $objTerm = get_term_by('slug', $term->slug, $taxonomyName, ARRAY_A);
-                    $file = BASEPATH."/bootstrap/taxonomies/$taxonomyName/{$term->slug}";
+                    $file = WPBOOT_BASEPATH."/bootstrap/taxonomies/$taxonomyName/{$term->slug}";
                     @mkdir(dirname($file), 0777, true);
                     file_put_contents($file, $dumper->dump($objTerm, 4));
 
@@ -102,7 +102,7 @@ class ExportTaxonomies
         }
 
         foreach ($this->taxonomies as $taxonomyName => $taxonomy) {
-            $manifestFile = BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
+            $manifestFile = WPBOOT_BASEPATH."/bootstrap/taxonomies/{$taxonomyName}_manifest";
             $manifest = array();
             $manifest['name'] = $taxonomyName;
             $manifest['type'] = $taxonomy->type;

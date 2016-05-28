@@ -30,7 +30,7 @@ class ExportSidebars
 
         $storedSidebars = get_option('sidebars_widgets', array());
         foreach ($settings['content']['sidebars'] as $sidebar) {
-            $dir = BASEPATH.'/bootstrap/sidebars/'.$sidebar;
+            $dir = WPBOOT_BASEPATH.'/bootstrap/sidebars/'.$sidebar;
             array_map('unlink', glob("$dir/*"));
             @mkdir($dir, 0777, true);
 
@@ -53,7 +53,7 @@ class ExportSidebars
                 file_put_contents($file, $dumper->dump($widgetSettings, 4));
             }
 
-            $file = BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
+            $file = WPBOOT_BASEPATH."/bootstrap/sidebars/{$sidebar}_manifest";
             file_put_contents($file, $dumper->dump($sidebarDef, 4));
         }
     }

@@ -30,7 +30,7 @@ class OptionSnap
 
     public function __construct()
     {
-        $this->baseFolder = BASEPATH . '/bootstrap/snapshots';
+        $this->baseFolder = WPBOOT_BASEPATH . '/bootstrap/snapshots';
     }
 
     /**
