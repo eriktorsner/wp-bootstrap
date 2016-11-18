@@ -201,7 +201,7 @@ class ImportPosts
                 );
                 $id = wp_insert_post($args);
             } else {
-                $id = $existing->post['ID'];
+                $id = $existing->post->ID;
             }
             update_post_meta($id, '_wp_attached_file', $file);
 
